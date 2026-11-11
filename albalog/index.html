@@ -2429,16 +2429,14 @@ function exportCSV() {
     showToast('내보낼 근무 기록이 없습니다.');
     return;
   }
-  let csv = "일자,근무처,출근시각,퇴근시각,휴게(분),시급,실근로시간,일급,메모
-";
+  let csv = `일자,근무처,출근시각,퇴근시각,휴게(분),시급,실근로시간,일급,메모\n`;
   state.logs.forEach(l => {
     const r = calcSingleWork(l);
     const wp = state.workplaces.find(w => w.id === l.wpId) || { name: l.memo || '' };
-    csv += `${l.date},"${wp.name}",${l.start},${l.end},${l.breakMin||0},${r.hourly},${r.totalHours.toFixed(1)},${r.totalPay},"${l.memo||''}"
-`;
+    csv += `${l.date},"${wp.name}",${l.start},${l.end},${l.breakMin||0},${r.hourly},${r.totalHours.toFixed(1)},${r.totalPay},"${l.memo||''}"\n`;
   });
 
-  const blob = new Blob(["﻿" + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
