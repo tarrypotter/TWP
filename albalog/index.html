@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>알바로그 Pro — 주휴·야간수당 자동 정산기</title>
+<meta name="description" content="야간할증 1.5배와 주휴수당을 터치 한 번으로 자동 계산하는 모바일 급여 정산기">
+<meta name="theme-color" content="#0B0F19">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root {
+  --bg: #0B0F19;
+  --surface: #111827;
+  --surface-card: #162032;
+  --surface-hover: #1E293B;
+  --border: #243247;
+  --border-light: rgba(255, 255, 255, 0.08);
+  --text: #F8FAFC;
+  --text-muted: #94A3B8;
+  --text-subtle: #64748B;
+  --brand: #38BDF8;
+  --brand-glow: rgba(56, 189, 248, 0.25);
+  --green: #10B981;
+  --green-glow: rgba(16, 185, 129, 0.2);
+  --amber: #F59E0B;
+  --amber-glow: rgba(245, 158, 11, 0.2);
+  --rose: #F43F5E;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 9999px;
+  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  --sans: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --en: "Plus Jakarta Sans", var(--sans);
+  --mono: "JetBrains Mono", monospace;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Base Reset & Native Touch Controls */
+* {
+  box-sizing: border-box;
+  margin: 0; padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* App Container */
+.app-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+}
+
+/* Fixed Header */
+header.app-header {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: calc(58px + var(--safe-top));
+  padding-top: var(--safe-top);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  backdrop-filter: blur(20px) saturate(1.8);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 16px;
+  padding-right: 16px;
+  z-index: 50;
+}
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 17px;
+  font-family: var(--en);
+  letter-spacing: -0.03em;
+}
+.header-badge {
+  background: linear-gradient(135deg, var(--brand), #0284C7);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.04em;
+}
+.header-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--brand);
+  color: #0F172A;
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
+}
+.header-action-btn:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
+/* Scrollable Content View */
+main.app-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-top: calc(66px + var(--safe-top));
+  padding-bottom: calc(78px + var(--safe-bottom));
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Fixed Bottom Navigation Bar */
+nav.app-nav {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: calc(64px + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  backdrop-filter: blur(24px) saturate(1.8);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 50;
+}
+.nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: none;
+  border: 0;
+  color: var(--text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px 0;
+  transition: color 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-tab svg {
+  width: 22px; height: 22px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.15s ease;
+}
+.nav-tab.active {
+  color: var(--brand);
+}
+.nav-tab:active {
+  transform: scale(0.92);
+}
+
+/* Tabs & Panes */
+.tab-pane {
+  display: none;
+  animation: paneIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tab-pane.active { display: block; }
+@keyframes paneIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Cards & Components */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+
+/* Salary Hero Card */
+.salary-card {
+  background: linear-gradient(145deg, #132238 0%, #162032 100%);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+.salary-card::after {
+  content: "";
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, transparent 70%);
+  pointer-events: none;
+}
+.salary-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.salary-month-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brand);
+  background: rgba(56, 189, 248, 0.12);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+}
+.salary-amount-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.salary-number {
+  font-family: var(--en);
+  font-size: 34px;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  color: #fff;
+}
+.salary-unit {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.salary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: rgba(11, 15, 25, 0.6);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  border: 1px solid var(--border-light);
+}
+.salary-stat-col {
+  display: flex;
+  flex-direction: column;
+}
+.stat-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+.stat-val {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.stat-val.accent-green { color: var(--green); }
+.stat-val.accent-amber { color: var(--amber); }
+
+/* Quick Receipt Button */
+.btn-receipt {
+  width: 100%;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  color: var(--brand);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-receipt:active { transform: scale(0.98); background: var(--surface-hover); }
+
+/* Section Header */
+.sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0 10px;
+}
+.sec-head h3 {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.sec-head-action {
+  font-size: 12.5px;
+  color: var(--brand);
+  font-weight: 700;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+/* Work Log Items */
+.log-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  transition: transform 0.15s ease;
+}
+.log-item:active { transform: scale(0.99); background: var(--surface-hover); }
+.log-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.log-date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.log-date {
+  font-weight: 750;
+  font-size: 14.5px;
+}
+.tag-badge {
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.tag-badge.night {
+  background: var(--amber-glow);
+  color: var(--amber);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+.tag-badge.day {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--brand);
+}
+.log-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--mono);
+}
+.log-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.log-pay {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--green);
+}
+.log-del-btn {
+  background: none;
+  border: 0;
+  color: var(--text-subtle);
+  font-size: 11px;
+  cursor: pointer;
+}
+.log-del-btn:hover { color: var(--rose); }
+
+/* Calendar View */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  text-align: center;
+}
+.cal-head-day {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-subtle);
+  padding: 6px 0;
+}
+.cal-cell {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-height: 52px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.cal-cell:active { transform: scale(0.94); border-color: var(--brand); }
+.cal-cell.today { border-color: var(--brand); }
+.cal-cell.worked { background: rgba(16, 185, 129, 0.08); border-color: var(--green); }
+.cal-day-num { font-size: 12px; font-weight: 700; }
+.cal-dot {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--green);
+  font-family: var(--mono);
+}
+
+/* Calculator View */
+.calc-field {
+  margin-bottom: 14px;
+}
+.calc-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.calc-input {
+  width: 100%;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--mono);
+  outline: none;
+}
+.calc-input:focus { border-color: var(--brand); }
+.calc-res-box {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-top: 14px;
+}
+.calc-res-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  padding: 4px 0;
+}
+.calc-res-row.bold {
+  font-weight: 800;
+  font-size: 15px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  padding-top: 8px;
+  color: var(--green);
+}
+
+/* Settings View */
+.set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.set-row:last-child { border-bottom: 0; }
+.set-label-block { display: flex; flex-direction: column; }
+.set-title { font-size: 14.5px; font-weight: 750; }
+.set-sub { font-size: 11.5px; color: var(--text-muted); }
+
+/* Modal Sheets (Bottom Sheet) */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.modal-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border: 1px solid var(--border);
+  padding: 22px 18px calc(22px + var(--safe-bottom));
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-overlay.open .modal-sheet {
+  transform: translateY(0);
+}
+.sheet-handle {
+  width: 40px; height: 4px;
+  background: var(--border);
+  border-radius: var(--radius-pill);
+  margin: -8px auto 16px;
+}
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.sheet-title {
+  font-size: 18px;
+  font-weight: 800;
+}
+.sheet-close {
+  background: var(--surface-card);
+  border: 0;
+  color: var(--text-muted);
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Modal Form Controls */
+.form-group {
+  margin-bottom: 14px;
+}
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+}
+.form-input:focus { border-color: var(--brand); }
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, var(--brand), #0284C7);
+  color: #fff;
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: transform 0.15s ease;
+}
+.btn-primary:active { transform: scale(0.98); }
+
+/* Receipt Table */
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  margin: 14px 0;
+}
+.receipt-table td {
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.receipt-table tr:last-child td {
+  border-bottom: 0;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--green);
+  padding-top: 12px;
+}
+.receipt-table td:last-child {
+  text-align: right;
+  font-family: var(--mono);
+}
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: calc(80px + var(--safe-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(40px);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--brand);
+  box-shadow: var(--shadow);
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  font-size: 13.5px;
+  font-weight: 700;
+  z-index: 150;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+#toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+</style>
+</head>
+<body>
+
+<div class="app-viewport">
+  <!-- Fixed Header -->
+  <header class="app-header">
+    <div class="header-brand">
+      <span>알바로그</span>
+      <span class="header-badge">PRO</span>
+    </div>
+    <button type="button" class="header-action-btn" onclick="openAddModal()">
+      <span>+</span> 근무 추가
+    </button>
+  </header>
+
+  <!-- Scrollable Main View -->
+  <main class="app-content">
+    
+    <!-- Tab 1: Dashboard (Home) -->
+    <div id="pane-home" class="tab-pane active">
+      <!-- Salary Hero Card -->
+      <div class="card salary-card">
+        <div class="salary-label-row">
+          <span class="salary-month-badge">2026년 11월 정산</span>
+          <span style="font-size:12px;color:var(--text-muted)" id="workCountBadge">근무 5일</span>
+        </div>
+        <div class="salary-amount-row">
+          <div class="salary-number" id="netSalaryText">572,120</div>
+          <div class="salary-unit">원 (실수령액)</div>
+        </div>
+
+        <div class="salary-grid">
+          <div class="salary-stat-col">
+            <span class="stat-name">기본 근로</span>
+            <span class="stat-val" id="basePayText">411,230</span>
+          </div>
+          <div class="salary-stat-col">
+            <span class="stat-name">주휴수당</span>
+            <span class="stat-val accent-green" id="holidayPayText">90,270</span>
+          </div>
+          <div class="salary-stat-col">
+            <span class="stat-name">야간할증 (1.5x)</span>
+            <span class="stat-val accent-amber" id="nightPayText">70,620</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn-receipt" onclick="openReceiptModal()">
+          <span>🧾</span> 이번 달 급여명세서 영수증 보기
+        </button>
+      </div>
+
+      <!-- Quick Summary Cards -->
+      <div class="sec-head">
+        <h3>최근 근무 기록</h3>
+        <button type="button" class="sec-head-action" onclick="switchTab('cal')">전체보기 ↗</button>
+      </div>
+
+      <div id="recentLogsList">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Tab 2: Calendar -->
+    <div id="pane-cal" class="tab-pane">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <h3 style="font-size:16px;font-weight:800">2026년 11월 근무표</h3>
+          <span style="font-size:12px;color:var(--green);font-weight:700">● 근무일 표시</span>
+        </div>
+        <div class="cal-grid" id="calGrid">
+          <!-- Calendar cells rendered by JS -->
+        </div>
+      </div>
+
+      <div class="sec-head">
+        <h3>11월 근무 전체 리스트</h3>
+      </div>
+      <div id="allLogsList">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Tab 3: Calculator -->
+    <div id="pane-calc" class="tab-pane">
+      <div class="card">
+        <h3 style="font-size:16px;font-weight:800;margin-bottom:14px">주휴수당 간편 시뮬레이터</h3>
+        <div class="calc-field">
+          <label class="calc-label">시급 (원)</label>
+          <input type="number" id="calcHourly" class="calc-input" value="10030" oninput="runCalculator()">
+        </div>
+        <div class="calc-field">
+          <label class="calc-label">주간 총 근무시간 (시간)</label>
+          <input type="number" id="calcWeeklyHours" class="calc-input" value="24" oninput="runCalculator()">
+        </div>
+
+        <div class="calc-res-box">
+          <div class="calc-res-row">
+            <span>주 15시간 이상 충족 여부</span>
+            <span id="calcEligible" style="color:var(--green);font-weight:700">충족 (지급 대상)</span>
+          </div>
+          <div class="calc-res-row">
+            <span>주휴 발생 시간</span>
+            <span id="calcHolidayHours">4.8시간</span>
+          </div>
+          <div class="calc-res-row bold">
+            <span>예상 주휴수당</span>
+            <span id="calcHolidayPay">48,144원</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:16px;font-weight:800;margin-bottom:14px">세금 공제 비교</h3>
+        <div class="calc-res-box">
+          <div class="calc-res-row">
+            <span>3.3% 프리랜서 공제</span>
+            <span id="calcTax33" style="color:var(--brand)">- 18,870원</span>
+          </div>
+          <div class="calc-res-row">
+            <span>4대보험 공제 (약 9.4%)</span>
+            <span id="calcTax4" style="color:var(--rose)">- 53,780원</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Settings -->
+    <div id="pane-set" class="tab-pane">
+      <div class="card">
+        <h3 style="font-size:16px;font-weight:800;margin-bottom:14px">기본 근무 조건</h3>
+        <div class="set-row">
+          <div class="set-label-block">
+            <span class="set-title">기본 시급</span>
+            <span class="set-sub">2026년 법정 최저시급 10,030원</span>
+          </div>
+          <input type="number" id="setHourlyInput" class="calc-input" style="width:110px;text-align:right" value="10030" onchange="saveSettings()">
+        </div>
+        <div class="set-row">
+          <div class="set-label-block">
+            <span class="set-title">야간할증 배율</span>
+            <span class="set-sub">22:00 ~ 06:00 근무 시</span>
+          </div>
+          <span style="font-family:var(--mono);font-weight:700;color:var(--amber)">1.5배</span>
+        </div>
+        <div class="set-row">
+          <div class="set-label-block">
+            <span class="set-title">세금 공제 방식</span>
+            <span class="set-sub">명세서 계산 시 자동 차감</span>
+          </div>
+          <select id="setTaxType" class="calc-input" style="width:110px;font-size:13px" onchange="saveSettings()">
+            <option value="none">미공제</option>
+            <option value="3.3" selected>3.3%</option>
+            <option value="9.4">4대보험(9.4%)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:16px;font-weight:800;margin-bottom:14px">데이터 관리</h3>
+        <button type="button" class="btn-receipt" onclick="exportData()" style="color:var(--text);margin-top:0;margin-bottom:8px">
+          📋 데이터 클립보드 복사
+        </button>
+        <button type="button" class="btn-receipt" onclick="resetToSample()" style="color:var(--rose)">
+          🔄 기본 샘플 데이터로 복원
+        </button>
+      </div>
+
+      <div style="text-align:center;padding:20px 0;font-size:12px;color:var(--text-subtle)">
+        알바로그 Pro · Single File Mobile WebApp<br>
+        Developed by 이태웅 (@tarrypotter)
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Fixed Bottom Navigation -->
+  <nav class="app-nav">
+    <button type="button" class="nav-tab active" onclick="switchTab('home')">
+      <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>홈</span>
+    </button>
+    <button type="button" class="nav-tab" onclick="switchTab('cal')">
+      <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+      <span>캘린더</span>
+    </button>
+    <button type="button" class="nav-tab" onclick="switchTab('calc')">
+      <svg viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+      <span>정산기</span>
+    </button>
+    <button type="button" class="nav-tab" onclick="switchTab('set')">
+      <svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>설정</span>
+    </button>
+  </nav>
+</div>
+
+<!-- Modal 1: Add Work Log -->
+<div id="modalAdd" class="modal-overlay" onclick="closeOnOverlay(event, 'modalAdd')">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title">근무 기록 추가</div>
+      <button type="button" class="sheet-close" onclick="closeModal('modalAdd')">✕</button>
+    </div>
+
+    <form id="addForm" onsubmit="handleAddWork(event)">
+      <div class="form-group">
+        <label class="form-label">근무 일자</label>
+        <input type="date" id="workDate" class="form-input" required value="2026-11-11">
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label">출근 시각</label>
+          <input type="time" id="workStart" class="form-input" required value="22:00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">퇴근 시각</label>
+          <input type="time" id="workEnd" class="form-input" required value="06:00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">휴게 시간 (분)</label>
+        <input type="number" id="workBreak" class="form-input" value="60" min="0" step="10">
+      </div>
+      <div class="form-group">
+        <label class="form-label">근무처 / 메모</label>
+        <input type="text" id="workMemo" class="form-input" placeholder="예: 야간 물류센터 / 피시방 / 편의점" value="야간 물류 피킹">
+      </div>
+
+      <button type="submit" class="btn-primary">기록 저장하기</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal 2: Pay Receipt -->
+<div id="modalReceipt" class="modal-overlay" onclick="closeOnOverlay(event, 'modalReceipt')">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title">11월 급여 영수증 명세서</div>
+      <button type="button" class="sheet-close" onclick="closeModal('modalReceipt')">✕</button>
+    </div>
+
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">
+      2026년 11월 기준 실시간 정산 명세서입니다.
+    </p>
+
+    <table class="receipt-table" id="receiptTable">
+      <!-- Generated by JS -->
+    </table>
+
+    <button type="button" class="btn-primary" onclick="copyReceiptText()">
+      📋 명세서 텍스트 복사
+    </button>
+  </div>
+</div>
+
+<div id="toast">복사되었습니다!</div>
+
+<script>
+// Prevent double-tap zoom on iOS Safari
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function (event) {
+  const now = (new Date()).getTime();
+  if (now - lastTouchEnd <= 300) {
+    event.preventDefault();
+  }
+  lastTouchEnd = now;
+}, false);
+
+// History API View Stack for Back Button Support
+window.addEventListener('popstate', function(event) {
+  const openModal = document.querySelector('.modal-overlay.open');
+  if (openModal) {
+    openModal.classList.remove('open');
+    return;
+  }
+  if (event.state && event.state.tab) {
+    doSwitchTab(event.state.tab, false);
+  }
+});
+
+// App State
+const DEFAULT_LOGS = [
+  { id: 1, date: "2026-11-01", start: "22:00", end: "06:00", breakMin: 60, memo: "물류센터 야간 하차" },
+  { id: 2, date: "2026-11-03", start: "22:00", end: "06:00", breakMin: 60, memo: "물류센터 야간 피킹" },
+  { id: 3, date: "2026-11-06", start: "23:00", end: "07:00", breakMin: 60, memo: "피시방 주말 야간" },
+  { id: 4, date: "2026-11-07", start: "23:00", end: "07:00", breakMin: 60, memo: "피시방 주말 야간" },
+  { id: 5, date: "2026-11-08", start: "22:00", end: "06:00", breakMin: 60, memo: "물류센터 야간 바코드" }
+];
+
+let state = {
+  hourly: 10030,
+  taxType: "3.3",
+  logs: []
+};
+
+// Init from LocalStorage
+function initApp() {
+  const saved = localStorage.getItem('albalog_pro_data');
+  if (saved) {
+    try {
+      state = JSON.parse(saved);
+    } catch(e) {
+      state.logs = DEFAULT_LOGS;
+    }
+  } else {
+    state.logs = DEFAULT_LOGS;
+  }
+  document.getElementById('setHourlyInput').value = state.hourly;
+  document.getElementById('setTaxType').value = state.taxType;
+  document.getElementById('calcHourly').value = state.hourly;
+
+  renderAll();
+  runCalculator();
+
+  history.replaceState({ tab: 'home' }, '');
+}
+
+function saveState() {
+  localStorage.setItem('albalog_pro_data', JSON.stringify(state));
+  renderAll();
+}
+
+// Night & Day Work Split Logic (22:00 to 06:00 is 1.5x)
+function calcWorkPay(log, hourly) {
+  const [sh, sm] = log.start.split(':').map(Number);
+  const [eh, em] = log.end.split(':').map(Number);
+
+  let startMinutes = sh * 60 + sm;
+  let endMinutes = eh * 60 + em;
+  if (endMinutes <= startMinutes) {
+    endMinutes += 24 * 60; // Next day shift
+  }
+
+  let totalMinutes = (endMinutes - startMinutes) - (log.breakMin || 0);
+  if (totalMinutes < 0) totalMinutes = 0;
+
+  // Calculate Night Minutes (22:00 = 1320m to 06:00 next day = 1800m)
+  let nightMinutes = 0;
+  for (let m = startMinutes; m < endMinutes; m++) {
+    const modHour = Math.floor(m / 60) % 24;
+    if (modHour >= 22 || modHour < 6) {
+      nightMinutes++;
+    }
+  }
+  // Subtract break proportionally if night
+  if (log.breakMin && totalMinutes > 0) {
+    const nightRatio = nightMinutes / (endMinutes - startMinutes);
+    nightMinutes = Math.max(0, nightMinutes - Math.round(log.breakMin * nightRatio));
+  }
+
+  const totalHours = totalMinutes / 60;
+  const nightHours = nightMinutes / 60;
+
+  const basePay = Math.round(totalHours * hourly);
+  const nightExtra = Math.round(nightHours * hourly * 0.5); // 0.5 additional for 1.5x
+
+  return { totalHours, nightHours, basePay, nightExtra, totalPay: basePay + nightExtra };
+}
+
+// Render Dashboard and Lists
+function renderAll() {
+  let totalBase = 0;
+  let totalNightExtra = 0;
+  let totalHoursSum = 0;
+
+  state.logs.forEach(log => {
+    const res = calcWorkPay(log, state.hourly);
+    totalBase += res.basePay;
+    totalNightExtra += res.nightExtra;
+    totalHoursSum += res.totalHours;
+  });
+
+  // Weekly Holiday Allowance (If >= 15h per week, (hours/40)*8*hourly)
+  // Simplified calculation based on 15h threshold
+  let holidayPay = 0;
+  if (totalHoursSum >= 15) {
+    holidayPay = Math.round((Math.min(40, totalHoursSum) / 40) * 8 * state.hourly);
+  }
+
+  const grossSalary = totalBase + totalNightExtra + holidayPay;
+
+  let taxAmount = 0;
+  if (state.taxType === "3.3") {
+    taxAmount = Math.round(grossSalary * 0.033);
+  } else if (state.taxType === "9.4") {
+    taxAmount = Math.round(grossSalary * 0.094);
+  }
+
+  const netSalary = grossSalary - taxAmount;
+
+  document.getElementById('netSalaryText').textContent = netSalary.toLocaleString();
+  document.getElementById('basePayText').textContent = totalBase.toLocaleString() + '원';
+  document.getElementById('holidayPayText').textContent = '+' + holidayPay.toLocaleString() + '원';
+  document.getElementById('nightPayText').textContent = '+' + totalNightExtra.toLocaleString() + '원';
+  document.getElementById('workCountBadge').textContent = '근무 ' + state.logs.length + '일';
+
+  renderLogs();
+  renderCalendar();
+  renderReceiptTable(totalHoursSum, totalBase, totalNightExtra, holidayPay, grossSalary, taxAmount, netSalary);
+}
+
+function renderLogs() {
+  const recentBox = document.getElementById('recentLogsList');
+  const allBox = document.getElementById('allLogsList');
+
+  const sorted = [...state.logs].sort((a,b) => b.date.localeCompare(a.date));
+
+  function makeItem(log) {
+    const res = calcWorkPay(log, state.hourly);
+    const isNight = res.nightHours > 0;
+    return `
+      <div class="log-item">
+        <div class="log-item-left">
+          <div class="log-date-row">
+            <span class="log-date">${log.date.substring(5)}</span>
+            <span class="tag-badge ${isNight ? 'night' : 'day'}">${isNight ? '야간' : '주간'}</span>
+            <span style="font-size:12px;color:var(--text-muted)">${log.memo || '근무'}</span>
+          </div>
+          <div class="log-time">${log.start} ~ ${log.end} (${res.totalHours.toFixed(1)}시간)</div>
+        </div>
+        <div class="log-item-right">
+          <div class="log-pay">${res.totalPay.toLocaleString()}원</div>
+          <button type="button" class="log-del-btn" onclick="deleteLog(${log.id})">삭제</button>
+        </div>
+      </div>
+    `;
+  }
+
+  recentBox.innerHTML = sorted.slice(0, 3).map(makeItem).join('') || '<div style="text-align:center;padding:20px;color:var(--text-subtle)">기록된 근무가 없습니다.</div>';
+  allBox.innerHTML = sorted.map(makeItem).join('') || '<div style="text-align:center;padding:20px;color:var(--text-subtle)">기록된 근무가 없습니다.</div>';
+}
+
+// Calendar Generator for Nov 2026 (Nov 1 is Sunday)
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  let html = days.map(d => `<div class="cal-head-day">${d}</div>`).join('');
+
+  // Nov 2026 starts on Sunday (day 0), 30 days
+  const workedMap = {};
+  state.logs.forEach(l => {
+    workedMap[l.date] = true;
+  });
+
+  for (let day = 1; day <= 30; day++) {
+    const dStr = `2026-11-${String(day).padStart(2, '0')}`;
+    const isWorked = workedMap[dStr];
+    const isToday = day === 11;
+
+    html += `
+      <div class="cal-cell ${isWorked ? 'worked' : ''} ${isToday ? 'today' : ''}" onclick="clickCalDay('${dStr}')">
+        <span class="cal-day-num">${day}</span>
+        ${isWorked ? '<span class="cal-dot">●근무</span>' : '<span></span>'}
+      </div>
+    `;
+  }
+  grid.innerHTML = html;
+}
+
+function clickCalDay(dateStr) {
+  document.getElementById('workDate').value = dateStr;
+  openAddModal();
+}
+
+function renderReceiptTable(totalHours, base, night, holiday, gross, tax, net) {
+  const table = document.getElementById('receiptTable');
+  table.innerHTML = `
+    <tr><td>총 근로시간</td><td>${totalHours.toFixed(1)} 시간</td></tr>
+    <tr><td>기본 시급</td><td>${state.hourly.toLocaleString()} 원</td></tr>
+    <tr><td>기본 근로수당</td><td>${base.toLocaleString()} 원</td></tr>
+    <tr><td>야간 가산수당 (1.5x)</td><td>+ ${night.toLocaleString()} 원</td></tr>
+    <tr><td>주휴수당 (15h 이상)</td><td>+ ${holiday.toLocaleString()} 원</td></tr>
+    <tr><td>세전 총급여</td><td>${gross.toLocaleString()} 원</td></tr>
+    <tr><td>예상 공제세액 (${state.taxType}%)</td><td>- ${tax.toLocaleString()} 원</td></tr>
+    <tr><td>최종 실수령액</td><td>${net.toLocaleString()} 원</td></tr>
+  `;
+}
+
+// Tab Switching with History API
+function switchTab(tabId) {
+  history.pushState({ tab: tabId }, '');
+  doSwitchTab(tabId, true);
+}
+
+function doSwitchTab(tabId, animate) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+
+  const targetPane = document.getElementById('pane-' + tabId);
+  if (targetPane) targetPane.classList.add('active');
+
+  const tabs = ['home', 'cal', 'calc', 'set'];
+  const idx = tabs.indexOf(tabId);
+  if (idx !== -1) {
+    document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+  }
+}
+
+// Modals
+function openAddModal() {
+  history.pushState({ modal: 'modalAdd' }, '');
+  document.getElementById('modalAdd').classList.add('open');
+}
+
+function openReceiptModal() {
+  history.pushState({ modal: 'modalReceipt' }, '');
+  document.getElementById('modalReceipt').classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function closeOnOverlay(e, id) {
+  if (e.target.id === id) {
+    closeModal(id);
+  }
+}
+
+// Actions
+function handleAddWork(e) {
+  e.preventDefault();
+  const date = document.getElementById('workDate').value;
+  const start = document.getElementById('workStart').value;
+  const end = document.getElementById('workEnd').value;
+  const breakMin = parseInt(document.getElementById('workBreak').value) || 0;
+  const memo = document.getElementById('workMemo').value || '근무';
+
+  const newLog = {
+    id: Date.now(),
+    date, start, end, breakMin, memo
+  };
+
+  state.logs.push(newLog);
+  saveState();
+  closeModal('modalAdd');
+  showToast('근무가 성공적으로 기록되었습니다!');
+}
+
+function deleteLog(id) {
+  if (confirm('이 근무 기록을 삭제하시겠습니까?')) {
+    state.logs = state.logs.filter(l => l.id !== id);
+    saveState();
+    showToast('기록이 삭제되었습니다.');
+  }
+}
+
+function saveSettings() {
+  state.hourly = parseInt(document.getElementById('setHourlyInput').value) || 10030;
+  state.taxType = document.getElementById('setTaxType').value;
+  saveState();
+  showToast('설정이 저장되었습니다.');
+}
+
+function runCalculator() {
+  const h = parseInt(document.getElementById('calcHourly').value) || 10030;
+  const w = parseFloat(document.getElementById('calcWeeklyHours').value) || 0;
+
+  const eligible = w >= 15;
+  document.getElementById('calcEligible').textContent = eligible ? '충족 (지급 대상)' : '미충족 (주 15시간 미만)';
+  document.getElementById('calcEligible').style.color = eligible ? 'var(--green)' : 'var(--rose)';
+
+  const holHours = eligible ? (Math.min(40, w) / 40) * 8 : 0;
+  const holPay = Math.round(holHours * h);
+
+  document.getElementById('calcHolidayHours').textContent = holHours.toFixed(1) + '시간';
+  document.getElementById('calcHolidayPay').textContent = holPay.toLocaleString() + '원';
+
+  const grossEst = (w * h) + holPay;
+  document.getElementById('calcTax33').textContent = '- ' + Math.round(grossEst * 0.033).toLocaleString() + '원';
+  document.getElementById('calcTax4').textContent = '- ' + Math.round(grossEst * 0.094).toLocaleString() + '원';
+}
+
+function copyReceiptText() {
+  const net = document.getElementById('netSalaryText').textContent;
+  const base = document.getElementById('basePayText').textContent;
+  const hol = document.getElementById('holidayPayText').textContent;
+  const night = document.getElementById('nightPayText').textContent;
+
+  const txt = `[알바로그 Pro - 2026년 11월 급여 명세서]\n실수령액: ${net}원\n기본급: ${base}\n주휴수당: ${hol}\n야간할증(1.5x): ${night}\n(기준 시급: ${state.hourly.toLocaleString()}원 / 세금: ${state.taxType}%)`;
+  navigator.clipboard.writeText(txt).then(() => {
+    showToast('명세서 텍스트가 복사되었습니다!');
+  });
+}
+
+function exportData() {
+  navigator.clipboard.writeText(JSON.stringify(state, null, 2)).then(() => {
+    showToast('데이터가 클립보드에 복사되었습니다.');
+  });
+}
+
+function resetToSample() {
+  if (confirm('기본 샘플 데이터로 복원하시겠습니까?')) {
+    state.logs = DEFAULT_LOGS;
+    state.hourly = 10030;
+    state.taxType = "3.3";
+    saveState();
+    showToast('샘플 데이터로 복원되었습니다.');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Start
+window.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
