@@ -2611,8 +2611,10 @@ function updateLivePreview() {
 
   if (!start || !end) return;
 
+  const wpId = document.getElementById('workWpSelect').value;
+  const allowNight = document.getElementById('workNightOverride').checked;
   const tempLog = {
-    start, end, breakMin, hourly
+    start, end, breakMin, hourly, wpId, calcNight: allowNight
   };
 
   const res = calcSingleWork(tempLog);
