@@ -2630,9 +2630,8 @@ function updateLivePreview() {
       document.getElementById('modalLiveNight').style.color = 'var(--text-subtle)';
     }
   } else {
-    document.getElementById('modalLiveNight').textContent = `야간할증 ${res.nightHours.toFixed(1)}h (+${res.nightPay.toLocaleString()}원)`;
-  } else {
     document.getElementById('modalLiveNight').textContent = '야간할증 없음';
+    document.getElementById('modalLiveNight').style.color = 'var(--text-subtle)';
   }
 }
 
