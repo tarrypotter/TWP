@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>알바로그 Pro v2.2 — 주휴·야간수당 자동 정산기</title>
-<meta name="description" content="야간할증 1.5배와 주 단위 주휴수당을 터치 한 번으로 완벽하게 계산하는 모바일 급여 정산기">
+<title>알바로그 Pro v2.3 — 로컬 프라이빗 주휴·야간수당 정산기</title>
+<meta name="description" content="100% 온디바이스 로컬 저장으로 외부 서버 전송 없이 내 알바처와 시급을 직접 등록하고 야간·주휴수당을 정산하는 완전 프라이빗 알바 장부">
 <meta name="theme-color" content="#0B0F19">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,175 +16,187 @@
 :root {
   --bg: #0B0F19;
   --surface: #111827;
-  --surface-card: #162032;
-  --surface-hover: #1E293B;
-  --surface-elevated: #202D42;
-  --border: #243247;
-  --border-light: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(56, 189, 248, 0.25);
-  --text: #F8FAFC;
-  --text-muted: #94A3B8;
-  --text-subtle: #64748B;
-  --brand: #38BDF8;
-  --brand-glow: rgba(56, 189, 248, 0.2);
+  --surface-card: #182234;
+  --surface-elevated: #1F293D;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #38BDF8;
+  --primary: #38BDF8;
+  --primary-glow: rgba(56, 189, 248, 0.25);
   --green: #10B981;
   --green-glow: rgba(16, 185, 129, 0.2);
   --amber: #F59E0B;
   --amber-glow: rgba(245, 158, 11, 0.2);
   --purple: #A855F7;
-  --purple-glow: rgba(168, 85, 247, 0.2);
   --rose: #F43F5E;
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
-  --radius-pill: 9999px;
-  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
-  --sans: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --en: "Plus Jakarta Sans", var(--sans);
-  --mono: "JetBrains Mono", monospace;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --text: #F8FAFC;
+  --text-muted: #94A3B8;
+  --text-subtle: #64748B;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-full: 9999px;
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
 }
 
-/* Reset & Native Touch */
 * {
   box-sizing: border-box;
-  margin: 0; padding: 0;
+  margin: 0;
+  padding: 0;
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
 }
-html, body {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
+
+body {
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   background-color: var(--bg);
   color: var(--text);
-  font-family: var(--sans);
-  line-height: 1.5;
-  letter-spacing: -0.02em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  padding-bottom: calc(72px + var(--safe-bottom));
+  overflow-x: hidden;
   user-select: none;
-  -webkit-user-select: none;
-}
-input, textarea, select {
-  user-select: text;
-  -webkit-user-select: text;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* App Viewport */
-.app-viewport {
-  position: relative;
-  width: 100%;
+/* App Container */
+.app-container {
   max-width: 480px;
-  height: 100%;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  background-color: var(--bg);
-  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+  min-height: 100vh;
+  background: var(--bg);
+  position: relative;
+  box-shadow: 0 0 50px rgba(0,0,0,0.5);
 }
 
-/* Fixed Header */
-header.app-header {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: calc(58px + var(--safe-top));
-  padding-top: var(--safe-top);
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  -webkit-backdrop-filter: blur(20px) saturate(1.8);
-  backdrop-filter: blur(20px) saturate(1.8);
+/* Header */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(11, 15, 25, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
+  padding: 12px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-left: 16px;
-  padding-right: 16px;
-  z-index: 50;
 }
+
 .header-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+}
+
+.header-logo-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #0284C7, #38BDF8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+}
+
+.header-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 800;
-  font-size: 17px;
-  letter-spacing: -0.03em;
-}
-.brand-pulse {
-  width: 8px;
-  height: 8px;
-  background-color: var(--brand);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--brand);
-  animation: pulseDot 2s infinite ease-in-out;
-}
-@keyframes pulseDot {
-  0%, 100% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.4); opacity: 0.5; }
-}
-.brand-title {
-  background: linear-gradient(135deg, #FFF 0%, #94A3B8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 16.5px;
+  letter-spacing: -0.3px;
+  color: var(--text);
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.brand-badge {
+
+.header-badge {
   font-size: 10.5px;
-  font-family: var(--mono);
   font-weight: 700;
-  padding: 2px 6px;
-  border-radius: var(--radius-pill);
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
   background: rgba(56, 189, 248, 0.15);
-  color: var(--brand);
+  color: var(--primary);
   border: 1px solid rgba(56, 189, 248, 0.3);
-  letter-spacing: 0;
 }
+
+.header-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .btn-header-add {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 7px 13px;
-  background: var(--brand);
-  color: #04101E;
-  font-weight: 700;
+  background: linear-gradient(135deg, #0284C7, #38BDF8);
+  color: #0B0F19;
+  font-weight: 800;
   font-size: 13px;
-  border-radius: var(--radius-pill);
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
   border: none;
   cursor: pointer;
-  box-shadow: 0 2px 10px var(--brand-glow);
-  transition: transform 0.15s var(--ease);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+  transition: transform 0.1s ease;
 }
 .btn-header-add:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
-/* Scrollable Main Content */
-main.app-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  padding-top: calc(58px + var(--safe-top) + 14px);
-  padding-bottom: calc(68px + var(--safe-bottom) + 24px);
-  padding-left: 16px;
-  padding-right: 16px;
-}
-main.app-content::-webkit-scrollbar {
-  display: none;
+/* Privacy Guarantee Banner */
+.privacy-badge-card {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* Tab Panes */
+.privacy-badge-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: rgba(56, 189, 248, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.privacy-badge-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 2px;
+}
+
+.privacy-badge-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* Content Area */
+.app-content {
+  padding: 16px 16px 20px 16px;
+}
+
 .tab-pane {
   display: none;
-  animation: fadeIn 0.25s var(--ease);
+  animation: fadeIn 0.2s ease-out;
 }
 .tab-pane.active {
   display: block;
@@ -194,236 +206,152 @@ main.app-content::-webkit-scrollbar {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Cards & Surfaces */
+/* Cards */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: 18px;
   margin-bottom: 14px;
-  box-shadow: var(--shadow);
-  position: relative;
-  overflow: hidden;
 }
 
 /* Salary Hero Card */
 .salary-hero {
-  background: linear-gradient(145deg, #131E33 0%, #0F172A 100%);
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: linear-gradient(145deg, #131D2E 0%, #0E1624 100%);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   position: relative;
+  overflow: hidden;
 }
+
 .salary-hero::before {
   content: "";
   position: absolute;
-  top: -50px; right: -50px;
-  width: 140px; height: 140px;
+  top: -50px;
+  right: -50px;
+  width: 140px;
+  height: 140px;
   background: radial-gradient(circle, rgba(56, 189, 248, 0.18) 0%, transparent 70%);
-  border-radius: 50%;
   pointer-events: none;
 }
+
 .hero-month-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-.month-picker-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-light);
-  padding: 5px 12px;
-  border-radius: var(--radius-pill);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  cursor: pointer;
-}
-.month-picker-btn:active {
-  background: rgba(255, 255, 255, 0.1);
-}
-.badge-count {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-.salary-main-amount {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-.salary-num {
-  font-family: var(--mono);
-  font-size: 38px;
-  font-weight: 700;
-  color: #FFF;
-  letter-spacing: -0.04em;
-  line-height: 1.1;
-}
-.salary-unit {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-.salary-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: 12px 8px;
-  margin-bottom: 14px;
-}
-.stat-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-.stat-col:not(:last-child) {
-  border-right: 1px solid var(--border-light);
-}
-.stat-name {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-  font-weight: 600;
-}
-.stat-val {
-  font-family: var(--mono);
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text);
-}
-.stat-val.green { color: var(--green); }
-.stat-val.amber { color: var(--amber); }
-.stat-val.purple { color: var(--purple); }
-
-/* Progress Goal Bar */
-.goal-bar-wrap {
-  margin-bottom: 14px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: var(--radius-sm);
-  padding: 10px;
-}
-.goal-bar-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11.5px;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-.goal-bar-track {
-  width: 100%;
-  height: 6px;
-  background: var(--surface-hover);
-  border-radius: var(--radius-pill);
-  overflow: hidden;
-}
-.goal-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--brand) 0%, var(--green) 100%);
-  border-radius: var(--radius-pill);
-  transition: width 0.4s var(--ease);
-}
-
-/* Button Receipt */
-.btn-receipt {
-  width: 100%;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  color: var(--text);
-  font-weight: 700;
-  font-size: 13.5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: background 0.15s var(--ease), transform 0.15s var(--ease);
-}
-.btn-receipt:active {
-  background: rgba(255, 255, 255, 0.1);
-  transform: scale(0.98);
-}
-
-/* Weekly Holiday Pay Progress Card */
-.weekly-holiday-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  margin-bottom: 14px;
-}
-.sec-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
 }
-.sec-title {
-  font-size: 14.5px;
-  font-weight: 800;
+
+.month-picker-btn {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-.weekly-chips-row {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  -webkit-overflow-scrolling: touch;
-}
-.weekly-chips-row::-webkit-scrollbar { display: none; }
-.week-chip {
-  flex: 0 0 calc(50% - 4px);
   background: var(--surface-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
 }
-.week-chip.qualified {
-  border-color: rgba(16, 185, 129, 0.4);
-  background: linear-gradient(145deg, rgba(16, 185, 129, 0.08) 0%, var(--surface-card) 100%);
+
+.hero-sublabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
-.week-chip-title {
+
+.hero-salary-main {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 4px;
+  margin-bottom: 14px;
+}
+
+.hero-amount {
+  font-family: 'JetBrains Mono', 'Plus Jakarta Sans', monospace;
+  font-weight: 800;
+  font-size: 34px;
+  letter-spacing: -1px;
+  color: #FFFFFF;
+}
+
+.hero-won {
+  font-size: 18px;
   font-weight: 700;
   color: var(--text-muted);
 }
-.week-chip-hours {
-  font-family: var(--mono);
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--text);
-}
-.week-chip-sub {
-  font-size: 11px;
-  font-weight: 600;
-}
-.week-chip-sub.ok { color: var(--green); }
-.week-chip-sub.wait { color: var(--text-subtle); }
 
-/* Quick Preset Chips in Add Modal & Home */
+.hero-pills-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.hero-pill-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+
+.hero-pill-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hero-pill-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 3px;
+}
+
+.pill-highlight-blue {
+  color: var(--primary);
+}
+.pill-highlight-green {
+  color: var(--green);
+}
+.pill-highlight-amber {
+  color: var(--amber);
+}
+
+/* Monthly Target Progress */
+.target-bar-wrap {
+  margin-top: 12px;
+  background: var(--surface-card);
+  border-radius: var(--radius-full);
+  height: 7px;
+  overflow: hidden;
+  position: relative;
+}
+.target-bar-fill {
+  background: linear-gradient(90deg, #38BDF8, #10B981);
+  height: 100%;
+  width: 0%;
+  border-radius: var(--radius-full);
+  transition: width 0.4s ease;
+}
+
+/* Quick Shift Chips in Add Modal & Home */
 .quick-templates-wrap {
   display: flex;
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 6px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 .quick-templates-wrap::-webkit-scrollbar { display: none; }
 .chip-template {
@@ -433,209 +361,207 @@ main.app-content::-webkit-scrollbar {
   gap: 5px;
   padding: 7px 12px;
   background: var(--surface-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
   font-size: 12px;
   font-weight: 700;
   color: var(--text);
   cursor: pointer;
-  transition: all 0.15s var(--ease);
+  transition: all 0.15s ease;
 }
 .chip-template:active {
-  background: var(--surface-hover);
-  transform: scale(0.96);
-  border-color: var(--brand);
+  transform: scale(0.95);
+  background: var(--surface-elevated);
+  border-color: var(--primary);
 }
 
-/* Log Item Row */
-.log-item {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 14px;
-  margin-bottom: 8px;
+/* Section Title */
+.sec-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  cursor: pointer;
-  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+  margin-bottom: 10px;
 }
-.log-item:active {
-  background: var(--surface-card);
-  border-color: var(--brand);
-}
-.log-item-left {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.log-date-row {
+.sec-title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: var(--text);
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.log-date {
-  font-family: var(--mono);
+
+/* Weekly Breakdown Chips Bar */
+.week-chips-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+}
+.week-chips-row::-webkit-scrollbar { display: none; }
+
+.week-chip {
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  min-width: 105px;
+}
+.week-chip.qualified {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.05);
+}
+.week-chip-title {
+  font-size: 11px;
   font-weight: 700;
-  font-size: 13.5px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.week-chip-hours {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 3px;
+}
+.week-chip-sub {
+  font-size: 10px;
+  margin-top: 2px;
+  font-weight: 600;
+}
+.week-chip-sub.ok { color: var(--green); }
+.week-chip-sub.wait { color: var(--text-subtle); }
+
+/* Work Log Items */
+.log-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.log-item:active {
+  background: var(--surface-card);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.log-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.log-date-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', sans-serif;
+}
+.log-date-day {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+.log-date-weekday {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.log-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.log-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.log-title {
+  font-size: 14px;
+  font-weight: 700;
   color: var(--text);
 }
-.tag-badge {
-  font-size: 10.5px;
-  font-weight: 700;
+
+.log-night-badge {
+  font-size: 10px;
+  font-weight: 800;
   padding: 1px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-full);
+  background: rgba(168, 85, 247, 0.18);
+  color: #C084FC;
+  border: 1px solid rgba(168, 85, 247, 0.35);
 }
-.tag-badge.night {
-  background: rgba(245, 158, 11, 0.18);
-  color: var(--amber);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-.tag-badge.day {
-  background: rgba(56, 189, 248, 0.15);
-  color: var(--brand);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-}
-.tag-badge.wp {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-muted);
-}
+
 .log-time {
   font-size: 12px;
   color: var(--text-muted);
-}
-.log-item-right {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: 4px;
 }
+
+.log-item-right {
+  text-align: right;
+}
+
 .log-pay {
-  font-family: var(--mono);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
   font-weight: 800;
-  font-size: 14.5px;
   color: var(--text);
 }
-.log-breakdown {
-  font-size: 10.5px;
+
+.log-hours {
+  font-size: 11px;
   color: var(--text-subtle);
+  margin-top: 2px;
 }
 
 /* Empty State */
 .empty-box {
   text-align: center;
-  padding: 36px 16px;
+  padding: 32px 16px;
   background: var(--surface);
   border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
   margin: 10px 0;
 }
 .empty-emoji {
-  font-size: 34px;
+  font-size: 32px;
   margin-bottom: 8px;
 }
 .empty-title {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 14.5px;
   color: var(--text);
   margin-bottom: 4px;
 }
 .empty-desc {
-  font-size: 12.5px;
-  color: var(--text-muted);
-  margin-bottom: 14px;
-  line-height: 1.4;
-}
-
-/* Calendar View */
-.cal-container {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  margin-bottom: 14px;
-}
-.cal-month-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-.cal-nav-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-light);
-  color: var(--text);
-  border-radius: var(--radius-sm);
-  padding: 6px 12px;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-}
-.cal-nav-btn:active { background: rgba(255, 255, 255, 0.1); }
-.cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-}
-.cal-head-day {
-  text-align: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-subtle);
-  padding: 6px 0;
-}
-.cal-head-day:first-child { color: var(--rose); }
-.cal-head-day:last-child { color: var(--brand); }
-.cal-cell {
-  min-height: 58px;
-  background: var(--surface-card);
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: all 0.12s var(--ease);
-}
-.cal-cell:active {
-  transform: scale(0.96);
-  border-color: var(--brand);
-}
-.cal-cell.today {
-  border-color: var(--brand);
-  background: rgba(56, 189, 248, 0.08);
-}
-.cal-cell.worked {
-  border-color: rgba(16, 185, 129, 0.35);
-  background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, var(--surface-card) 100%);
-}
-.cal-cell-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.cal-day-num {
   font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-}
-.cal-cell:first-child .cal-day-num { color: var(--rose); }
-.cal-cell:last-child .cal-day-num { color: var(--brand); }
-.cal-cell-badge {
-  font-size: 9.5px;
-  font-weight: 700;
-  color: var(--green);
-  font-family: var(--mono);
-}
-.cal-cell-pay {
-  font-size: 9px;
   color: var(--text-muted);
-  font-family: var(--mono);
-  text-align: right;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.45;
 }
 
 /* Workplace Cards */
@@ -643,7 +569,7 @@ main.app-content::-webkit-scrollbar {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 14px 16px;
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -652,114 +578,158 @@ main.app-content::-webkit-scrollbar {
 .wp-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 .wp-icon {
-  width: 40px; height: 40px;
+  width: 42px; height: 42px;
   border-radius: var(--radius-md);
   background: var(--surface-card);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
 }
 .wp-title {
   font-size: 14.5px;
   font-weight: 800;
   color: var(--text);
-  margin-bottom: 2px;
 }
 .wp-hourly {
   font-size: 12px;
   color: var(--text-muted);
-  font-family: var(--mono);
+  margin-top: 2px;
 }
+
+.chip-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+}
+.chip-blue {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--primary);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.chip-subtle {
+  background: var(--surface-card);
+  color: var(--text-subtle);
+  border: 1px solid var(--border);
+}
+
 .wp-stats {
   text-align: right;
 }
 .wp-stats-sum {
-  font-family: var(--mono);
+  font-family: 'JetBrains Mono', monospace;
   font-weight: 800;
   font-size: 14.5px;
-  color: var(--brand);
+  color: var(--text);
 }
 .wp-stats-hours {
   font-size: 11px;
-  color: var(--text-subtle);
+  color: var(--text-muted);
 }
 
-/* Form Controls & Modals */
+.btn-wp-action {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-wp-action:hover {
+  background: var(--surface-elevated);
+  color: var(--text);
+  border-color: var(--primary);
+}
+.btn-wp-action.delete:hover {
+  border-color: var(--rose);
+  color: var(--rose);
+}
+
+/* Modals */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 100;
-  display: none;
+  display: flex;
   align-items: flex-end;
   justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
 }
 .modal-overlay.open {
-  display: flex;
-  animation: modalFadeIn 0.25s var(--ease);
+  opacity: 1;
+  pointer-events: auto;
 }
-@keyframes modalFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+
 .modal-sheet {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
   width: 100%;
   max-width: 480px;
   max-height: 88vh;
-  background: var(--surface);
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
-  border-top: 1px solid var(--border-light);
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
-  padding: 16px 20px calc(24px + var(--safe-bottom)) 20px;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  animation: sheetSlideUp 0.3s var(--ease);
+  padding: 16px 20px calc(24px + var(--safe-bottom)) 20px;
+  transform: translateY(100%);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-@keyframes sheetSlideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+.modal-overlay.open .modal-sheet {
+  transform: translateY(0);
 }
+
 .sheet-handle {
-  width: 38px;
+  width: 36px;
   height: 4px;
-  background: var(--text-subtle);
-  border-radius: var(--radius-pill);
-  margin: 0 auto 14px auto;
-  opacity: 0.6;
+  border-radius: var(--radius-full);
+  background: var(--border);
+  margin: 0 auto 12px auto;
 }
+
 .sheet-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 .sheet-title {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--text);
 }
 .sheet-close {
-  background: rgba(255, 255, 255, 0.08);
-  border: none;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
   color: var(--text-muted);
-  width: 30px; height: 30px;
-  border-radius: 50%;
+  width: 28px; height: 28px;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
 }
+
+/* Form Styles */
 .form-group {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 .form-label {
   display: block;
@@ -770,443 +740,481 @@ main.app-content::-webkit-scrollbar {
 }
 .form-input {
   width: 100%;
-  padding: 11px 14px;
   background: var(--surface-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  color: var(--text);
-  font-family: var(--sans);
+  padding: 10px 14px;
   font-size: 14px;
-  outline: none;
-  transition: border-color 0.15s var(--ease);
+  color: var(--text);
+  font-family: inherit;
+  transition: border-color 0.15s ease;
 }
 .form-input:focus {
-  border-color: var(--brand);
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface-elevated);
 }
+
 .form-row-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 
-/* Quick Minute Buttons */
 .break-quick-row {
   display: flex;
   gap: 6px;
   margin-top: 6px;
 }
 .btn-break-pill {
-  padding: 4px 10px;
-  font-size: 11.5px;
+  flex: 1;
+  padding: 5px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
   font-weight: 700;
-  background: var(--surface-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-pill);
   color: var(--text-muted);
   cursor: pointer;
 }
-.btn-break-pill:active { background: var(--surface-hover); color: var(--text); }
+.btn-break-pill:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
 
-/* Live Preview Card in Modal */
+/* Modal Live Preview Card */
 .modal-live-preview {
-  background: linear-gradient(145deg, rgba(56, 189, 248, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.live-preview-title {
-  font-size: 12px;
+.preview-label {
+  font-size: 11.5px;
   color: var(--text-muted);
   font-weight: 600;
 }
-.live-preview-hours {
-  font-size: 11px;
-  color: var(--brand);
-  font-weight: 700;
-}
-.live-preview-pay {
-  font-family: var(--mono);
-  font-size: 17px;
+.preview-pay {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
   font-weight: 800;
-  color: var(--text);
+  color: var(--primary);
+}
+.preview-details {
+  font-size: 11px;
+  color: var(--text-subtle);
+  margin-top: 2px;
 }
 
-/* Primary Button */
+/* Buttons */
 .btn-primary {
   width: 100%;
-  padding: 14px;
-  background: var(--brand);
-  color: #04101E;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 15px;
+  background: linear-gradient(135deg, #0284C7, #38BDF8);
+  color: #0B0F19;
   font-weight: 800;
+  font-size: 14.5px;
+  padding: 13px;
+  border-radius: var(--radius-lg);
+  border: none;
   cursor: pointer;
-  box-shadow: 0 4px 16px var(--brand-glow);
-  transition: transform 0.15s var(--ease);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+  transition: transform 0.1s ease;
 }
 .btn-primary:active {
   transform: scale(0.98);
 }
-.btn-danger {
-  background: rgba(244, 63, 94, 0.15);
-  color: var(--rose);
-  border: 1px solid rgba(244, 63, 94, 0.3);
+
+.btn-secondary {
+  width: 100%;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
   margin-top: 8px;
 }
-.btn-danger:active {
-  background: rgba(244, 63, 94, 0.25);
+
+.btn-danger {
+  width: 100%;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  color: var(--rose);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  margin-top: 10px;
 }
 
-/* Realistic Paper Receipt Styles */
+/* Paper Receipt Styles */
 .receipt-paper {
-  background: #0E1626;
-  border: 1px solid #23344D;
-  border-radius: 12px;
-  padding: 18px 16px;
-  margin-bottom: 16px;
+  background: #FAFAFA;
+  color: #111827;
+  border-radius: var(--radius-lg);
+  padding: 22px 18px;
+  font-family: 'Pretendard Variable', -apple-system, monospace;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.5);
   position: relative;
-  font-family: var(--mono);
+  overflow: hidden;
 }
-.receipt-paper::before, .receipt-paper::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0;
-  height: 6px;
-  background-size: 12px 6px;
-}
-.receipt-paper::before {
-  top: -6px;
-  background-image: radial-gradient(circle at 6px 6px, transparent 6px, #0E1626 7px);
-}
-.receipt-paper::after {
-  bottom: -6px;
-  background-image: radial-gradient(circle at 6px 0px, transparent 6px, #0E1626 7px);
-}
-.receipt-shop-head {
+.receipt-header {
   text-align: center;
-  border-bottom: 1px dashed var(--border);
-  padding-bottom: 12px;
-  margin-bottom: 12px;
+  border-bottom: 2px dashed #D1D5DB;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
 }
-.receipt-shop-name {
-  font-size: 15px;
+.receipt-brand {
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 800;
-  letter-spacing: 0.05em;
-  color: #FFF;
+  font-size: 18px;
+  letter-spacing: -0.5px;
 }
-.receipt-shop-sub {
-  font-size: 11px;
-  color: var(--text-subtle);
-  margin-top: 3px;
+.receipt-serial {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  color: #6B7280;
+  margin-top: 2px;
 }
 .receipt-table {
   width: 100%;
-  border-collapse: collapse;
   font-size: 12.5px;
-  margin-bottom: 12px;
+  border-collapse: collapse;
 }
 .receipt-table td {
   padding: 5px 0;
 }
 .receipt-table td:last-child {
   text-align: right;
+  font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
 }
 .receipt-divider {
-  border-top: 1px dashed var(--border);
-  margin: 8px 0;
+  border-top: 1px dashed #D1D5DB;
+  margin: 10px 0;
 }
 .receipt-total-row {
   display: flex;
-  align-items: baseline;
   justify-content: space-between;
-  padding-top: 6px;
-  font-size: 16px;
+  align-items: baseline;
+  padding-top: 10px;
+  border-top: 2px solid #111827;
+}
+.receipt-total-label {
+  font-size: 15px;
   font-weight: 800;
-  color: var(--brand);
+}
+.receipt-total-amount {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 24px;
+  font-weight: 800;
+  color: #0284C7;
 }
 .receipt-barcode {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed #D1D5DB;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
+}
+.barcode-lines {
   height: 34px;
-  margin-top: 14px;
-  opacity: 0.6;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
 }
-.barcode-line {
-  height: 100%;
-  background: var(--text-muted);
+.barcode-bar {
+  background: #111827;
+  border-radius: 1px;
+}
+.barcode-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #6B7280;
+  letter-spacing: 2px;
 }
 
-/* Calculator & Tools Pane */
-.calc-field {
-  margin-bottom: 12px;
+/* Calendar Grid */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-top: 8px;
 }
-.calc-res-box {
+.cal-header-cell {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 6px 0;
+}
+.cal-header-cell:first-child { color: var(--rose); }
+.cal-header-cell:last-child { color: var(--primary); }
+
+.cal-day-cell {
+  min-height: 58px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.cal-day-cell.today {
+  border-color: var(--primary);
+  background: rgba(56, 189, 248, 0.05);
+}
+.cal-day-cell.has-work {
   background: var(--surface-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: 12px;
-  margin-top: 14px;
 }
-.calc-res-row {
+.cal-day-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.cal-day-cell.sunday .cal-day-num { color: var(--rose); }
+.cal-day-cell.saturday .cal-day-num { color: var(--primary); }
+
+.cal-work-dot {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: rgba(56, 189, 248, 0.18);
+  color: var(--primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+/* Bottom Nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(11, 15, 25, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border);
+  padding: 6px 12px calc(6px + var(--safe-bottom)) 12px;
+}
+.bottom-nav-inner {
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.nav-tab {
+  background: none;
+  border: none;
+  color: var(--text-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  font-family: inherit;
+}
+.nav-tab.active {
+  color: var(--primary);
+}
+.nav-tab-icon {
+  font-size: 19px;
+}
+.nav-tab-label {
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+/* Floating Action Button */
+.fab-btn {
+  position: fixed;
+  bottom: calc(76px + var(--safe-bottom));
+  right: 18px;
+  z-index: 45;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #0284C7, #38BDF8);
+  color: #0B0F19;
+  border: none;
+  font-size: 26px;
+  font-weight: 800;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 13px;
-  padding: 4px 0;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.45);
+  cursor: pointer;
+  transition: transform 0.15s ease;
 }
-.calc-res-row.bold {
-  font-weight: 800;
-  font-size: 15px;
-  border-top: 1px dashed var(--border-light);
-  margin-top: 6px;
-  padding-top: 8px;
-  color: var(--green);
+.fab-btn:active {
+  transform: scale(0.92);
 }
 
-/* Settings Rows */
+/* Toast */
+.toast-msg {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-30px);
+  background: var(--surface-elevated);
+  border: 1px solid var(--primary);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s ease;
+}
+.toast-msg.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* Settings Items */
 .set-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 0;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border);
 }
-.set-row:last-child { border-bottom: none; }
-.set-label-block {
-  display: flex;
-  flex-direction: column;
+.set-row:last-child {
+  border-bottom: none;
 }
-.set-title {
-  font-size: 14px;
+.set-label-main {
+  font-size: 13.5px;
   font-weight: 700;
-  color: var(--text);
 }
-.set-sub {
-  font-size: 11.5px;
+.set-label-sub {
+  font-size: 11px;
   color: var(--text-muted);
-}
-
-/* Toggle Switch */
-.toggle-switch {
-  position: relative;
-  width: 44px;
-  height: 24px;
-}
-.toggle-switch input {
-  opacity: 0;
-  width: 0; height: 0;
-}
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: var(--surface-card);
-  border: 1px solid var(--border);
-  transition: .2s;
-  border-radius: 24px;
-}
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 18px; width: 18px;
-  left: 2px; bottom: 2px;
-  background-color: var(--text-muted);
-  transition: .2s;
-  border-radius: 50%;
-}
-.toggle-switch input:checked + .toggle-slider {
-  background-color: var(--brand);
-  border-color: var(--brand);
-}
-.toggle-switch input:checked + .toggle-slider:before {
-  transform: translateX(20px);
-  background-color: #04101E;
-}
-
-/* Fixed Bottom Navigation Bar */
-nav.app-nav {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: calc(60px + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
-  background: color-mix(in srgb, var(--bg) 90%, transparent);
-  -webkit-backdrop-filter: blur(20px) saturate(1.8);
-  backdrop-filter: blur(20px) saturate(1.8);
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  z-index: 50;
-}
-.nav-tab {
-  flex: 1;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  color: var(--text-subtle);
-  cursor: pointer;
-  transition: color 0.15s var(--ease), transform 0.12s var(--ease);
-}
-.nav-tab:active {
-  transform: scale(0.92);
-}
-.nav-tab svg {
-  width: 21px;
-  height: 21px;
-  stroke: currentColor;
-  stroke-width: 2;
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: stroke 0.15s var(--ease);
-}
-.nav-tab span {
-  font-size: 10.5px;
-  font-weight: 700;
-}
-.nav-tab.active {
-  color: var(--brand);
-}
-.nav-tab.active svg {
-  stroke: var(--brand);
-}
-
-/* Toast */
-#toast {
-  position: fixed;
-  bottom: calc(74px + var(--safe-bottom));
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: rgba(30, 41, 59, 0.95);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border-glow);
-  color: #FFF;
-  padding: 10px 20px;
-  border-radius: var(--radius-pill);
-  font-size: 13px;
-  font-weight: 700;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
-  z-index: 200;
-  white-space: nowrap;
-}
-#toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  margin-top: 2px;
 }
 </style>
 </head>
 <body>
 
-<div class="app-viewport">
+<div class="app-container">
+  <!-- Toast Notification -->
+  <div id="toast" class="toast-msg">알림 메시지</div>
 
-  <!-- Fixed App Header -->
+  <!-- Header -->
   <header class="app-header">
     <div class="header-brand">
-      <div class="brand-pulse"></div>
-      <div class="brand-title">
-        알바로그 <span class="brand-badge">Pro v2.2</span>
+      <div class="header-logo-icon">💼</div>
+      <div>
+        <div class="header-title">알바로그 Pro <span class="header-badge">v2.3 Private</span></div>
+        <div class="header-sub">100% 온디바이스 · 로컬 프라이빗 알바 장부</div>
       </div>
     </div>
     <div class="header-actions">
       <button type="button" class="btn-header-add" onclick="openAddModal()">
-        <span>+</span> 근무 등록
+        + 근무 등록
       </button>
     </div>
   </header>
 
-  <!-- Scrollable Main View -->
+  <!-- Main Content -->
   <main class="app-content">
 
-    <!-- Tab 1: Dashboard (Home) -->
+    <!-- Tab 1: Home (Main Salary View) -->
     <div id="pane-home" class="tab-pane active">
       
+      <!-- Privacy Guarantee Card -->
+      <div class="privacy-badge-card">
+        <div class="privacy-badge-icon">🔒</div>
+        <div>
+          <div class="privacy-badge-title">100% 온디바이스 로컬 퍼스트</div>
+          <div class="privacy-badge-desc">회원가입 없음 · 외부 서버 전송 0% · 모든 데이터는 내 폰 브라우저에만 암호화 저장됩니다.</div>
+        </div>
+      </div>
+
       <!-- Salary Hero Card -->
       <div class="card salary-hero">
         <div class="hero-month-bar">
-          <button type="button" class="month-picker-btn" onclick="prevMonth()">
-            ◀
-          </button>
-          <span style="font-weight:800;font-size:15px;color:var(--text)" id="heroMonthLabel">2026년 11월</span>
-          <button type="button" class="month-picker-btn" onclick="nextMonth()">
-            ▶
-          </button>
-        </div>
-
-        <div class="salary-main-amount">
-          <div class="salary-num" id="netSalaryText">0</div>
-          <div class="salary-unit">원 (실수령액)</div>
-        </div>
-
-        <!-- 3-Column Stats -->
-        <div class="salary-stats-grid">
-          <div class="stat-col">
-            <span class="stat-name">기본 근로</span>
-            <span class="stat-val" id="basePayText">0원</span>
-          </div>
-          <div class="stat-col">
-            <span class="stat-name">주휴수당</span>
-            <span class="stat-val green" id="holidayPayText">+0원</span>
-          </div>
-          <div class="stat-col">
-            <span class="stat-name">야간할증 (1.5x)</span>
-            <span class="stat-val amber" id="nightPayText">+0원</span>
+          <div class="hero-sublabel">예상 실수령액 (세후)</div>
+          <div style="display:flex;gap:6px">
+            <button type="button" class="month-picker-btn" onclick="changeMonth(-1)">◀</button>
+            <button type="button" class="month-picker-btn" id="heroMonthLabel" onclick="resetToCurrentMonth()">2026년 11월</button>
+            <button type="button" class="month-picker-btn" onclick="changeMonth(1)">▶</button>
           </div>
         </div>
 
-        <!-- Goal Tracker -->
-        <div class="goal-bar-wrap">
-          <div class="goal-bar-info">
-            <span id="goalHoursLabel">총 근무 0.0시간</span>
-            <span id="goalPercentLabel">목표 100만 원 (0%)</span>
-          </div>
-          <div class="goal-bar-track">
-            <div class="goal-bar-fill" id="goalBarFill" style="width: 0%"></div>
-          </div>
+        <div class="hero-salary-main">
+          <span class="hero-amount" id="heroNetPay">0</span>
+          <span class="hero-won">원</span>
         </div>
 
-        <button type="button" class="btn-receipt" onclick="openReceiptModal()">
-          <span>🧾</span> 이번 달 급여명세서 영수증 보기
-        </button>
+        <!-- Target Progress -->
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);font-weight:600">
+          <span>목표 수입 달성률 <strong id="heroGoalPercent" style="color:var(--primary)">0%</strong></span>
+          <span id="heroGoalTargetText">목표 1,000,000원</span>
+        </div>
+        <div class="target-bar-wrap">
+          <div id="heroGoalBar" class="target-bar-fill"></div>
+        </div>
+
+        <!-- Metric Breakdown -->
+        <div class="hero-pills-grid" style="margin-top:14px">
+          <div class="hero-pill-item">
+            <div class="hero-pill-label">기본급 합계</div>
+            <div class="hero-pill-val" id="heroBasePay">0원</div>
+          </div>
+          <div class="hero-pill-item">
+            <div class="hero-pill-label">주휴수당 합계</div>
+            <div class="hero-pill-val pill-highlight-green" id="heroHolidayPay">+ 0원</div>
+          </div>
+          <div class="hero-pill-item">
+            <div class="hero-pill-label">야간할증 (1.5x)</div>
+            <div class="hero-pill-val pill-highlight-blue" id="heroNightPay">+ 0원</div>
+          </div>
+          <div class="hero-pill-item">
+            <div class="hero-pill-label">총 근무 / 시간</div>
+            <div class="hero-pill-val pill-highlight-amber" id="heroTotalWorkStats">0일 · 0.0시간</div>
+          </div>
+        </div>
       </div>
 
-      <!-- Weekly Holiday Pay Tracking Box -->
-      <div class="weekly-holiday-box">
+      <!-- Weekly Holiday Allowance Status -->
+      <div style="margin-bottom:12px">
         <div class="sec-title-row">
-          <div class="sec-title">
-            <span>📅</span> 주차별 주휴수당 충족 현황
-          </div>
-          <span style="font-size:11px;color:var(--text-muted)">주 15시간 이상 시 발생</span>
+          <div class="sec-title">주차별 주휴수당 발생 현황</div>
+          <span style="font-size:11px;color:var(--text-muted)">주 15시간 이상 충족 시</span>
         </div>
-        <div class="weekly-chips-row" id="weeklyHolidayRow">
+        <div class="week-chips-row" id="weeklyChipsContainer">
           <!-- Rendered by JS -->
         </div>
       </div>
 
-      <!-- Quick Template Bar -->
+      <!-- Quick Template / Workplace Presets Bar -->
       <div style="margin-bottom:8px">
-        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px">⚡ 자주 쓰는 근무 원터치 등록</div>
-        <div class="quick-templates-wrap">
-          <button type="button" class="chip-template" onclick="applyTemplate('pc')">🖥️ 피시방 야간</button>
-          <button type="button" class="chip-template" onclick="applyTemplate('logistics')">📦 물류 야간</button>
-          <button type="button" class="chip-template" onclick="applyTemplate('cvs')">🏪 편의점 주말</button>
-          <button type="button" class="chip-template" onclick="applyTemplate('cafe')">☕ 카페 마감</button>
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px">⚡ 내 알바 원터치 퀵 등록</div>
+        <div class="quick-templates-wrap" id="homeQuickTemplates">
+          <!-- Rendered dynamically by JS based on user's registered workplaces -->
         </div>
       </div>
 
@@ -1223,36 +1231,38 @@ nav.app-nav {
 
     <!-- Tab 2: Calendar -->
     <div id="pane-cal" class="tab-pane">
-      <div class="cal-container">
-        <div class="cal-month-nav">
-          <button type="button" class="cal-nav-btn" onclick="prevMonth()">◀ 이전달</button>
-          <h3 style="font-size:16px;font-weight:800" id="calMonthTitle">2026년 11월 근무표</h3>
-          <button type="button" class="cal-nav-btn" onclick="nextMonth()">다음달 ▶</button>
+      <div class="card" style="margin-bottom:14px">
+        <div class="sec-title-row" style="margin-bottom:12px">
+          <div class="sec-title" id="calMonthTitle">2026년 11월 근무 캘린더</div>
+          <div style="display:flex;gap:4px">
+            <button type="button" class="month-picker-btn" onclick="changeMonth(-1)">◀</button>
+            <button type="button" class="month-picker-btn" onclick="changeMonth(1)">▶</button>
+          </div>
         </div>
-        <div class="cal-grid" id="calGrid">
-          <!-- Calendar cells rendered by JS -->
+        <div class="cal-grid" id="calendarGrid">
+          <!-- Rendered by JS -->
         </div>
       </div>
 
       <div class="sec-title-row">
-        <div class="sec-title">선택 월 전체 근무 리스트</div>
-        <span style="font-size:12px;color:var(--text-muted)" id="calLogCount">총 0건</span>
+        <div class="sec-title">선택 월 근무 상세 내역</div>
+        <button type="button" class="month-picker-btn" style="padding:4px 10px;font-size:12px" onclick="openReceiptModal()">🧾 급여 명세서 보기</button>
       </div>
-      <div id="allLogsList">
+      <div id="monthDetailLogsList">
         <!-- Rendered by JS -->
       </div>
     </div>
 
-    <!-- Tab 3: Workplaces (다중 알바처 관리) -->
+    <!-- Tab 3: Workplaces Management -->
     <div id="pane-wp" class="tab-pane">
-      <div class="card" style="margin-bottom:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="card">
+        <div class="sec-title-row" style="margin-bottom:12px">
           <div>
-            <h3 style="font-size:16px;font-weight:800">등록된 알바처</h3>
-            <p style="font-size:12px;color:var(--text-muted);margin-top:2px">알바처마다 다른 시급과 근무를 분리 집계해요</p>
+            <div class="sec-title">내 알바처 관리</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">알바처마다 다른 시급과 주휴수당 기준을 개별 적용합니다.</div>
           </div>
           <button type="button" class="btn-header-add" style="font-size:12px;padding:6px 12px" onclick="openAddWorkplaceModal()">
-            + 근무처 추가
+            + 알바처 추가
           </button>
         </div>
         <div id="workplacesList">
@@ -1261,177 +1271,197 @@ nav.app-nav {
       </div>
 
       <div class="card">
-        <h3 style="font-size:15px;font-weight:800;margin-bottom:10px">💡 알바러 실전 꿀팁</h3>
-        <p style="font-size:12.5px;color:var(--text-muted);line-height:1.6">
-          • <strong>주휴수당</strong>: 주 15시간 이상 근무 시 1주일마다 발생해요.<br>
-          • <strong>야간할증 (1.5배)</strong>: 밤 10시부터 익일 오전 6시까지의 근로는 시급의 1.5배가 지급돼요 (5인 이상 사업장).<br>
-          • <strong>연장수당 (1.5배)</strong>: 하루 8시간 초과 근로 시 1.5배가 적용돼요.
+        <h3 style="font-size:14.5px;font-weight:800;margin-bottom:8px">💡 주휴·야간수당 법정 기준</h3>
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.55;margin-bottom:8px">
+          • <strong>주휴수당</strong>: 근로기준법상 주 15시간 이상 근무 시 1일분 소정근로시간 시급이 추가 지급됩니다. (주휴시간 = 주소정근로시간/40 × 8)<br>
+          • <strong>야간할증수당</strong>: 밤 22시부터 익일 06시 사이 근무 시간에 대해 통상시급의 50%(1.5배)가 가산 지급됩니다.<br>
+          • <strong>연장근로수당</strong>: 1일 8시간을 초과한 근무 시간에 대해 50%(1.5배)가 가산됩니다.
         </p>
       </div>
     </div>
 
-    <!-- Tab 4: Calculator & Tools -->
+    <!-- Tab 4: Calculator / Simulator -->
     <div id="pane-calc" class="tab-pane">
       <div class="card">
-        <h3 style="font-size:16px;font-weight:800;margin-bottom:14px">🧮 주휴수당 실시간 계산기</h3>
-        <div class="calc-field">
-          <label class="form-label">시급 (원)</label>
+        <div class="sec-title" style="margin-bottom:12px">🧮 실시간 주휴·야간 모의 계산기</div>
+        
+        <div class="form-group">
+          <label class="form-label">적용 기본 시급 (원)</label>
           <input type="number" id="simHourly" class="form-input" value="10030" oninput="runSim()">
         </div>
-        <div class="calc-field">
-          <label class="form-label">1주일 총 근무시간 (시간)</label>
-          <input type="number" id="simWeeklyHours" class="form-input" value="24" oninput="runSim()">
+
+        <div class="form-group">
+          <label class="form-label">주당 근무 시간 (시간)</label>
+          <input type="number" id="simWeeklyHours" class="form-input" value="16" step="0.5" oninput="runSim()">
         </div>
 
-        <div class="calc-res-box">
-          <div class="calc-res-row">
-            <span>주 15시간 이상 충족 여부</span>
-            <span id="simEligible" style="color:var(--green);font-weight:700">충족 (지급 대상)</span>
+        <div style="margin-top:14px;background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="font-size:12px;color:var(--text-muted)">주 15시간 충족 여부</span>
+            <strong id="simEligible" style="color:var(--green);font-size:13px">충족 (지급 대상)</strong>
           </div>
-          <div class="calc-res-row">
-            <span>주휴 발생 시간</span>
-            <span id="simHolidayHours">4.8시간</span>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="font-size:12px;color:var(--text-muted)">주휴 발생 시간</span>
+            <strong id="simHolidayHours" style="font-family:'JetBrains Mono',monospace;font-size:14px">3.2시간</strong>
           </div>
-          <div class="calc-res-row bold">
-            <span>예상 주휴수당 (1주)</span>
-            <span id="simHolidayPay">48,144원</span>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="font-size:12px;color:var(--text-muted)">주당 주휴수당</span>
+            <strong id="simHolidayPay" style="font-family:'JetBrains Mono',monospace;color:var(--green);font-size:15px">+ 32,096원</strong>
           </div>
-          <div class="calc-res-row" style="font-size:12px;color:var(--text-subtle);margin-top:4px">
-            <span>한 달(4주) 환산 시 주휴수당 합계</span>
-            <span id="simHolidayMonthPay" style="font-weight:700;color:var(--brand)">192,576원</span>
+          <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px dashed var(--border)">
+            <span style="font-size:12px;color:var(--text-muted)">월 환산 주휴수당 (4주)</span>
+            <strong id="simHolidayMonthPay" style="font-family:'JetBrains Mono',monospace;color:var(--green);font-size:16px">+ 128,384원</strong>
           </div>
         </div>
-      </div>
 
-      <div class="card">
-        <h3 style="font-size:16px;font-weight:800;margin-bottom:14px">💸 세금 공제 비교 시뮬레이션</h3>
-        <div class="calc-res-box">
-          <div class="calc-res-row">
-            <span>3.3% 프리랜서 원천징수</span>
-            <span id="simTax33" style="color:var(--brand)">- 18,870원</span>
-          </div>
-          <div class="calc-res-row">
-            <span>4대보험 공제 (약 9.4%)</span>
-            <span id="simTax4" style="color:var(--rose)">- 53,780원</span>
-          </div>
-          <div class="calc-res-row" style="border-top:1px dashed var(--border-light);padding-top:6px;margin-top:4px">
-            <span>3.3% 적용 시 실수령액</span>
-            <span id="simNet33" style="font-weight:700;color:#FFF">553,250원</span>
-          </div>
+        <div style="margin-top:12px;font-size:11.5px;color:var(--text-subtle);line-height:1.4">
+          ※ 3.3% 원천징수 시 공제액: <span id="simTax33" style="color:var(--rose)">- 0원</span><br>
+          ※ 4대보험(9.4%) 시 공제액: <span id="simTax4" style="color:var(--rose)">- 0원</span><br>
+          ※ 예상 월 실수령액(3.3%): <strong id="simNet33" style="color:var(--primary)">0원</strong>
         </div>
       </div>
     </div>
 
-    <!-- Tab 5: Settings -->
+    <!-- Tab 5: Settings & Privacy -->
     <div id="pane-set" class="tab-pane">
-      <div class="card">
-        <h3 style="font-size:16px;font-weight:800;margin-bottom:14px">기본 정산 옵션</h3>
-        <div class="set-row">
-          <div class="set-label-block">
-            <span class="set-title">기본 시급</span>
-            <span class="set-sub">2026년 최저시급 10,030원</span>
-          </div>
-          <input type="number" id="setHourlyInput" class="form-input" style="width:110px;text-align:right" value="10030" onchange="saveSettings()">
+      
+      <!-- Privacy Guarantee Principle -->
+      <div class="card" style="border-color:rgba(56, 189, 248, 0.3)">
+        <div class="sec-title" style="margin-bottom:10px;color:var(--primary)">
+          🔒 개인정보 & 로컬 프라이버시 원칙
         </div>
-        <div class="set-row">
-          <div class="set-label-block">
-            <span class="set-title">월 목표 급여</span>
-            <span class="set-sub">대시보드 달성률 연동</span>
-          </div>
-          <input type="number" id="setTargetInput" class="form-input" style="width:110px;text-align:right" value="1000000" onchange="saveSettings()">
-        </div>
-        <div class="set-row">
-          <div class="set-label-block">
-            <span class="set-title">연장근로수당 계산</span>
-            <span class="set-sub">1일 8시간 초과분 1.5배</span>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="setOvertimeCheck" checked onchange="saveSettings()">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        <div class="set-row">
-          <div class="set-label-block">
-            <span class="set-title">세금 공제 방식</span>
-            <span class="set-sub">명세서 계산 시 자동 차감</span>
-          </div>
-          <select id="setTaxType" class="form-input" style="width:120px;font-size:13px" onchange="saveSettings()">
-            <option value="none">미공제</option>
-            <option value="3.3" selected>3.3% (프리랜서)</option>
-            <option value="9.4">4대보험(9.4%)</option>
-          </select>
-        </div>
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:10px">
+          알바로그 Pro는 사용자의 프라이버시를 절대적으로 보호합니다.<br>
+          • <strong>100% 온디바이스 로컬 저장</strong>: 회원가입이나 로그인 없이 모든 데이터는 사용자의 브라우저 로컬 저장소(LocalStorage)에만 저장됩니다.<br>
+          • <strong>외부 전송 제로</strong>: 근무 기록, 시급, 정산 내역은 어떠한 외부 서버나 클라우드로도 전송되지 않습니다.<br>
+          • <strong>데이터 완전 소유권</strong>: 내 모든 데이터는 언제든 JSON 파일로 다운로드하여 백업하거나 복원할 수 있습니다.
+        </p>
       </div>
 
       <div class="card">
-        <h3 style="font-size:16px;font-weight:800;margin-bottom:14px">데이터 백업 및 관리</h3>
-        <button type="button" class="btn-receipt" onclick="exportData()" style="margin-bottom:8px">
-          📋 데이터 클립보드 백업 복사
+        <div class="sec-title" style="margin-bottom:12px">⚙️ 급여 정산 기본 환경설정</div>
+
+        <div class="set-row">
+          <div>
+            <div class="set-label-main">기본 적용 시급</div>
+            <div class="set-label-sub">2026년 법정 최저시급 10,030원 기준</div>
+          </div>
+          <div style="width:110px">
+            <input type="number" id="setHourlyInput" class="form-input" style="padding:6px 10px;font-size:13px;text-align:right" value="10030" onchange="saveSettings()">
+          </div>
+        </div>
+
+        <div class="set-row">
+          <div>
+            <div class="set-label-main">이번 달 목표 수입</div>
+            <div class="set-label-sub">홈 화면 달성률 게이지 반영</div>
+          </div>
+          <div style="width:120px">
+            <input type="number" id="setTargetInput" class="form-input" style="padding:6px 10px;font-size:13px;text-align:right" value="1000000" step="50000" onchange="saveSettings()">
+          </div>
+        </div>
+
+        <div class="set-row">
+          <div>
+            <div class="set-label-main">세금 공제 방식</div>
+            <div class="set-label-sub">원천징수 3.3% 또는 4대보험(9.4%)</div>
+          </div>
+          <div style="width:120px">
+            <select id="setTaxType" class="form-input" style="padding:6px 8px;font-size:12px" onchange="saveSettings()">
+              <option value="3.3">3.3% (프리랜서)</option>
+              <option value="9.4">9.4% (4대보험)</option>
+              <option value="0">세전 (0% 비과세)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="set-row">
+          <div>
+            <div class="set-label-main">연장근로 가산 (1.5x)</div>
+            <div class="set-label-sub">1일 8시간 초과분 50% 가산 적용</div>
+          </div>
+          <div>
+            <input type="checkbox" id="setOvertimeCheck" checked onchange="saveSettings()" style="width:18px;height:18px;accent-color:var(--primary)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Backup & Privacy Control -->
+      <div class="card">
+        <div class="sec-title" style="margin-bottom:12px">💾 내 데이터 관리 & 백업</div>
+
+        <button type="button" class="btn-secondary" onclick="downloadJSON()" style="margin-top:0">
+          📥 전체 데이터 백업 (JSON 파일 다운로드)
         </button>
-        <button type="button" class="btn-receipt" onclick="openImportModal()" style="margin-bottom:8px">
-          📥 백업 데이터 붙여넣어 복원
+        <button type="button" class="btn-secondary" onclick="exportData()">
+          📋 JSON 데이터 클립보드 복사
         </button>
-        <button type="button" class="btn-receipt" onclick="exportCSV()" style="margin-bottom:8px">
-          📊 엑셀/CSV 다운로드
+        <button type="button" class="btn-secondary" onclick="openImportModal()">
+          📤 백업 데이터 복원하기 (가져오기)
         </button>
-        <button type="button" class="btn-receipt" onclick="clearAllData()" style="color:var(--rose);margin-bottom:8px">
-          🗑️ 모든 근무 기록 초기화 (0건)
+        <button type="button" class="btn-secondary" onclick="exportCSV()">
+          📊 엑셀/CSV 파일 내보내기
         </button>
-        <button type="button" class="btn-receipt" onclick="loadSampleData()" style="color:var(--text-muted);font-size:12.5px;">
-          💡 예시 샘플 데이터 (5건) 불러오기
+
+        <button type="button" class="btn-danger" onclick="clearAllData()">
+          🗑️ 모든 데이터 영구 삭제 (완전 초기화)
         </button>
       </div>
 
-      <div style="text-align:center;padding:20px 0;font-size:12px;color:var(--text-subtle)">
-        알바로그 Pro v2.2 · Single File Mobile WebApp<br>
-        Developed by 이태웅 (@tarrypotter)
-      </div>
     </div>
 
   </main>
 
-  <!-- Fixed Bottom Navigation -->
-  <nav class="app-nav">
-    <button type="button" class="nav-tab active" onclick="switchTab('home')">
-      <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span>홈</span>
-    </button>
-    <button type="button" class="nav-tab" onclick="switchTab('cal')">
-      <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-      <span>캘린더</span>
-    </button>
-    <button type="button" class="nav-tab" onclick="switchTab('wp')">
-      <svg viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-      <span>알바처</span>
-    </button>
-    <button type="button" class="nav-tab" onclick="switchTab('calc')">
-      <svg viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
-      <span>계산기</span>
-    </button>
-    <button type="button" class="nav-tab" onclick="switchTab('set')">
-      <svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-      <span>설정</span>
-    </button>
+  <!-- Floating Action Button -->
+  <button type="button" class="fab-btn" onclick="openAddModal()" title="새 근무 등록">
+    +
+  </button>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button type="button" class="nav-tab active" onclick="switchTab('home')">
+        <span class="nav-tab-icon">🏠</span>
+        <span class="nav-tab-label">홈</span>
+      </button>
+      <button type="button" class="nav-tab" onclick="switchTab('cal')">
+        <span class="nav-tab-icon">📅</span>
+        <span class="nav-tab-label">달력</span>
+      </button>
+      <button type="button" class="nav-tab" onclick="switchTab('wp')">
+        <span class="nav-tab-icon">💼</span>
+        <span class="nav-tab-label">알바처</span>
+      </button>
+      <button type="button" class="nav-tab" onclick="switchTab('calc')">
+        <span class="nav-tab-icon">🧮</span>
+        <span class="nav-tab-label">계산기</span>
+      </button>
+      <button type="button" class="nav-tab" onclick="switchTab('set')">
+        <span class="nav-tab-icon">⚙️</span>
+        <span class="nav-tab-label">설정</span>
+      </button>
+    </div>
   </nav>
+
 </div>
 
-<!-- Modal 1: Add / Edit Work Log -->
+<!-- Modal 1: Add / Edit Work Log Modal -->
 <div id="modalWork" class="modal-overlay" onclick="closeOnOverlay(event, 'modalWork')">
   <div class="modal-sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div class="sheet-title" id="workModalTitle">근무 기록 추가</div>
+      <div class="sheet-title" id="modalWorkTitle">새 근무 기록 등록</div>
       <button type="button" class="sheet-close" onclick="closeModal('modalWork')">✕</button>
     </div>
 
-    <!-- Quick Chips in Modal -->
+    <!-- Quick Shift Time Chips in Modal -->
     <div style="margin-bottom:10px">
-      <div style="font-size:11.5px;font-weight:700;color:var(--text-muted);margin-bottom:6px">⚡ 템플릿 원터치 적용</div>
+      <div style="font-size:11.5px;font-weight:700;color:var(--text-muted);margin-bottom:6px">⚡ 자주 쓰는 시간 퀵 세팅</div>
       <div class="quick-templates-wrap" style="margin-bottom:0">
-        <button type="button" class="chip-template" onclick="applyTemplateInModal('pc')">🖥️ 피시방 야간</button>
-        <button type="button" class="chip-template" onclick="applyTemplateInModal('logistics')">📦 물류 야간</button>
-        <button type="button" class="chip-template" onclick="applyTemplateInModal('cvs')">🏪 편의점 주말</button>
-        <button type="button" class="chip-template" onclick="applyTemplateInModal('cafe')">☕ 카페 마감</button>
+        <button type="button" class="chip-template" onclick="applyShiftPresetInModal('day')">☀️ 주간 8h (09~18)</button>
+        <button type="button" class="chip-template" onclick="applyShiftPresetInModal('night')">🌙 야간 8h (22~06)</button>
+        <button type="button" class="chip-template" onclick="applyShiftPresetInModal('part4')">⚡ 파트 4h (18~22)</button>
+        <button type="button" class="chip-template" onclick="applyShiftPresetInModal('part6')">⏱️ 파트 6h (12~18)</button>
       </div>
     </div>
 
@@ -1444,7 +1474,10 @@ nav.app-nav {
           <input type="date" id="workDate" class="form-input" required onchange="updateLivePreview()">
         </div>
         <div class="form-group">
-          <label class="form-label">근무처</label>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <label class="form-label" style="margin-bottom:0">근무처 선택</label>
+            <button type="button" onclick="openAddWorkplaceModal()" style="font-size:11px;color:var(--primary);background:none;border:none;cursor:pointer;font-weight:700">+ 새 알바처</button>
+          </div>
           <select id="workWpSelect" class="form-input" onchange="onWorkplaceChange()">
             <!-- Options populated by JS -->
           </select>
@@ -1454,11 +1487,11 @@ nav.app-nav {
       <div class="form-row-2">
         <div class="form-group">
           <label class="form-label">출근 시각</label>
-          <input type="time" id="workStart" class="form-input" required value="22:00" onchange="updateLivePreview()">
+          <input type="time" id="workStart" class="form-input" required value="09:00" onchange="updateLivePreview()">
         </div>
         <div class="form-group">
           <label class="form-label">퇴근 시각</label>
-          <input type="time" id="workEnd" class="form-input" required value="06:00" onchange="updateLivePreview()">
+          <input type="time" id="workEnd" class="form-input" required value="18:00" onchange="updateLivePreview()">
         </div>
       </div>
 
@@ -1479,39 +1512,41 @@ nav.app-nav {
       </div>
 
       <div class="form-group">
-        <label class="form-label">업무 내용 / 메모</label>
-        <input type="text" id="workMemo" class="form-input" placeholder="예: 야간 카운터, 소분 및 피킹 등" value="">
+        <label class="form-label">업무 내용 / 메모 (선택)</label>
+        <input type="text" id="workMemo" class="form-input" placeholder="예: 카운터 마감, 오픈 준비, 재고 파악 등">
       </div>
 
-      <!-- Live Calculation Box -->
+      <!-- Live Calculation Card in Modal -->
       <div class="modal-live-preview">
         <div>
-          <div class="live-preview-title">실시간 예상 정산</div>
-          <div class="live-preview-hours" id="liveHoursText">7.0시간 (야간 7.0h)</div>
+          <div class="preview-label">실시간 예상 일급</div>
+          <div class="preview-pay" id="modalLivePay">0원</div>
         </div>
-        <div class="live-preview-pay" id="livePayText">105,315원</div>
+        <div style="text-align:right">
+          <div class="preview-details" id="modalLiveHours">실근무 0.0시간</div>
+          <div class="preview-details" id="modalLiveNight" style="color:#C084FC">야간할증 없음</div>
+        </div>
       </div>
 
-      <button type="submit" class="btn-primary" id="btnSaveWork">기록 저장하기</button>
-      <button type="button" class="btn-primary btn-danger" id="btnDeleteWork" style="display:none" onclick="handleDeleteCurrentWork()">이 기록 삭제</button>
+      <button type="submit" class="btn-primary" id="btnSaveWork">근무 기록 저장하기</button>
+      <button type="button" class="btn-danger" id="btnDeleteWork" style="display:none" onclick="handleDeleteCurrentWork()">이 근무 기록 삭제</button>
     </form>
   </div>
 </div>
 
-<!-- Modal 2: Pay Receipt -->
+<!-- Modal 2: Monthly Paper Receipt Modal -->
 <div id="modalReceipt" class="modal-overlay" onclick="closeOnOverlay(event, 'modalReceipt')">
-  <div class="modal-sheet">
+  <div class="modal-sheet" style="background:#0F172A">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div class="sheet-title">월간 급여 명세 영수증</div>
+      <div class="sheet-title">월별 법정 급여 명세서</div>
       <button type="button" class="sheet-close" onclick="closeModal('modalReceipt')">✕</button>
     </div>
 
-    <!-- Paper Receipt -->
-    <div class="receipt-paper" id="receiptPaper">
-      <div class="receipt-shop-head">
-        <div class="receipt-shop-name">ALBALOG OFFICIAL PAYSLIP</div>
-        <div class="receipt-shop-sub" id="receiptSerial">NO. 202611-ALBA · 귀속연월 2026.11</div>
+    <div class="receipt-paper" id="printableReceipt">
+      <div class="receipt-header">
+        <div class="receipt-brand">ALBALOG PRO PAYROLL</div>
+        <div class="receipt-serial" id="receiptSerial">NO. 202611-ALBA · 귀속연월 2026.11</div>
       </div>
 
       <table class="receipt-table" id="receiptTable">
@@ -1521,22 +1556,20 @@ nav.app-nav {
       <div class="receipt-divider"></div>
 
       <div class="receipt-total-row">
-        <span>최종 실수령액</span>
-        <span id="receiptNetTotal">0원</span>
+        <span class="receipt-total-label">실수령액 (Net Pay)</span>
+        <span class="receipt-total-amount" id="receiptNetTotal">0원</span>
       </div>
 
-      <div class="receipt-barcode" id="barcodeContainer">
-        <!-- Barcode lines -->
-      </div>
-      <div style="text-align:center;font-size:9.5px;color:var(--text-subtle);margin-top:6px">
-        * 본 영수증은 근로기준법상 주휴수당 및 야간가산수당 규정에 따라 산정되었습니다.
+      <div class="receipt-barcode">
+        <div class="barcode-lines" id="barcodeLines"></div>
+        <div class="barcode-num" id="barcodeNum">ALBALOG-PRO-LOCAL-VERIFIED</div>
       </div>
     </div>
 
-    <button type="button" class="btn-primary" onclick="copyReceiptText()" style="margin-bottom:8px">
-      📋 명세서 텍스트 복사
+    <button type="button" class="btn-primary" onclick="copyReceiptText()" style="margin-top:14px;background:var(--surface-elevated);color:var(--text);border:1px solid var(--border)">
+      📋 명세서 텍스트 복사하기
     </button>
-    <button type="button" class="btn-receipt" onclick="window.print()" style="font-size:13px">
+    <button type="button" class="btn-secondary" onclick="window.print()" style="font-size:13px">
       🖨️ 영수증 인쇄 / PDF 저장
     </button>
   </div>
@@ -1547,14 +1580,14 @@ nav.app-nav {
   <div class="modal-sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div class="sheet-title">새 알바처 등록</div>
+      <div class="sheet-title">새 알바처 직접 등록</div>
       <button type="button" class="sheet-close" onclick="closeModal('modalAddWp')">✕</button>
     </div>
 
     <form onsubmit="handleSaveWorkplace(event)">
       <div class="form-group">
-        <label class="form-label">근무처 명칭</label>
-        <input type="text" id="wpNameInput" class="form-input" placeholder="예: 폴스타PC방, 쿠팡 물류센터" required>
+        <label class="form-label">알바처 명칭</label>
+        <input type="text" id="wpNameInput" class="form-input" placeholder="예: 메가커피, 배스킨라빈스, 올리브영, 스터디카페" required>
       </div>
       <div class="form-row-2">
         <div class="form-group">
@@ -1564,22 +1597,83 @@ nav.app-nav {
         <div class="form-group">
           <label class="form-label">대표 아이콘</label>
           <select id="wpIconSelect" class="form-input">
-            <option value="🖥️">🖥️ 피시방</option>
+            <option value="☕">☕ 카페/음료</option>
+            <option value="🍽️">🍽️ 식당/주방</option>
+            <option value="🏪">🏪 편의점/마트</option>
+            <option value="🛍️">🛍️ 매장/판매</option>
+            <option value="🖥️">🖥️ PC방/엔터</option>
             <option value="📦">📦 물류/배송</option>
-            <option value="🏪">🏪 편의점</option>
-            <option value="☕">☕ 카페/식당</option>
-            <option value="🛵">🛵 배달</option>
-            <option value="🏭">🏭 공장/생산</option>
-            <option value="🏢">🏢 사무/기타</option>
+            <option value="📚">📚 학원/과외</option>
+            <option value="🏢">🏢 사무/보조</option>
+            <option value="🛵">🛵 배달/운전</option>
+            <option value="🏭">🏭 제조/생산</option>
+            <option value="🏨">🏨 호텔/숙박</option>
+            <option value="✨">✨ 기타 알바</option>
           </select>
         </div>
       </div>
-      <button type="submit" class="btn-primary">근무처 추가하기</button>
+      <div class="form-group" style="display:flex;align-items:center;gap:8px;padding:6px 0">
+        <input type="checkbox" id="wpHolidayCheck" checked style="width:18px;height:18px;accent-color:var(--primary)">
+        <label for="wpHolidayCheck" style="font-size:12.5px;color:var(--text);font-weight:600;cursor:pointer">
+          주휴수당 자동 계산 대상 (주 15시간 이상 근무 시)
+        </label>
+      </div>
+      <button type="submit" class="btn-primary">알바처 등록 완료</button>
     </form>
   </div>
 </div>
 
-<!-- Modal 4: Import JSON Data -->
+<!-- Modal 4: Edit Workplace Modal -->
+<div id="modalEditWp" class="modal-overlay" onclick="closeOnOverlay(event, 'modalEditWp')">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title">알바처 정보 수정</div>
+      <button type="button" class="sheet-close" onclick="closeModal('modalEditWp')">✕</button>
+    </div>
+
+    <form onsubmit="handleUpdateWorkplace(event)">
+      <input type="hidden" id="editWpId" value="">
+      <div class="form-group">
+        <label class="form-label">알바처 명칭</label>
+        <input type="text" id="editWpNameInput" class="form-input" required>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label">기본 시급 (원)</label>
+          <input type="number" id="editWpHourlyInput" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">대표 아이콘</label>
+          <select id="editWpIconSelect" class="form-input">
+            <option value="☕">☕ 카페/음료</option>
+            <option value="🍽️">🍽️ 식당/주방</option>
+            <option value="🏪">🏪 편의점/마트</option>
+            <option value="🛍️">🛍️ 매장/판매</option>
+            <option value="🖥️">🖥️ PC방/엔터</option>
+            <option value="📦">📦 물류/배송</option>
+            <option value="📚">📚 학원/과외</option>
+            <option value="🏢">🏢 사무/보조</option>
+            <option value="🛵">🛵 배달/운전</option>
+            <option value="🏭">🏭 제조/생산</option>
+            <option value="🏨">🏨 호텔/숙박</option>
+            <option value="✨">✨ 기타 알바</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:8px;padding:6px 0">
+        <input type="checkbox" id="editWpHolidayCheck" checked style="width:18px;height:18px;accent-color:var(--primary)">
+        <label for="editWpHolidayCheck" style="font-size:12.5px;color:var(--text);font-weight:600;cursor:pointer">
+          주휴수당 자동 계산 대상 (주 15시간 이상 근무 시)
+        </label>
+      </div>
+      <button type="submit" class="btn-primary">수정사항 저장하기</button>
+      <button type="button" class="btn-danger" onclick="deleteWorkplaceFromEditModal()">이 알바처 삭제</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal 5: Import JSON Data -->
 <div id="modalImport" class="modal-overlay" onclick="closeOnOverlay(event, 'modalImport')">
   <div class="modal-sheet">
     <div class="sheet-handle"></div>
@@ -1588,40 +1682,37 @@ nav.app-nav {
       <button type="button" class="sheet-close" onclick="closeModal('modalImport')">✕</button>
     </div>
 
-    <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px">
-      이전에 클립보드에 복사해 둔 백업 JSON 텍스트를 붙여넣어 복원합니다.
+    <p style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:12px">
+      기존에 백업해 둔 JSON 코드 전체를 붙여넣으시면 근무 기록과 알바처 데이터가 즉시 복원됩니다.
     </p>
 
     <div class="form-group">
-      <textarea id="importTextarea" class="form-input" rows="6" placeholder="여기에 백업 JSON 코드를 붙여넣으세요..."></textarea>
+      <textarea id="importTextarea" class="form-input" style="height:140px;font-family:'JetBrains Mono',monospace;font-size:12px" placeholder='{"version":"2.3","workplaces":[...],"logs":[...]}'></textarea>
     </div>
 
-    <button type="button" class="btn-primary" onclick="handleImportData()">복원 실행</button>
+    <button type="button" class="btn-primary" onclick="handleImportData()">데이터 복원 완료</button>
   </div>
 </div>
 
-<div id="toast">알림 메시지</div>
-
 <script>
-// Prevent double-tap zoom on iOS Safari
-let lastTouchEnd = 0;
+// Prevent double tap zoom on iOS
 document.addEventListener('touchend', function (event) {
   const now = (new Date()).getTime();
-  if (now - lastTouchEnd <= 300) {
+  if (now - (window.lastTouchEnd || 0) <= 300) {
     event.preventDefault();
   }
-  lastTouchEnd = now;
+  window.lastTouchEnd = now;
 }, false);
 
 // History API View Stack for Back Button Support
-window.addEventListener('popstate', function(event) {
-  const openModal = document.querySelector('.modal-overlay.open');
-  if (openModal) {
-    openModal.classList.remove('open');
+window.addEventListener('popstate', function (e) {
+  const openModals = document.querySelectorAll('.modal-overlay.open');
+  if (openModals.length > 0) {
+    openModals.forEach(m => m.classList.remove('open'));
     return;
   }
-  if (event.state && event.state.tab) {
-    doSwitchTab(event.state.tab, false);
+  if (e.state && e.state.tab) {
+    doSwitchTab(e.state.tab, false);
   }
 });
 
@@ -1631,36 +1722,30 @@ function triggerHaptic() {
   }
 }
 
-// App State
+// App State: 100% Local-First, Zero Pre-seeded Mocks
 const STORAGE_KEY = 'albalog_pro_data_v2';
 
-const DEFAULT_WORKPLACES = [
-  { id: "wp_pc", name: "피시방", hourly: 10030, icon: "🖥️", color: "#38BDF8" },
-  { id: "wp_logistics", name: "쿠팡 물류센터", hourly: 12000, icon: "📦", color: "#F59E0B" },
-  { id: "wp_cvs", name: "편의점", hourly: 10030, icon: "🏪", color: "#10B981" }
-];
-
-const SAMPLE_DEMO_LOGS = [
-  { id: 1, date: "2026-11-02", wpId: "wp_logistics", start: "22:00", end: "06:00", breakMin: 60, hourly: 12000, memo: "야간 하차 작업" },
-  { id: 2, date: "2026-11-04", wpId: "wp_logistics", start: "22:00", end: "06:00", breakMin: 60, hourly: 12000, memo: "야간 피킹/소분" },
-  { id: 3, date: "2026-11-07", wpId: "wp_pc", start: "23:00", end: "07:00", breakMin: 60, hourly: 10030, memo: "주말 야간 카운터" },
-  { id: 4, date: "2026-11-08", wpId: "wp_pc", start: "23:00", end: "07:00", breakMin: 60, hourly: 10030, memo: "주말 야간 카운터" },
-  { id: 5, date: "2026-11-10", wpId: "wp_logistics", start: "22:00", end: "06:00", breakMin: 60, hourly: 12000, memo: "야간 바코드 검수" }
-];
-
 let state = {
-  version: "2.2",
+  version: "2.3",
   hourly: 10030,
   taxType: "3.3",
   monthlyTarget: 1000000,
   calcOvertime: true,
-  workplaces: JSON.parse(JSON.stringify(DEFAULT_WORKPLACES)),
-  logs: []
+  workplaces: [], // Completely clean by default
+  logs: []        // Completely clean by default
 };
 
-// Current Month View (Defaults to Nov 2026)
+// Current Month View
 let currentYear = 2026;
 let currentMonth = 11; // 1-indexed
+
+function getTodayDateString() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 function initApp() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -1669,11 +1754,10 @@ function initApp() {
       const parsed = JSON.parse(saved);
       state = Object.assign({}, state, parsed);
       if (!Array.isArray(state.logs)) state.logs = [];
-      if (!Array.isArray(state.workplaces) || state.workplaces.length === 0) {
-        state.workplaces = JSON.parse(JSON.stringify(DEFAULT_WORKPLACES));
-      }
+      if (!Array.isArray(state.workplaces)) state.workplaces = [];
     } catch(e) {
       state.logs = [];
+      state.workplaces = [];
     }
   }
 
@@ -1686,11 +1770,12 @@ function initApp() {
   renderBarcode();
   updateMonthHeader();
   renderWorkplaceSelectOptions();
+  renderHomeTemplates();
   renderAll();
   runSim();
 
   // Set initial date to today
-  document.getElementById('workDate').value = "2026-11-12";
+  document.getElementById('workDate').value = getTodayDateString();
   updateLivePreview();
 
   history.replaceState({ tab: 'home' }, '');
@@ -1698,19 +1783,25 @@ function initApp() {
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  renderWorkplaceSelectOptions();
+  renderHomeTemplates();
   renderAll();
 }
 
 function updateMonthHeader() {
   const label = `${currentYear}년 ${currentMonth}월`;
   document.getElementById('heroMonthLabel').textContent = label;
-  document.getElementById('calMonthTitle').textContent = `${label} 근무표`;
+  const calTitle = document.getElementById('calMonthTitle');
+  if (calTitle) calTitle.textContent = `${label} 근무 캘린더`;
 }
 
-function prevMonth() {
+function changeMonth(delta) {
   triggerHaptic();
-  currentMonth--;
-  if (currentMonth < 1) {
+  currentMonth += delta;
+  if (currentMonth > 12) {
+    currentMonth = 1;
+    currentYear++;
+  } else if (currentMonth < 1) {
     currentMonth = 12;
     currentYear--;
   }
@@ -1718,160 +1809,177 @@ function prevMonth() {
   renderAll();
 }
 
-function nextMonth() {
+function resetToCurrentMonth() {
   triggerHaptic();
-  currentMonth++;
-  if (currentMonth > 12) {
-    currentMonth = 1;
-    currentYear++;
-  }
+  currentYear = 2026;
+  currentMonth = 11;
   updateMonthHeader();
   renderAll();
+  showToast('당월(2026년 11월)로 이동했습니다.');
 }
 
 // Single Work Log Calculation
 function calcSingleWork(log) {
-  const [sh, sm] = log.start.split(':').map(Number);
-  const [eh, em] = log.end.split(':').map(Number);
-  const hourly = log.hourly || state.hourly;
-
-  let startMinutes = sh * 60 + sm;
-  let endMinutes = eh * 60 + em;
-  if (endMinutes <= startMinutes) {
-    endMinutes += 24 * 60; // Over midnight
+  const startParts = log.start.split(':').map(Number);
+  const endParts = log.end.split(':').map(Number);
+  
+  let startMin = startParts[0] * 60 + startParts[1];
+  let endMin = endParts[0] * 60 + endParts[1];
+  
+  // Over midnight
+  if (endMin <= startMin) {
+    endMin += 24 * 60;
   }
+  
+  const totalDurationMin = Math.max(0, endMin - startMin - (log.breakMin || 0));
+  const totalHours = totalDurationMin / 60;
 
-  let totalMinutes = (endMinutes - startMinutes) - (log.breakMin || 0);
-  if (totalMinutes < 0) totalMinutes = 0;
-
-  // Night Minutes (22:00 = 1320m ~ 06:00 next day = 1800m)
+  // Night Minutes (22:00 ~ 06:00 = 1320min ~ 1800min or 0 ~ 360min)
   let nightMinutes = 0;
-  for (let m = startMinutes; m < endMinutes; m++) {
-    const modHour = Math.floor(m / 60) % 24;
-    if (modHour >= 22 || modHour < 6) {
+  for (let m = startMin; m < endMin; m++) {
+    const modMin = m % 1440;
+    if (modMin >= 22 * 60 || modMin < 6 * 60) {
       nightMinutes++;
     }
   }
-  if (log.breakMin && totalMinutes > 0) {
-    const ratio = nightMinutes / (endMinutes - startMinutes);
-    nightMinutes = Math.max(0, nightMinutes - Math.round(log.breakMin * ratio));
+
+  // Deduct break from night proportionately if shift is mostly night
+  if (log.breakMin > 0 && nightMinutes > 0) {
+    const grossShift = endMin - startMin;
+    const nightRatio = nightMinutes / grossShift;
+    nightMinutes = Math.max(0, nightMinutes - Math.round(log.breakMin * nightRatio));
   }
 
-  const totalHours = totalMinutes / 60;
   const nightHours = nightMinutes / 60;
+  const overtimeHours = state.calcOvertime && totalHours > 8 ? (totalHours - 8) : 0;
 
-  // Overtime (Over 8 hours in a day)
-  let overtimeHours = 0;
-  if (state.calcOvertime && totalHours > 8) {
-    overtimeHours = totalHours - 8;
-  }
-
+  const hourly = log.hourly || state.hourly || 10030;
   const basePay = Math.round(totalHours * hourly);
-  const nightExtra = Math.round(nightHours * hourly * 0.5); // +50%
-  const overtimeExtra = Math.round(overtimeHours * hourly * 0.5); // +50%
-  const totalPay = basePay + nightExtra + overtimeExtra;
+  const nightPay = Math.round(nightHours * hourly * 0.5); // 0.5x surcharge
+  const overtimePay = Math.round(overtimeHours * hourly * 0.5); // 0.5x surcharge
+  const totalPay = basePay + nightPay + overtimePay;
 
-  return { totalHours, nightHours, overtimeHours, basePay, nightExtra, overtimeExtra, totalPay, hourly };
+  return {
+    totalHours,
+    nightHours,
+    overtimeHours,
+    hourly,
+    basePay,
+    nightPay,
+    overtimePay,
+    totalPay
+  };
 }
 
-// Helper: Get ISO Week Key (Monday to Sunday)
-function getWeekRangeKey(dateStr) {
-  const d = new Date(dateStr + "T00:00:00");
-  const day = d.getDay();
-  const diffToMon = (day === 0 ? -6 : 1) - day;
-  const monday = new Date(d);
-  monday.setDate(d.getDate() + diffToMon);
-  
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-
-  const mStr = monday.toISOString().substring(0, 10);
-  const sStr = sunday.toISOString().substring(0, 10);
-  return { key: `${mStr}~${sStr}`, monday: mStr, sunday: sStr };
+// Helper: Get ISO Week Number
+function getWeekNumber(d) {
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 }
 
 // Master Render Function
 function renderAll() {
-  const curPrefix = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-  const monthLogs = state.logs.filter(l => l.date.startsWith(curPrefix));
+  const monthPrefix = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+  const monthLogs = state.logs
+    .filter(l => l.date && l.date.startsWith(monthPrefix))
+    .sort((a, b) => b.date.localeCompare(a.date));
 
+  let totalGross = 0;
   let totalBase = 0;
-  let totalNightExtra = 0;
-  let totalOvertimeExtra = 0;
+  let totalNight = 0;
+  let totalOvertime = 0;
   let totalHours = 0;
 
-  // Group by Week for Accurate Legal Weekly Holiday Allowance (주휴수당)
-  const weekMap = {};
-
-  monthLogs.forEach(log => {
-    const res = calcSingleWork(log);
+  monthLogs.forEach(l => {
+    const res = calcSingleWork(l);
+    totalGross += res.totalPay;
     totalBase += res.basePay;
-    totalNightExtra += res.nightExtra;
-    totalOvertimeExtra += res.overtimeExtra;
+    totalNight += res.nightPay;
+    totalOvertime += res.overtimePay;
     totalHours += res.totalHours;
-
-    const w = getWeekRangeKey(log.date);
-    if (!weekMap[w.key]) {
-      weekMap[w.key] = { hours: 0, hourlySum: 0, count: 0, range: w };
-    }
-    weekMap[w.key].hours += res.totalHours;
-    weekMap[w.key].hourlySum += res.hourly * res.totalHours;
-    weekMap[w.key].count++;
   });
 
+  // Group by Week for Accurate Legal Weekly Holiday Allowance (Monday to Sunday)
+  const weekMap = {};
+  monthLogs.forEach(l => {
+    const dateObj = new Date(l.date + 'T00:00:00');
+    const dayOfWeek = dateObj.getDay(); // 0 is Sun
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(dateObj);
+    monday.setDate(dateObj.getDate() + mondayOffset);
+
+    const weekKey = `${monday.getFullYear()}-W${getWeekNumber(monday)}`;
+    if (!weekMap[weekKey]) {
+      weekMap[weekKey] = {
+        key: weekKey,
+        mondayDate: monday,
+        logs: [],
+        hours: 0,
+        hourlySum: 0
+      };
+    }
+    const res = calcSingleWork(l);
+    weekMap[weekKey].logs.push(l);
+    weekMap[weekKey].hours += res.totalHours;
+    weekMap[weekKey].hourlySum += (res.hourly * res.totalHours);
+  });
+
+  // Sort weeks
+  const sortedWeeks = Object.values(weekMap).sort((a, b) => a.key.localeCompare(b.key));
   let totalHolidayPay = 0;
   const weeklyChips = [];
 
-  // Sort weeks
-  const sortedWeekKeys = Object.keys(weekMap).sort();
-  sortedWeekKeys.forEach((k, idx) => {
-    const item = weekMap[k];
-    const avgHourly = item.hours > 0 ? (item.hourlySum / item.hours) : state.hourly;
-    const isEligible = item.hours >= 15;
-    const holHours = isEligible ? (Math.min(40, item.hours) / 40) * 8 : 0;
-    const holPay = Math.round(holHours * avgHourly);
+  sortedWeeks.forEach((w, idx) => {
+    const isEligible = w.hours >= 15;
+    const avgHourly = w.hours > 0 ? (w.hourlySum / w.hours) : state.hourly;
+    const holidayHours = isEligible ? (Math.min(40, w.hours) / 40) * 8 : 0;
+    const holidayPay = Math.round(holidayHours * avgHourly);
+    totalHolidayPay += holidayPay;
 
-    totalHolidayPay += holPay;
+    const monM = w.mondayDate.getMonth() + 1;
+    const monD = w.mondayDate.getDate();
+    const sunD = new Date(w.mondayDate);
+    sunD.setDate(monD + 6);
+    const rangeText = `${monM}/${monD}~${sunD.getDate()}`;
 
     weeklyChips.push({
       weekNum: idx + 1,
-      rangeText: `${item.range.monday.substring(5)}~${item.range.sunday.substring(5)}`,
-      hours: item.hours,
+      rangeText,
+      hours: w.hours,
       isEligible,
-      holHours,
-      holPay
+      holidayPay
     });
   });
 
-  const grossSalary = totalBase + totalNightExtra + totalOvertimeExtra + totalHolidayPay;
+  totalGross += totalHolidayPay;
 
-  let taxAmount = 0;
-  if (state.taxType === "3.3") {
-    taxAmount = Math.round(grossSalary * 0.033);
-  } else if (state.taxType === "9.4") {
-    taxAmount = Math.round(grossSalary * 0.094);
-  }
-
-  const netSalary = grossSalary - taxAmount;
+  // Taxes
+  const taxRate = parseFloat(state.taxType) / 100 || 0;
+  const taxAmount = Math.round(totalGross * taxRate);
+  const netPay = Math.max(0, totalGross - taxAmount);
 
   // Update Hero Card
-  document.getElementById('netSalaryText').textContent = netSalary.toLocaleString();
-  document.getElementById('basePayText').textContent = totalBase.toLocaleString() + '원';
-  document.getElementById('holidayPayText').textContent = '+' + totalHolidayPay.toLocaleString() + '원';
-  document.getElementById('nightPayText').textContent = '+' + totalNightExtra.toLocaleString() + '원';
+  document.getElementById('heroNetPay').textContent = netPay.toLocaleString();
+  document.getElementById('heroBasePay').textContent = totalBase.toLocaleString() + '원';
+  document.getElementById('heroHolidayPay').textContent = '+ ' + totalHolidayPay.toLocaleString() + '원';
+  document.getElementById('heroNightPay').textContent = '+ ' + totalNight.toLocaleString() + '원';
+  document.getElementById('heroTotalWorkStats').textContent = `${monthLogs.length}일 · ${totalHours.toFixed(1)}시간`;
 
   // Goal Tracker
   const target = state.monthlyTarget || 1000000;
-  const pct = Math.min(100, Math.round((netSalary / target) * 100));
-  document.getElementById('goalHoursLabel').textContent = `총 근무 ${totalHours.toFixed(1)}시간 (${monthLogs.length}일)`;
-  document.getElementById('goalPercentLabel').textContent = `목표 ${(target/10000).toFixed(0)}만 원 (${pct}%)`;
-  document.getElementById('goalBarFill').style.width = pct + '%';
+  const pct = Math.min(100, Math.round((netPay / target) * 100));
+  document.getElementById('heroGoalPercent').textContent = pct + '%';
+  document.getElementById('heroGoalTargetText').textContent = `목표 ${target.toLocaleString()}원`;
+  document.getElementById('heroGoalBar').style.width = pct + '%';
 
   // Render Weekly Chips
   renderWeeklyChips(weeklyChips);
 
   // Render Logs List
-  renderLogsList(monthLogs);
+  renderRecentLogsList(monthLogs);
+  renderMonthDetailLogsList(monthLogs);
 
   // Render Calendar
   renderCalendar(monthLogs);
@@ -1880,43 +1988,137 @@ function renderAll() {
   renderWorkplacesTab(monthLogs);
 
   // Render Receipt
-  renderReceiptTable(totalHours, totalBase, totalNightExtra, totalOvertimeExtra, totalHolidayPay, grossSalary, taxAmount, netSalary, weeklyChips);
+  renderReceiptTable(totalHours, totalBase, totalNight, totalOvertime, totalHolidayPay, totalGross, taxAmount, netPay, weeklyChips);
 }
 
-function renderWeeklyChips(weeklyChips) {
-  const container = document.getElementById('weeklyHolidayRow');
-  if (weeklyChips.length === 0) {
+function renderWeeklyChips(chips) {
+  const container = document.getElementById('weeklyChipsContainer');
+  if (!chips || chips.length === 0) {
     container.innerHTML = `
-      <div style="font-size:12.5px;color:var(--text-muted);padding:8px 0;">
-        선택한 달의 근무 기록이 없습니다. 근무를 등록하면 주차별 주휴수당 달성률이 계산됩니다.
-      </div>
+      <div style="color:var(--text-muted);font-size:12px;padding:8px 0;">근무를 등록하면 주차별 주휴수당 달성 여부가 실시간 표시됩니다.</div>
     `;
     return;
   }
 
-  container.innerHTML = weeklyChips.map(c => `
+  container.innerHTML = chips.map(c => `
     <div class="week-chip ${c.isEligible ? 'qualified' : ''}">
       <div class="week-chip-title">
         <span>${c.weekNum}주차 (${c.rangeText})</span>
-        <span>${c.isEligible ? '✅ 달성' : '⏳ 미달'}</span>
+        ${c.isEligible ? '<span>✅</span>' : '<span style="color:var(--text-subtle)">미달</span>'}
       </div>
-      <div class="week-chip-hours">${c.hours.toFixed(1)}h / 15h</div>
+      <div class="week-chip-hours">${c.hours.toFixed(1)}시간</div>
       <div class="week-chip-sub ${c.isEligible ? 'ok' : 'wait'}">
-        ${c.isEligible ? `주휴 +${c.holPay.toLocaleString()}원 (${c.holHours.toFixed(1)}h)` : `부족 ${(15 - c.hours).toFixed(1)}시간`}
+        ${c.isEligible ? '+ ' + c.holidayPay.toLocaleString() + '원' : '(주 15h 미만)'}
       </div>
     </div>
   `).join('');
 }
 
-function renderLogsList(monthLogs) {
-  const recentBox = document.getElementById('recentLogsList');
-  const allBox = document.getElementById('allLogsList');
-  const countBadge = document.getElementById('calLogCount');
-  countBadge.textContent = `총 ${monthLogs.length}건`;
+function renderHomeTemplates() {
+  const container = document.getElementById('homeQuickTemplates');
+  if (!container) return;
 
-  const sorted = [...monthLogs].sort((a,b) => b.date.localeCompare(a.date));
+  if (state.workplaces && state.workplaces.length > 0) {
+    let chips = state.workplaces.map(wp => `
+      <button type="button" class="chip-template" onclick="quickAddForWorkplace('${wp.id}')">
+        ${wp.icon || '💼'} ${wp.name}
+      </button>
+    `).join('');
+    chips += `
+      <button type="button" class="chip-template" onclick="openAddWorkplaceModal()" style="border-style:dashed;color:var(--primary)">
+        + 알바처 추가
+      </button>
+    `;
+    container.innerHTML = chips;
+  } else {
+    container.innerHTML = `
+      <button type="button" class="chip-template" onclick="openAddWorkplaceModal()" style="border-color:var(--primary);color:var(--primary);font-weight:700">
+        💼 내 첫 알바처 직접 등록하기
+      </button>
+      <button type="button" class="chip-template" onclick="applyShiftPresetDirect('day')">
+        ☀️ 주간 8시간
+      </button>
+      <button type="button" class="chip-template" onclick="applyShiftPresetDirect('night')">
+        🌙 야간 8시간
+      </button>
+    `;
+  }
+}
 
-  function makeItem(log) {
+function quickAddForWorkplace(wpId) {
+  triggerHaptic();
+  openAddModal();
+  document.getElementById('workWpSelect').value = wpId;
+  const wp = state.workplaces.find(w => w.id === wpId);
+  if (wp) {
+    document.getElementById('workHourly').value = wp.hourly;
+  }
+  updateLivePreview();
+}
+
+function applyShiftPresetDirect(preset) {
+  triggerHaptic();
+  openAddModal();
+  applyShiftPresetInModal(preset);
+}
+
+function applyShiftPresetInModal(preset) {
+  triggerHaptic();
+  if (preset === 'day') {
+    document.getElementById('workStart').value = "09:00";
+    document.getElementById('workEnd').value = "18:00";
+    document.getElementById('workBreak').value = "60";
+  } else if (preset === 'night') {
+    document.getElementById('workStart').value = "22:00";
+    document.getElementById('workEnd').value = "06:00";
+    document.getElementById('workBreak').value = "60";
+  } else if (preset === 'part4') {
+    document.getElementById('workStart').value = "18:00";
+    document.getElementById('workEnd').value = "22:00";
+    document.getElementById('workBreak').value = "0";
+  } else if (preset === 'part6') {
+    document.getElementById('workStart').value = "12:00";
+    document.getElementById('workEnd').value = "18:00";
+    document.getElementById('workBreak').value = "30";
+  }
+  updateLivePreview();
+}
+
+function renderRecentLogsList(monthLogs) {
+  const container = document.getElementById('recentLogsList');
+  if (monthLogs.length === 0) {
+    if (!state.workplaces || state.workplaces.length === 0) {
+      container.innerHTML = `
+        <div class="empty-box">
+          <div class="empty-emoji">🔒</div>
+          <div class="empty-title">100% 로컬 프라이빗 알바 장부</div>
+          <div class="empty-desc" style="max-width:280px;margin:0 auto 14px;">
+            모든 기록은 외부 서버 없이 내 기기에만 안전하게 저장됩니다.<br>
+            먼저 내가 일하는 알바처를 등록해 보세요!
+          </div>
+          <button type="button" class="btn-primary" onclick="openAddWorkplaceModal()" style="max-width:220px;margin:0 auto;padding:10px 16px;font-size:13.5px">
+            + 내 알바처 직접 등록하기
+          </button>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `
+        <div class="empty-box">
+          <div class="empty-emoji">📅</div>
+          <div class="empty-title">이번 달 근무 기록이 없습니다</div>
+          <div class="empty-desc" style="max-width:280px;margin:0 auto 14px;">
+            등록된 알바처(${state.workplaces.length}개)에 오늘 일한 근무를 기록해 보세요.
+          </div>
+          <button type="button" class="btn-primary" onclick="openAddModal()" style="max-width:220px;margin:0 auto;padding:10px 16px;font-size:13.5px">
+            + 오늘 근무 등록하기
+          </button>
+        </div>
+      `;
+    }
+    return;
+  }
+
+  container.innerHTML = monthLogs.slice(0, 10).map(log => {
     const res = calcSingleWork(log);
     const isNight = res.nightHours > 0;
     const wp = state.workplaces.find(w => w.id === log.wpId) || { name: log.memo || '근무', icon: '💼' };
@@ -1924,85 +2126,114 @@ function renderLogsList(monthLogs) {
     return `
       <div class="log-item" onclick="openEditModal(${log.id})">
         <div class="log-item-left">
-          <div class="log-date-row">
-            <span class="log-date">${log.date.substring(5)}</span>
-            <span class="tag-badge wp">${wp.icon} ${wp.name}</span>
-            <span class="tag-badge ${isNight ? 'night' : 'day'}">${isNight ? '야간' : '주간'}</span>
+          <div class="log-date-badge">
+            <span class="log-date-day">${log.date.split('-')[2]}</span>
+            <span class="log-date-weekday">${getKoreanDay(log.date)}</span>
           </div>
-          <div class="log-time">${log.start} ~ ${log.end} (실 ${res.totalHours.toFixed(1)}h · 휴게 ${log.breakMin||0}분)</div>
+          <div class="log-item-info">
+            <div class="log-title-row">
+              <span class="log-title">${wp.icon || '💼'} ${wp.name}</span>
+              ${isNight ? '<span class="log-night-badge">야간</span>' : ''}
+            </div>
+            <div class="log-time">
+              <span>${log.start} ~ ${log.end}</span>
+              ${log.breakMin > 0 ? `<span style="color:var(--text-subtle)">· 휴게 ${log.breakMin}분</span>` : ''}
+              ${log.memo ? `<span style="color:var(--text-subtle)">· ${log.memo}</span>` : ''}
+            </div>
+          </div>
         </div>
         <div class="log-item-right">
           <div class="log-pay">${res.totalPay.toLocaleString()}원</div>
-          <div class="log-breakdown">시급 ${res.hourly.toLocaleString()}원</div>
+          <div class="log-hours">${res.totalHours.toFixed(1)}시간</div>
         </div>
       </div>
     `;
+  }).join('');
+}
+
+function renderMonthDetailLogsList(monthLogs) {
+  const container = document.getElementById('monthDetailLogsList');
+  if (!container) return;
+  if (monthLogs.length === 0) {
+    container.innerHTML = `<div class="empty-box" style="padding:20px"><div class="empty-desc">기록된 근무가 없습니다.</div></div>`;
+    return;
   }
 
-  const emptyHtml = `
-    <div class="empty-box">
-      <div class="empty-emoji">📋</div>
-      <div class="empty-title">등록된 근무 기록이 없습니다</div>
-      <div class="empty-desc">상단의 [+ 근무 등록] 버튼을 눌러<br>첫 근무를 등록해 보세요.</div>
-      <button type="button" class="btn-primary" style="display:inline-flex;width:auto;padding:8px 18px;font-size:13px;border-radius:var(--radius-pill);" onclick="openAddModal()">+ 첫 근무 등록하기</button>
-    </div>
-  `;
+  container.innerHTML = monthLogs.map(log => {
+    const res = calcSingleWork(log);
+    const wp = state.workplaces.find(w => w.id === log.wpId) || { name: log.memo || '근무', icon: '💼' };
+    return `
+      <div class="log-item" onclick="openEditModal(${log.id})">
+        <div class="log-item-left">
+          <div class="log-date-badge">
+            <span class="log-date-day">${log.date.split('-')[2]}</span>
+            <span class="log-date-weekday">${getKoreanDay(log.date)}</span>
+          </div>
+          <div class="log-item-info">
+            <div class="log-title-row">
+              <span class="log-title">${wp.icon || '💼'} ${wp.name}</span>
+              ${res.nightHours > 0 ? '<span class="log-night-badge">야간</span>' : ''}
+            </div>
+            <div class="log-time">${log.start} ~ ${log.end} (${res.totalHours.toFixed(1)}h)</div>
+          </div>
+        </div>
+        <div class="log-item-right">
+          <div class="log-pay">${res.totalPay.toLocaleString()}원</div>
+          <div class="log-hours" style="color:var(--primary)">시급 ${res.hourly.toLocaleString()}원</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
 
-  recentBox.innerHTML = sorted.slice(0, 5).map(makeItem).join('') || emptyHtml;
-  allBox.innerHTML = sorted.map(makeItem).join('') || emptyHtml;
+function getKoreanDay(dateStr) {
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  return days[new Date(dateStr + 'T00:00:00').getDay()];
 }
 
 // Calendar Generator
 function renderCalendar(monthLogs) {
-  const grid = document.getElementById('calGrid');
-  const days = ['일', '월', '화', '수', '목', '금', '토'];
-  let html = days.map(d => `<div class="cal-head-day">${d}</div>`).join('');
+  const grid = document.getElementById('calendarGrid');
+  if (!grid) return;
+
+  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  let html = weekdays.map(w => `<div class="cal-header-cell">${w}</div>`).join('');
 
   const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
   const lastDate = new Date(currentYear, currentMonth, 0).getDate();
 
-  const workedMap = {};
-  monthLogs.forEach(l => {
-    if (!workedMap[l.date]) workedMap[l.date] = [];
-    workedMap[l.date].push(l);
-  });
+  const todayStr = getTodayDateString();
 
   // Empty cells before month start
   for (let i = 0; i < firstDay; i++) {
-    html += `<div class="cal-cell" style="opacity:0.25;pointer-events:none"></div>`;
+    html += `<div class="cal-day-cell" style="opacity:0.18;background:none;border:none"></div>`;
   }
 
-  const todayStr = "2026-11-12";
-
+  // Days
   for (let day = 1; day <= lastDate; day++) {
-    const dStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const dayLogs = workedMap[dStr];
-    const isWorked = Boolean(dayLogs && dayLogs.length > 0);
-    const isToday = dStr === todayStr;
+    const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dayOfWeek = (firstDay + day - 1) % 7;
+    const isToday = dateStr === todayStr;
 
-    let paySum = 0;
-    let hoursSum = 0;
-    let icon = "●";
-    if (isWorked) {
-      dayLogs.forEach(l => {
-        const r = calcSingleWork(l);
-        paySum += r.totalPay;
-        hoursSum += r.totalHours;
-      });
-      const wp = state.workplaces.find(w => w.id === dayLogs[0].wpId);
-      if (wp) icon = wp.icon;
+    const dayLogs = monthLogs.filter(l => l.date === dateStr);
+    const hasWork = dayLogs.length > 0;
+
+    let dayClass = 'cal-day-cell';
+    if (dayOfWeek === 0) dayClass += ' sunday';
+    if (dayOfWeek === 6) dayClass += ' saturday';
+    if (isToday) dayClass += ' today';
+    if (hasWork) dayClass += ' has-work';
+
+    let workBadge = '';
+    if (hasWork) {
+      const sumPay = dayLogs.reduce((acc, l) => acc + calcSingleWork(l).totalPay, 0);
+      workBadge = `<div class="cal-work-dot">${(sumPay/10000).toFixed(1)}만</div>`;
     }
 
     html += `
-      <div class="cal-cell ${isWorked ? 'worked' : ''} ${isToday ? 'today' : ''}" onclick="clickCalDay('${dStr}')">
-        <div class="cal-cell-head">
-          <span class="cal-day-num">${day}</span>
-          ${isWorked ? `<span class="cal-cell-badge">${icon}</span>` : '<span></span>'}
-        </div>
-        ${isWorked ? `
-          <div class="cal-cell-pay">${hoursSum.toFixed(1)}h</div>
-          <div class="cal-cell-pay" style="color:var(--brand)">${(paySum/10000).toFixed(1)}만</div>
-        ` : '<div></div>'}
+      <div class="${dayClass}" onclick="handleCalendarDateClick('${dateStr}')">
+        <span class="cal-day-num">${day}</span>
+        ${workBadge}
       </div>
     `;
   }
@@ -2010,16 +2241,15 @@ function renderCalendar(monthLogs) {
   grid.innerHTML = html;
 }
 
-function clickCalDay(dateStr) {
+function handleCalendarDateClick(dateStr) {
   triggerHaptic();
-  document.getElementById('workDate').value = dateStr;
-  
-  // If work exists, prompt edit or add new
   const existing = state.logs.filter(l => l.date === dateStr);
   if (existing.length === 1) {
     openEditModal(existing[0].id);
   } else {
     openAddModal();
+    document.getElementById('workDate').value = dateStr;
+    updateLivePreview();
   }
 }
 
@@ -2027,7 +2257,18 @@ function clickCalDay(dateStr) {
 function renderWorkplacesTab(monthLogs) {
   const container = document.getElementById('workplacesList');
   if (!state.workplaces || state.workplaces.length === 0) {
-    container.innerHTML = `<div style="color:var(--text-muted);font-size:13px;padding:12px 0;">등록된 알바처가 없습니다.</div>`;
+    container.innerHTML = `
+      <div class="empty-box">
+        <div class="empty-emoji">💼</div>
+        <div class="empty-title">등록된 알바처가 없습니다</div>
+        <div class="empty-desc" style="max-width:280px;margin:0 auto 14px;">
+          카페, 편의점, 매장, 과외 등 내가 일하는 알바처와 시급을 직접 등록해 보세요!
+        </div>
+        <button type="button" class="btn-primary" onclick="openAddWorkplaceModal()" style="max-width:200px;margin:0 auto;padding:10px 16px;font-size:13.5px">
+          + 새 알바처 등록하기
+        </button>
+      </div>
+    `;
     return;
   }
 
@@ -2046,13 +2287,22 @@ function renderWorkplacesTab(monthLogs) {
         <div class="wp-info">
           <div class="wp-icon">${wp.icon || '💼'}</div>
           <div>
-            <div class="wp-title">${wp.name}</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="wp-title">${wp.name}</span>
+              ${wp.calcHoliday !== false ? '<span class="chip-tag chip-blue">주휴대상</span>' : '<span class="chip-tag chip-subtle">주휴제외</span>'}
+            </div>
             <div class="wp-hourly">기본시급 ${wp.hourly.toLocaleString()}원</div>
           </div>
         </div>
-        <div class="wp-stats">
-          <div class="wp-stats-sum">${totalP.toLocaleString()}원</div>
-          <div class="wp-stats-hours">${wpLogs.length}일 · ${totalH.toFixed(1)}시간</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="wp-stats">
+            <div class="wp-stats-sum">${totalP.toLocaleString()}원</div>
+            <div class="wp-stats-hours">${wpLogs.length}일 · ${totalH.toFixed(1)}시간</div>
+          </div>
+          <div style="display:flex;gap:4px">
+            <button type="button" class="btn-wp-action" onclick="openEditWorkplaceModal('${wp.id}')" title="수정">✏️</button>
+            <button type="button" class="btn-wp-action delete" onclick="deleteWorkplace('${wp.id}')" title="삭제">🗑️</button>
+          </div>
         </div>
       </div>
     `;
@@ -2061,18 +2311,37 @@ function renderWorkplacesTab(monthLogs) {
 
 function renderWorkplaceSelectOptions() {
   const select = document.getElementById('workWpSelect');
-  select.innerHTML = state.workplaces.map(wp => `
-    <option value="${wp.id}">${wp.icon} ${wp.name}</option>
+  if (!select) return;
+
+  if (!state.workplaces || state.workplaces.length === 0) {
+    select.innerHTML = `
+      <option value="">(등록된 알바처 없음 - 먼저 추가)</option>
+      <option value="__NEW__">+ 새 알바처 직접 등록하기</option>
+    `;
+    return;
+  }
+
+  let html = state.workplaces.map(wp => `
+    <option value="${wp.id}">${wp.icon || '💼'} ${wp.name} (${wp.hourly.toLocaleString()}원)</option>
   `).join('');
+  html += `<option value="__NEW__">+ 새 알바처 직접 등록...</option>`;
+  select.innerHTML = html;
 }
 
 function onWorkplaceChange() {
-  const wpId = document.getElementById('workWpSelect').value;
-  const wp = state.workplaces.find(w => w.id === wpId);
+  const select = document.getElementById('workWpSelect');
+  const val = select.value;
+
+  if (val === '__NEW__') {
+    openAddWorkplaceModal();
+    return;
+  }
+
+  const wp = state.workplaces.find(w => w.id === val);
   if (wp) {
     document.getElementById('workHourly').value = wp.hourly;
-    updateLivePreview();
   }
+  updateLivePreview();
 }
 
 // Receipt Rendering
@@ -2094,105 +2363,73 @@ function renderReceiptTable(totalHours, base, night, overtime, holiday, gross, t
     return;
   }
 
-  let weeklyDetails = weeklyChips.filter(c => c.isEligible).map(c => `
-    <tr style="font-size:11.5px;color:var(--green)">
-      <td style="padding-left:10px">└ ${c.weekNum}주차 주휴 (${c.rangeText})</td>
-      <td>+ ${c.holPay.toLocaleString()} 원</td>
-    </tr>
-  `).join('');
-
-  table.innerHTML = `
-    <tr><td>총 근로시간</td><td>${totalHours.toFixed(1)} 시간</td></tr>
-    <tr><td>기본 근로수당</td><td>${base.toLocaleString()} 원</td></tr>
-    <tr><td>야간 가산수당 (1.5x)</td><td>+ ${night.toLocaleString()} 원</td></tr>
-    ${overtime > 0 ? `<tr><td>연장 가산수당 (1.5x)</td><td>+ ${overtime.toLocaleString()} 원</td></tr>` : ''}
-    <tr><td>주휴수당 합계</td><td>+ ${holiday.toLocaleString()} 원</td></tr>
-    ${weeklyDetails}
-    <tr style="border-top:1px dashed var(--border);font-weight:700">
-      <td>세전 총급여</td><td>${gross.toLocaleString()} 원</td>
-    </tr>
-    <tr style="color:var(--rose)">
-      <td>예상 세금 공제 (${state.taxType}%)</td><td>- ${tax.toLocaleString()} 원</td>
-    </tr>
+  let html = `
+    <tr><td>총 실근로시간</td><td>${totalHours.toFixed(1)} 시간</td></tr>
+    <tr><td>기본 근로 급여</td><td>${base.toLocaleString()} 원</td></tr>
   `;
+
+  if (holiday > 0) {
+    weeklyChips.filter(c => c.isEligible).forEach(c => {
+      html += `
+        <tr style="color:#0284C7;font-size:11px">
+          <td style="padding-left:10px">└ ${c.weekNum}주차 주휴 (${c.rangeText})</td>
+          <td>+ ${c.holidayPay.toLocaleString()} 원</td>
+        </tr>
+      `;
+    });
+    html += `<tr><td>주휴수당 합계</td><td>+ ${holiday.toLocaleString()} 원</td></tr>`;
+  }
+
+  if (night > 0) {
+    html += `<tr><td>야간근로가산수당 (1.5x)</td><td>+ ${night.toLocaleString()} 원</td></tr>`;
+  }
+  if (overtime > 0) {
+    html += `<tr><td>연장근로가산수당 (1.5x)</td><td>+ ${overtime.toLocaleString()} 원</td></tr>`;
+  }
+
+  html += `
+    <tr class="receipt-divider"><td colspan="2"></td></tr>
+    <tr><td><strong>세전 총지급액</strong></td><td><strong>${gross.toLocaleString()} 원</strong></td></tr>
+    <tr><td>세금 공제 (${state.taxType}%)</td><td style="color:#E11D48">- ${tax.toLocaleString()} 원</td></tr>
+  `;
+
+  table.innerHTML = html;
 }
 
 function renderBarcode() {
-  const container = document.getElementById('barcodeContainer');
-  let bars = '';
-  const widths = [2, 4, 1, 3, 2, 5, 2, 1, 4, 2, 3, 1, 5, 2, 3, 1, 4, 2];
-  widths.forEach(w => {
-    bars += `<div class="barcode-line" style="width:${w}px"></div><div style="width:${w/2}px"></div>`;
-  });
-  container.innerHTML = bars;
+  const linesEl = document.getElementById('barcodeLines');
+  if (!linesEl) return;
+  const widths = [2, 1, 3, 2, 4, 1, 2, 1, 3, 4, 2, 1, 2, 3, 1, 4, 2, 1, 3, 2, 1, 4, 2];
+  linesEl.innerHTML = widths.map(w => `<div class="barcode-bar" style="width:${w}px"></div>`).join('');
 }
 
 // Live Preview in Modal
 function updateLivePreview() {
-  const date = document.getElementById('workDate').value || "2026-11-12";
-  const start = document.getElementById('workStart').value || "22:00";
-  const end = document.getElementById('workEnd').value || "06:00";
+  const start = document.getElementById('workStart').value;
+  const end = document.getElementById('workEnd').value;
   const breakMin = parseInt(document.getElementById('workBreak').value) || 0;
-  const hourly = parseInt(document.getElementById('workHourly').value) || state.hourly;
+  const hourly = parseInt(document.getElementById('workHourly').value) || state.hourly || 10030;
 
-  const tempLog = { date, start, end, breakMin, hourly };
+  if (!start || !end) return;
+
+  const tempLog = {
+    start, end, breakMin, hourly
+  };
+
   const res = calcSingleWork(tempLog);
-
-  document.getElementById('liveHoursText').textContent = `실 ${res.totalHours.toFixed(1)}h (야간 ${res.nightHours.toFixed(1)}h)`;
-  document.getElementById('livePayText').textContent = res.totalPay.toLocaleString() + '원';
-}
-
-function setBreak(mins) {
-  triggerHaptic();
-  document.getElementById('workBreak').value = mins;
-  updateLivePreview();
-}
-
-// Quick Templates
-function applyTemplate(type) {
-  triggerHaptic();
-  openAddModal();
-  applyTemplateInModal(type);
-}
-
-function applyTemplateInModal(type) {
-  triggerHaptic();
-  if (type === 'pc') {
-    document.getElementById('workStart').value = "23:00";
-    document.getElementById('workEnd').value = "07:00";
-    document.getElementById('workBreak').value = "60";
-    document.getElementById('workMemo').value = "피시방 야간 카운터/서빙";
-    const pcWp = state.workplaces.find(w => w.name.includes("피시방"));
-    if (pcWp) {
-      document.getElementById('workWpSelect').value = pcWp.id;
-      document.getElementById('workHourly').value = pcWp.hourly;
-    }
-  } else if (type === 'logistics') {
-    document.getElementById('workStart').value = "22:00";
-    document.getElementById('workEnd').value = "06:00";
-    document.getElementById('workBreak').value = "60";
-    document.getElementById('workMemo').value = "물류센터 야간 소분/하차";
-    const logiWp = state.workplaces.find(w => w.name.includes("물류"));
-    if (logiWp) {
-      document.getElementById('workWpSelect').value = logiWp.id;
-      document.getElementById('workHourly').value = logiWp.hourly;
-    }
-  } else if (type === 'cvs') {
-    document.getElementById('workStart').value = "09:00";
-    document.getElementById('workEnd').value = "18:00";
-    document.getElementById('workBreak').value = "60";
-    document.getElementById('workMemo').value = "편의점 주말 주간";
-    const cvsWp = state.workplaces.find(w => w.name.includes("편의점"));
-    if (cvsWp) {
-      document.getElementById('workWpSelect').value = cvsWp.id;
-      document.getElementById('workHourly').value = cvsWp.hourly;
-    }
-  } else if (type === 'cafe') {
-    document.getElementById('workStart').value = "17:00";
-    document.getElementById('workEnd').value = "23:00";
-    document.getElementById('workBreak').value = "30";
-    document.getElementById('workMemo').value = "카페 마감 및 정산";
+  document.getElementById('modalLivePay').textContent = res.totalPay.toLocaleString() + '원';
+  document.getElementById('modalLiveHours').textContent = `실근무 ${res.totalHours.toFixed(1)}시간`;
+  
+  if (res.nightHours > 0) {
+    document.getElementById('modalLiveNight').textContent = `야간할증 ${res.nightHours.toFixed(1)}h (+${res.nightPay.toLocaleString()}원)`;
+  } else {
+    document.getElementById('modalLiveNight').textContent = '야간할증 없음';
   }
+}
+
+function setBreak(min) {
+  triggerHaptic();
+  document.getElementById('workBreak').value = min;
   updateLivePreview();
 }
 
@@ -2213,23 +2450,38 @@ function doSwitchTab(tabId, animate) {
   const tabs = ['home', 'cal', 'wp', 'calc', 'set'];
   const idx = tabs.indexOf(tabId);
   if (idx !== -1) {
-    document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+    const allNav = document.querySelectorAll('.nav-tab');
+    if (allNav[idx]) allNav[idx].classList.add('active');
   }
+
+  window.scrollTo({ top: 0, behavior: animate ? 'smooth' : 'auto' });
 }
 
-// Modals
+// Modal Controls
 function openAddModal() {
   triggerHaptic();
-  document.getElementById('workModalTitle').textContent = "근무 기록 추가";
+  document.getElementById('modalWorkTitle').textContent = "새 근무 기록 등록";
   document.getElementById('editLogId').value = "";
-  document.getElementById('btnSaveWork').textContent = "기록 저장하기";
+  document.getElementById('btnSaveWork').textContent = "근무 기록 저장하기";
   document.getElementById('btnDeleteWork').style.display = "none";
 
-  if (!document.getElementById('workDate').value) {
-    document.getElementById('workDate').value = "2026-11-12";
-  }
-  updateLivePreview();
+  document.getElementById('workDate').value = getTodayDateString();
+  document.getElementById('workStart').value = "09:00";
+  document.getElementById('workEnd').value = "18:00";
+  document.getElementById('workBreak').value = "60";
+  document.getElementById('workMemo').value = "";
 
+  renderWorkplaceSelectOptions();
+
+  if (state.workplaces && state.workplaces.length > 0) {
+    const firstWp = state.workplaces[0];
+    document.getElementById('workWpSelect').value = firstWp.id;
+    document.getElementById('workHourly').value = firstWp.hourly;
+  } else {
+    document.getElementById('workHourly').value = state.hourly || 10030;
+  }
+
+  updateLivePreview();
   history.pushState({ modal: 'modalWork' }, '');
   document.getElementById('modalWork').classList.add('open');
 }
@@ -2239,20 +2491,21 @@ function openEditModal(logId) {
   const log = state.logs.find(l => l.id === logId);
   if (!log) return;
 
-  document.getElementById('workModalTitle').textContent = "근무 기록 수정";
+  document.getElementById('modalWorkTitle').textContent = "근무 기록 수정";
   document.getElementById('editLogId').value = log.id;
+  document.getElementById('btnSaveWork').textContent = "수정사항 저장";
+  document.getElementById('btnDeleteWork').style.display = "block";
+
   document.getElementById('workDate').value = log.date;
+  renderWorkplaceSelectOptions();
+  if (log.wpId) document.getElementById('workWpSelect').value = log.wpId;
   document.getElementById('workStart').value = log.start;
   document.getElementById('workEnd').value = log.end;
   document.getElementById('workBreak').value = log.breakMin || 0;
-  document.getElementById('workHourly').value = log.hourly || state.hourly;
+  document.getElementById('workHourly').value = log.hourly;
   document.getElementById('workMemo').value = log.memo || '';
-  if (log.wpId) document.getElementById('workWpSelect').value = log.wpId;
 
-  document.getElementById('btnSaveWork').textContent = "수정사항 저장";
-  document.getElementById('btnDeleteWork').style.display = "block";
   updateLivePreview();
-
   history.pushState({ modal: 'modalWork' }, '');
   document.getElementById('modalWork').classList.add('open');
 }
@@ -2267,8 +2520,24 @@ function openAddWorkplaceModal() {
   triggerHaptic();
   document.getElementById('wpNameInput').value = "";
   document.getElementById('wpHourlyInput').value = state.hourly || 10030;
+  document.getElementById('wpHolidayCheck').checked = true;
   history.pushState({ modal: 'modalAddWp' }, '');
   document.getElementById('modalAddWp').classList.add('open');
+}
+
+function openEditWorkplaceModal(wpId) {
+  triggerHaptic();
+  const wp = state.workplaces.find(w => w.id === wpId);
+  if (!wp) return;
+
+  document.getElementById('editWpId').value = wp.id;
+  document.getElementById('editWpNameInput').value = wp.name;
+  document.getElementById('editWpHourlyInput').value = wp.hourly;
+  document.getElementById('editWpIconSelect').value = wp.icon || '💼';
+  document.getElementById('editWpHolidayCheck').checked = wp.calcHoliday !== false;
+
+  history.pushState({ modal: 'modalEditWp' }, '');
+  document.getElementById('modalEditWp').classList.add('open');
 }
 
 function openImportModal() {
@@ -2342,17 +2611,70 @@ function handleSaveWorkplace(e) {
   const name = document.getElementById('wpNameInput').value.trim();
   const hourly = parseInt(document.getElementById('wpHourlyInput').value) || 10030;
   const icon = document.getElementById('wpIconSelect').value;
+  const calcHoliday = document.getElementById('wpHolidayCheck').checked;
 
   const newWp = {
     id: "wp_" + Date.now(),
-    name, hourly, icon
+    name, hourly, icon, calcHoliday
   };
 
   state.workplaces.push(newWp);
   saveState();
   renderWorkplaceSelectOptions();
+  
+  // Auto-select newly created workplace if modalWork is open
+  const workSelect = document.getElementById('workWpSelect');
+  if (workSelect) {
+    workSelect.value = newWp.id;
+    document.getElementById('workHourly').value = newWp.hourly;
+    updateLivePreview();
+  }
+
   closeModal('modalAddWp');
-  showToast(`'${name}' 알바처가 추가되었습니다!`);
+  showToast(`'${name}' 알바처가 등록되었습니다!`);
+}
+
+// Edit Workplace
+function handleUpdateWorkplace(e) {
+  e.preventDefault();
+  triggerHaptic();
+  const wpId = document.getElementById('editWpId').value;
+  const idx = state.workplaces.findIndex(w => w.id === wpId);
+  if (idx === -1) return;
+
+  const name = document.getElementById('editWpNameInput').value.trim();
+  const hourly = parseInt(document.getElementById('editWpHourlyInput').value) || 10030;
+  const icon = document.getElementById('editWpIconSelect').value;
+  const calcHoliday = document.getElementById('editWpHolidayCheck').checked;
+
+  state.workplaces[idx].name = name;
+  state.workplaces[idx].hourly = hourly;
+  state.workplaces[idx].icon = icon;
+  state.workplaces[idx].calcHoliday = calcHoliday;
+
+  saveState();
+  closeModal('modalEditWp');
+  showToast(`'${name}' 알바처 정보가 수정되었습니다.`);
+}
+
+function deleteWorkplace(wpId) {
+  triggerHaptic();
+  const wp = state.workplaces.find(w => w.id === wpId);
+  if (!wp) return;
+
+  if (confirm(`'${wp.name}' 알바처를 삭제하시겠습니까?
+(등록된 근무 기록의 근무처 연결이 해제됩니다)`)) {
+    state.workplaces = state.workplaces.filter(w => w.id !== wpId);
+    saveState();
+    showToast(`'${wp.name}' 알바처가 삭제되었습니다.`);
+  }
+}
+
+function deleteWorkplaceFromEditModal() {
+  const wpId = document.getElementById('editWpId').value;
+  if (!wpId) return;
+  closeModal('modalEditWp');
+  deleteWorkplace(wpId);
 }
 
 // Settings
@@ -2381,8 +2703,8 @@ function runSim() {
   const holMonth = holPay * 4;
 
   document.getElementById('simHolidayHours').textContent = holHours.toFixed(1) + '시간';
-  document.getElementById('simHolidayPay').textContent = holPay.toLocaleString() + '원';
-  document.getElementById('simHolidayMonthPay').textContent = holMonth.toLocaleString() + '원';
+  document.getElementById('simHolidayPay').textContent = '+ ' + holPay.toLocaleString() + '원';
+  document.getElementById('simHolidayMonthPay').textContent = '+ ' + holMonth.toLocaleString() + '원';
 
   const weeklyGross = (w * h) + holPay;
   const monthlyGrossEst = weeklyGross * 4;
@@ -2401,19 +2723,32 @@ function copyReceiptText() {
     return;
   }
   const net = document.getElementById('receiptNetTotal').textContent;
-  const base = document.getElementById('basePayText').textContent;
-  const hol = document.getElementById('holidayPayText').textContent;
-  const night = document.getElementById('nightPayText').textContent;
+  const base = document.getElementById('heroBasePay').textContent;
+  const hol = document.getElementById('heroHolidayPay').textContent;
+  const night = document.getElementById('heroNightPay').textContent;
 
   const txt = `[알바로그 Pro - ${currentYear}년 ${currentMonth}월 급여 명세서]
 실수령액: ${net}
 기본급: ${base}
 주휴수당: ${hol}
 야간할증(1.5x): ${night}
-(적용 세금: ${state.taxType}% / 기준 시급: ${state.hourly.toLocaleString()}원)`;
+(적용 세금: ${state.taxType}% / 기준 시급: ${state.hourly.toLocaleString()}원)
+※ 100% 온디바이스 로컬 저장 알바로그 Pro`;
   navigator.clipboard.writeText(txt).then(() => {
     showToast('명세서 텍스트가 복사되었습니다!');
   });
+}
+
+function downloadJSON() {
+  triggerHaptic();
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+  const a = document.createElement('a');
+  a.setAttribute("href", dataStr);
+  a.setAttribute("download", `albalog_backup_${getTodayDateString()}.json`);
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  showToast('JSON 백업 파일이 다운로드되었습니다.');
 }
 
 function exportData() {
@@ -2429,14 +2764,16 @@ function exportCSV() {
     showToast('내보낼 근무 기록이 없습니다.');
     return;
   }
-  let csv = `일자,근무처,출근시각,퇴근시각,휴게(분),시급,실근로시간,일급,메모\n`;
+  let csv = "일자,근무처,출근시각,퇴근시각,휴게(분),시급,실근로시간,일급,메모
+";
   state.logs.forEach(l => {
     const r = calcSingleWork(l);
-    const wp = state.workplaces.find(w => w.id === l.wpId) || { name: l.memo || '' };
-    csv += `${l.date},"${wp.name}",${l.start},${l.end},${l.breakMin||0},${r.hourly},${r.totalHours.toFixed(1)},${r.totalPay},"${l.memo||''}"\n`;
+    const wp = state.workplaces.find(w => w.id === l.wpId) || { name: l.memo || '근무' };
+    csv += `${l.date},"${wp.name}",${l.start},${l.end},${l.breakMin||0},${r.hourly},${r.totalHours.toFixed(1)},${r.totalPay},"${l.memo||''}"
+`;
   });
 
-  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(["﻿" + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -2456,6 +2793,8 @@ function handleImportData() {
     const parsed = JSON.parse(text);
     if (!parsed || typeof parsed !== 'object') throw new Error('Invalid format');
     state = Object.assign({}, state, parsed);
+    if (!Array.isArray(state.logs)) state.logs = [];
+    if (!Array.isArray(state.workplaces)) state.workplaces = [];
     saveState();
     closeModal('modalImport');
     showToast('데이터가 성공적으로 복원되었습니다!');
@@ -2466,19 +2805,12 @@ function handleImportData() {
 
 function clearAllData() {
   triggerHaptic();
-  if (confirm('등록된 모든 근무 기록을 초기화하시겠습니까? (되돌릴 수 없습니다)')) {
+  if (confirm('등록된 모든 근무 기록과 알바처 정보를 영구 삭제하시겠습니까?
+(기기 내 로컬 저장소가 완전히 초기화되며 되돌릴 수 없습니다)')) {
     state.logs = [];
+    state.workplaces = [];
     saveState();
-    showToast('모든 근무 기록이 0건으로 초기화되었습니다.');
-  }
-}
-
-function loadSampleData() {
-  triggerHaptic();
-  if (confirm('실전 시연용 예시 샘플 데이터(5건)를 불러오시겠습니까?')) {
-    state.logs = JSON.parse(JSON.stringify(SAMPLE_DEMO_LOGS));
-    saveState();
-    showToast('예시 샘플 데이터가 등록되었습니다.');
+    showToast('기기 내 모든 데이터가 완전 삭제되었습니다.');
   }
 }
 
