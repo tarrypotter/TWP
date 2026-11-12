@@ -2662,8 +2662,7 @@ function deleteWorkplace(wpId) {
   const wp = state.workplaces.find(w => w.id === wpId);
   if (!wp) return;
 
-  if (confirm(`'${wp.name}' 알바처를 삭제하시겠습니까?
-(등록된 근무 기록의 근무처 연결이 해제됩니다)`)) {
+  if (confirm(`'${wp.name}' 알바처를 삭제하시겠습니까? (등록된 근무 기록의 근무처 연결이 해제됩니다)`)) {
     state.workplaces = state.workplaces.filter(w => w.id !== wpId);
     saveState();
     showToast(`'${wp.name}' 알바처가 삭제되었습니다.`);
@@ -2727,13 +2726,16 @@ function copyReceiptText() {
   const hol = document.getElementById('heroHolidayPay').textContent;
   const night = document.getElementById('heroNightPay').textContent;
 
-  const txt = `[알바로그 Pro - ${currentYear}년 ${currentMonth}월 급여 명세서]
-실수령액: ${net}
-기본급: ${base}
-주휴수당: ${hol}
-야간할증(1.5x): ${night}
-(적용 세금: ${state.taxType}% / 기준 시급: ${state.hourly.toLocaleString()}원)
-※ 100% 온디바이스 로컬 저장 알바로그 Pro`;
+  const lines = [
+    `[알바로그 Pro - ${currentYear}년 ${currentMonth}월 급여 명세서]`,
+    `실수령액: ${net}`,
+    `기본급: ${base}`,
+    `주휴수당: ${hol}`,
+    `야간할증(1.5x): ${night}`,
+    `(적용 세금: ${state.taxType}% / 기준 시급: ${state.hourly.toLocaleString()}원)`,
+    `※ 100% 온디바이스 로컬 저장 알바로그 Pro`
+  ];
+  const txt = lines.join(String.fromCharCode(10));
   navigator.clipboard.writeText(txt).then(() => {
     showToast('명세서 텍스트가 복사되었습니다!');
   });
@@ -2764,16 +2766,15 @@ function exportCSV() {
     showToast('내보낼 근무 기록이 없습니다.');
     return;
   }
-  let csv = "일자,근무처,출근시각,퇴근시각,휴게(분),시급,실근로시간,일급,메모
-";
+  const rows = ['일자,근무처,출근시각,퇴근시각,휴게(분),시급,실근로시간,일급,메모'];
   state.logs.forEach(l => {
     const r = calcSingleWork(l);
     const wp = state.workplaces.find(w => w.id === l.wpId) || { name: l.memo || '근무' };
-    csv += `${l.date},"${wp.name}",${l.start},${l.end},${l.breakMin||0},${r.hourly},${r.totalHours.toFixed(1)},${r.totalPay},"${l.memo||''}"
-`;
+    rows.push(`${l.date},"${wp.name}",${l.start},${l.end},${l.breakMin||0},${r.hourly},${r.totalHours.toFixed(1)},${r.totalPay},"${l.memo||''}"`);
   });
 
-  const blob = new Blob(["﻿" + csv], { type: 'text/csv;charset=utf-8;' });
+  const csvContent = rows.join(String.fromCharCode(10));
+  const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -2805,8 +2806,7 @@ function handleImportData() {
 
 function clearAllData() {
   triggerHaptic();
-  if (confirm('등록된 모든 근무 기록과 알바처 정보를 영구 삭제하시겠습니까?
-(기기 내 로컬 저장소가 완전히 초기화되며 되돌릴 수 없습니다)')) {
+  if (confirm('등록된 모든 근무 기록과 알바처 정보를 영구 삭제하시겠습니까? (기기 내 로컬 저장소가 완전히 초기화되며 되돌릴 수 없습니다)')) {
     state.logs = [];
     state.workplaces = [];
     saveState();
