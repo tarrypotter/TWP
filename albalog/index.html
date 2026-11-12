@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>알바로그 Pro v2.3 — 로컬 프라이빗 주휴·야간수당 정산기</title>
-<meta name="description" content="100% 온디바이스 로컬 저장으로 외부 서버 전송 없이 내 알바처와 시급을 직접 등록하고 야간·주휴수당을 정산하는 완전 프라이빗 알바 장부">
+<title>알바로그 Pro v2.4 — 다중 알바처·연속 근무 등록 정산기</title>
+<meta name="description" content="2026년 최저시급 10,320원 반영, 다중 알바처 및 하루 여러 개 근무 등록 지원, 100% 온디바이스 로컬 퍼스트 알바 장부">
 <meta name="theme-color" content="#0B0F19">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -57,7 +57,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* App Container */
 .app-container {
   max-width: 480px;
   margin: 0 auto;
@@ -345,7 +344,7 @@ body {
   transition: width 0.4s ease;
 }
 
-/* Quick Shift Chips in Add Modal & Home */
+/* Quick Chips & Filters */
 .quick-templates-wrap {
   display: flex;
   gap: 6px;
@@ -354,6 +353,7 @@ body {
   margin-bottom: 12px;
 }
 .quick-templates-wrap::-webkit-scrollbar { display: none; }
+
 .chip-template {
   flex-shrink: 0;
   display: flex;
@@ -373,6 +373,11 @@ body {
   transform: scale(0.95);
   background: var(--surface-elevated);
   border-color: var(--primary);
+}
+.chip-template.active-filter {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 /* Section Title */
@@ -768,7 +773,7 @@ body {
 }
 .btn-break-pill {
   flex: 1;
-  padding: 5px;
+  padding: 6px 4px;
   background: var(--surface-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -777,9 +782,10 @@ body {
   color: var(--text-muted);
   cursor: pointer;
 }
-.btn-break-pill:hover {
+.btn-break-pill:hover, .btn-break-pill.active {
   color: var(--primary);
   border-color: var(--primary);
+  background: rgba(56, 189, 248, 0.12);
 }
 
 /* Modal Live Preview Card */
@@ -989,7 +995,7 @@ body {
 
 .cal-work-dot {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 700;
   padding: 1px 3px;
   border-radius: 3px;
@@ -1127,8 +1133,8 @@ body {
     <div class="header-brand">
       <div class="header-logo-icon">💼</div>
       <div>
-        <div class="header-title">알바로그 Pro <span class="header-badge">v2.3 Private</span></div>
-        <div class="header-sub">100% 온디바이스 · 로컬 프라이빗 알바 장부</div>
+        <div class="header-title">알바로그 Pro <span class="header-badge">v2.4 Multi</span></div>
+        <div class="header-sub">2026 최저시급 10,320원 · 다중 알바·다중 근무</div>
       </div>
     </div>
     <div class="header-actions">
@@ -1149,14 +1155,19 @@ body {
         <div class="privacy-badge-icon">🔒</div>
         <div>
           <div class="privacy-badge-title">100% 온디바이스 로컬 퍼스트</div>
-          <div class="privacy-badge-desc">회원가입 없음 · 외부 서버 전송 0% · 모든 데이터는 내 폰 브라우저에만 암호화 저장됩니다.</div>
+          <div class="privacy-badge-desc">2026 최저시급 10,320원 반영 · 회원가입·서버 전송 0% · 내 폰에만 암호화 저장</div>
         </div>
+      </div>
+
+      <!-- Workplace Filter Chips -->
+      <div class="quick-templates-wrap" id="wpFilterBar">
+        <!-- Rendered dynamically by JS -->
       </div>
 
       <!-- Salary Hero Card -->
       <div class="card salary-hero">
         <div class="hero-month-bar">
-          <div class="hero-sublabel">예상 실수령액 (세후)</div>
+          <div class="hero-sublabel" id="heroFilterSublabel">예상 실수령액 (세후)</div>
           <div style="display:flex;gap:6px">
             <button type="button" class="month-picker-btn" onclick="changeMonth(-1)">◀</button>
             <button type="button" class="month-picker-btn" id="heroMonthLabel" onclick="resetToCurrentMonth()">2026년 11월</button>
@@ -1171,7 +1182,7 @@ body {
 
         <!-- Target Progress -->
         <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);font-weight:600">
-          <span>목표 수입 달성률 <strong id="heroGoalPercent" style="color:var(--primary)">0%</strong></span>
+          <span>목표 달성률 <strong id="heroGoalPercent" style="color:var(--primary)">0%</strong></span>
           <span id="heroGoalTargetText">목표 1,000,000원</span>
         </div>
         <div class="target-bar-wrap">
@@ -1214,7 +1225,7 @@ body {
       <div style="margin-bottom:8px">
         <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px">⚡ 내 알바 원터치 퀵 등록</div>
         <div class="quick-templates-wrap" id="homeQuickTemplates">
-          <!-- Rendered dynamically by JS based on user's registered workplaces -->
+          <!-- Rendered dynamically by JS -->
         </div>
       </div>
 
@@ -1259,7 +1270,7 @@ body {
         <div class="sec-title-row" style="margin-bottom:12px">
           <div>
             <div class="sec-title">내 알바처 관리</div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">알바처마다 다른 시급과 주휴수당 기준을 개별 적용합니다.</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">투잡·쓰리잡 알바처를 무제한 등록하고 시급을 개별 관리합니다.</div>
           </div>
           <button type="button" class="btn-header-add" style="font-size:12px;padding:6px 12px" onclick="openAddWorkplaceModal()">
             + 알바처 추가
@@ -1268,14 +1279,18 @@ body {
         <div id="workplacesList">
           <!-- Rendered by JS -->
         </div>
+        <button type="button" class="btn-secondary" onclick="openAddWorkplaceModal()" style="margin-top:10px">
+          + 새 알바처 추가 등록
+        </button>
       </div>
 
       <div class="card">
-        <h3 style="font-size:14.5px;font-weight:800;margin-bottom:8px">💡 주휴·야간수당 법정 기준</h3>
+        <h3 style="font-size:14.5px;font-weight:800;margin-bottom:8px">💡 2026년 최저시급 및 수당 기준</h3>
         <p style="font-size:12px;color:var(--text-muted);line-height:1.55;margin-bottom:8px">
-          • <strong>주휴수당</strong>: 근로기준법상 주 15시간 이상 근무 시 1일분 소정근로시간 시급이 추가 지급됩니다. (주휴시간 = 주소정근로시간/40 × 8)<br>
-          • <strong>야간할증수당</strong>: 밤 22시부터 익일 06시 사이 근무 시간에 대해 통상시급의 50%(1.5배)가 가산 지급됩니다.<br>
-          • <strong>연장근로수당</strong>: 1일 8시간을 초과한 근무 시간에 대해 50%(1.5배)가 가산됩니다.
+          • <strong>2026년 법정 최저시급</strong>: <strong>10,320원</strong><br>
+          • <strong>주휴수당</strong>: 주 15시간 이상 근무 시 1일분 소정근로시간 시급 지급 (주소정시간/40 × 8 × 시급)<br>
+          • <strong>야간할증수당</strong>: 밤 22시부터 익일 06시 사이 근무에 대해 50%(1.5배) 가산<br>
+          • <strong>연장근로수당</strong>: 1일 8시간 초과 근무에 대해 50%(1.5배) 가산
         </p>
       </div>
     </div>
@@ -1283,11 +1298,11 @@ body {
     <!-- Tab 4: Calculator / Simulator -->
     <div id="pane-calc" class="tab-pane">
       <div class="card">
-        <div class="sec-title" style="margin-bottom:12px">🧮 실시간 주휴·야간 모의 계산기</div>
+        <div class="sec-title" style="margin-bottom:12px">🧮 2026 주휴·야간 모의 계산기</div>
         
         <div class="form-group">
-          <label class="form-label">적용 기본 시급 (원)</label>
-          <input type="number" id="simHourly" class="form-input" value="10030" oninput="runSim()">
+          <label class="form-label">적용 기본 시급 (원) — 2026년 기준 10,320원</label>
+          <input type="number" id="simHourly" class="form-input" value="10320" oninput="runSim()">
         </div>
 
         <div class="form-group">
@@ -1306,11 +1321,11 @@ body {
           </div>
           <div style="display:flex;justify-content:space-between;margin-bottom:8px">
             <span style="font-size:12px;color:var(--text-muted)">주당 주휴수당</span>
-            <strong id="simHolidayPay" style="font-family:'JetBrains Mono',monospace;color:var(--green);font-size:15px">+ 32,096원</strong>
+            <strong id="simHolidayPay" style="font-family:'JetBrains Mono',monospace;color:var(--green);font-size:15px">+ 33,024원</strong>
           </div>
           <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px dashed var(--border)">
             <span style="font-size:12px;color:var(--text-muted)">월 환산 주휴수당 (4주)</span>
-            <strong id="simHolidayMonthPay" style="font-family:'JetBrains Mono',monospace;color:var(--green);font-size:16px">+ 128,384원</strong>
+            <strong id="simHolidayMonthPay" style="font-family:'JetBrains Mono',monospace;color:var(--green);font-size:16px">+ 132,096원</strong>
           </div>
         </div>
 
@@ -1344,10 +1359,10 @@ body {
         <div class="set-row">
           <div>
             <div class="set-label-main">기본 적용 시급</div>
-            <div class="set-label-sub">2026년 법정 최저시급 10,030원 기준</div>
+            <div class="set-label-sub">2026년 법정 최저시급 10,320원 기준</div>
           </div>
           <div style="width:110px">
-            <input type="number" id="setHourlyInput" class="form-input" style="padding:6px 10px;font-size:13px;text-align:right" value="10030" onchange="saveSettings()">
+            <input type="number" id="setHourlyInput" class="form-input" style="padding:6px 10px;font-size:13px;text-align:right" value="10320" onchange="saveSettings()">
           </div>
         </div>
 
@@ -1497,8 +1512,8 @@ body {
 
       <div class="form-row-2">
         <div class="form-group">
-          <label class="form-label">적용 시급 (원)</label>
-          <input type="number" id="workHourly" class="form-input" required value="10030" oninput="updateLivePreview()">
+          <label class="form-label">적용 시급 (원) — 2026 최저 10,320</label>
+          <input type="number" id="workHourly" class="form-input" required value="10320" oninput="updateLivePreview()">
         </div>
         <div class="form-group">
           <label class="form-label">휴게 시간 (분)</label>
@@ -1513,9 +1528,35 @@ body {
 
       <div class="form-group">
         <label class="form-label">업무 내용 / 메모 (선택)</label>
-        <input type="text" id="workMemo" class="form-input" placeholder="예: 카운터 마감, 오픈 준비, 재고 파악 등">
+        <input type="text" id="workMemo" class="form-input" placeholder="예: 오전 오픈, 마감 카운터, 물류 분류 등">
       </div>
 
+      <!-- Batch Multi-Day Add Feature -->
+      <div class="form-group" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <label class="form-label" style="margin-bottom:0">📅 요일 일괄 반복 등록 (선택)</label>
+          <button type="button" onclick="toggleMultiDateMode()" id="btnToggleMultiDate" style="font-size:11px;color:var(--primary);background:none;border:none;cursor:pointer;font-weight:700">
+            + 이번 달 반복 선택
+          </button>
+        </div>
+        <div id="multiDateSelector" style="display:none;margin-top:8px;padding:10px;background:var(--surface-elevated);border:1px solid var(--border);border-radius:var(--radius-md);">
+          <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:6px">선택한 요일에 동일한 근무가 일괄 등록됩니다.</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">
+            <button type="button" class="btn-break-pill" id="btnRecurWeekend" onclick="toggleRecurringPreset('weekend')">주말 (토·일)</button>
+            <button type="button" class="btn-break-pill" id="btnRecurWeekday" onclick="toggleRecurringPreset('weekday')">평일 (월~금)</button>
+            <button type="button" class="btn-break-pill" id="btnRecurMWF" onclick="toggleRecurringPreset('mwf')">월·수·금</button>
+            <button type="button" class="btn-break-pill" id="btnRecurClear" onclick="clearRecurringDates()">초기화</button>
+          </div>
+          <div id="batchDatesSummary" style="font-size:11.5px;color:var(--primary);font-weight:700">추가 등록될 날짜: 0일</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:4px 0">
+        <input type="checkbox" id="workNightOverride" checked style="width:18px;height:18px;accent-color:var(--primary)" onchange="updateLivePreview()">
+        <label for="workNightOverride" id="lblNightOverride" style="font-size:12px;color:var(--text-muted);font-weight:600;cursor:pointer">
+          야간할증(1.5배) 가산 적용 (5인 미만 사업장은 체크 해제)
+        </label>
+      </div>
       <!-- Live Calculation Card in Modal -->
       <div class="modal-live-preview">
         <div>
@@ -1526,6 +1567,14 @@ body {
           <div class="preview-details" id="modalLiveHours">실근무 0.0시간</div>
           <div class="preview-details" id="modalLiveNight" style="color:#C084FC">야간할증 없음</div>
         </div>
+      </div>
+
+      <!-- Keep Modal Open Toggle for Rapid Continuous Adding -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:2px 0">
+        <input type="checkbox" id="workKeepOpenCheck" style="width:18px;height:18px;accent-color:var(--primary)">
+        <label for="workKeepOpenCheck" style="font-size:12.5px;color:var(--text);font-weight:600;cursor:pointer">
+          저장 후 계속해서 다음 근무 등록하기 (연속 입력)
+        </label>
       </div>
 
       <button type="submit" class="btn-primary" id="btnSaveWork">근무 기록 저장하기</button>
@@ -1591,8 +1640,8 @@ body {
       </div>
       <div class="form-row-2">
         <div class="form-group">
-          <label class="form-label">기본 시급 (원)</label>
-          <input type="number" id="wpHourlyInput" class="form-input" value="10030" required>
+          <label class="form-label">기본 시급 (원) — 2026 최저 10,320</label>
+          <input type="number" id="wpHourlyInput" class="form-input" value="10320" required>
         </div>
         <div class="form-group">
           <label class="form-label">대표 아이콘</label>
@@ -1612,7 +1661,13 @@ body {
           </select>
         </div>
       </div>
-      <div class="form-group" style="display:flex;align-items:center;gap:8px;padding:6px 0">
+      <div class="form-group" style="display:flex;align-items:center;gap:8px;padding:4px 0">
+        <input type="checkbox" id="wpNightCheck" checked style="width:18px;height:18px;accent-color:var(--primary)">
+        <label for="wpNightCheck" style="font-size:12.5px;color:var(--text);font-weight:600;cursor:pointer">
+          야간할증수당 1.5배 적용 (5인 이상 사업장)
+        </label>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:8px;padding:4px 0">
         <input type="checkbox" id="wpHolidayCheck" checked style="width:18px;height:18px;accent-color:var(--primary)">
         <label for="wpHolidayCheck" style="font-size:12.5px;color:var(--text);font-weight:600;cursor:pointer">
           주휴수당 자동 계산 대상 (주 15시간 이상 근무 시)
@@ -1640,7 +1695,7 @@ body {
       </div>
       <div class="form-row-2">
         <div class="form-group">
-          <label class="form-label">기본 시급 (원)</label>
+          <label class="form-label">기본 시급 (원) — 2026 최저 10,320</label>
           <input type="number" id="editWpHourlyInput" class="form-input" required>
         </div>
         <div class="form-group">
@@ -1661,7 +1716,13 @@ body {
           </select>
         </div>
       </div>
-      <div class="form-group" style="display:flex;align-items:center;gap:8px;padding:6px 0">
+      <div class="form-group" style="display:flex;align-items:center;gap:8px;padding:4px 0">
+        <input type="checkbox" id="editWpNightCheck" checked style="width:18px;height:18px;accent-color:var(--primary)">
+        <label for="editWpNightCheck" style="font-size:12.5px;color:var(--text);font-weight:600;cursor:pointer">
+          야간할증수당 1.5배 적용 (5인 이상 사업장)
+        </label>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:8px;padding:4px 0">
         <input type="checkbox" id="editWpHolidayCheck" checked style="width:18px;height:18px;accent-color:var(--primary)">
         <label for="editWpHolidayCheck" style="font-size:12.5px;color:var(--text);font-weight:600;cursor:pointer">
           주휴수당 자동 계산 대상 (주 15시간 이상 근무 시)
@@ -1673,7 +1734,26 @@ body {
   </div>
 </div>
 
-<!-- Modal 5: Import JSON Data -->
+<!-- Modal 5: Day Detail Sheet (for multiple shifts on same date) -->
+<div id="modalDayDetail" class="modal-overlay" onclick="closeOnOverlay(event, 'modalDayDetail')">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title" id="dayDetailTitle">근무 내역</div>
+      <button type="button" class="sheet-close" onclick="closeModal('modalDayDetail')">✕</button>
+    </div>
+
+    <div id="dayDetailList" style="margin-bottom:14px">
+      <!-- Populated by JS -->
+    </div>
+
+    <button type="button" class="btn-primary" id="btnDayAddShift" onclick="handleAddShiftOnDay()">
+      + 이 날짜에 새 근무 추가 등록
+    </button>
+  </div>
+</div>
+
+<!-- Modal 6: Import JSON Data -->
 <div id="modalImport" class="modal-overlay" onclick="closeOnOverlay(event, 'modalImport')">
   <div class="modal-sheet">
     <div class="sheet-handle"></div>
@@ -1687,7 +1767,7 @@ body {
     </p>
 
     <div class="form-group">
-      <textarea id="importTextarea" class="form-input" style="height:140px;font-family:'JetBrains Mono',monospace;font-size:12px" placeholder='{"version":"2.3","workplaces":[...],"logs":[...]}'></textarea>
+      <textarea id="importTextarea" class="form-input" style="height:140px;font-family:'JetBrains Mono',monospace;font-size:12px" placeholder='{"version":"2.4","workplaces":[...],"logs":[...]}'></textarea>
     </div>
 
     <button type="button" class="btn-primary" onclick="handleImportData()">데이터 복원 완료</button>
@@ -1722,22 +1802,25 @@ function triggerHaptic() {
   }
 }
 
-// App State: 100% Local-First, Zero Pre-seeded Mocks
+// App State: 100% Local-First, 2026 Minimum Wage 10,320 KRW
 const STORAGE_KEY = 'albalog_pro_data_v2';
 
 let state = {
-  version: "2.3",
-  hourly: 10030,
+  version: "2.4",
+  hourly: 10320, // 2026 Legal Minimum Wage
   taxType: "3.3",
   monthlyTarget: 1000000,
   calcOvertime: true,
-  workplaces: [], // Completely clean by default
-  logs: []        // Completely clean by default
+  workplaces: [], // Pure clean state
+  logs: []        // Pure clean state
 };
 
 // Current Month View
 let currentYear = 2026;
 let currentMonth = 11; // 1-indexed
+let selectedWpFilter = 'all'; // Workplace filter on Home tab
+let selectedDayForDetail = '';
+let batchRecurringDates = [];
 
 function getTodayDateString() {
   const d = new Date();
@@ -1755,6 +1838,8 @@ function initApp() {
       state = Object.assign({}, state, parsed);
       if (!Array.isArray(state.logs)) state.logs = [];
       if (!Array.isArray(state.workplaces)) state.workplaces = [];
+      // Upgrade default hourly to 10320 if it was older 10030
+      if (!state.hourly || state.hourly === 10030) state.hourly = 10320;
     } catch(e) {
       state.logs = [];
       state.workplaces = [];
@@ -1762,7 +1847,7 @@ function initApp() {
   }
 
   // Set Inputs
-  document.getElementById('setHourlyInput').value = state.hourly || 10030;
+  document.getElementById('setHourlyInput').value = state.hourly || 10320;
   document.getElementById('setTargetInput').value = state.monthlyTarget || 1000000;
   document.getElementById('setTaxType').value = state.taxType || "3.3";
   document.getElementById('setOvertimeCheck').checked = state.calcOvertime !== false;
@@ -1770,6 +1855,7 @@ function initApp() {
   renderBarcode();
   updateMonthHeader();
   renderWorkplaceSelectOptions();
+  renderWpFilterBar();
   renderHomeTemplates();
   renderAll();
   runSim();
@@ -1784,6 +1870,7 @@ function initApp() {
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   renderWorkplaceSelectOptions();
+  renderWpFilterBar();
   renderHomeTemplates();
   renderAll();
 }
@@ -1853,9 +1940,11 @@ function calcSingleWork(log) {
   const nightHours = nightMinutes / 60;
   const overtimeHours = state.calcOvertime && totalHours > 8 ? (totalHours - 8) : 0;
 
-  const hourly = log.hourly || state.hourly || 10030;
+  const hourly = log.hourly || state.hourly || 10320;
   const basePay = Math.round(totalHours * hourly);
-  const nightPay = Math.round(nightHours * hourly * 0.5); // 0.5x surcharge
+  const wp = state.workplaces.find(w => w.id === log.wpId);
+  const allowNight = (log.calcNight !== undefined) ? log.calcNight : (wp ? (wp.calcNight !== false) : true);
+  const nightPay = allowNight ? Math.round(nightHours * hourly * 0.5) : 0;
   const overtimePay = Math.round(overtimeHours * hourly * 0.5); // 0.5x surcharge
   const totalPay = basePay + nightPay + overtimePay;
 
@@ -1879,12 +1968,59 @@ function getWeekNumber(d) {
   return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 }
 
+// Workplace Filter Bar on Home Screen
+function renderWpFilterBar() {
+  const container = document.getElementById('wpFilterBar');
+  if (!container) return;
+
+  if (!state.workplaces || state.workplaces.length <= 1) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'flex';
+  let html = `
+    <button type="button" class="chip-template ${selectedWpFilter === 'all' ? 'active-filter' : ''}" onclick="setWpFilter('all')">
+      ✨ 전체 알바처 (${state.workplaces.length}개)
+    </button>
+  `;
+
+  html += state.workplaces.map(wp => `
+    <button type="button" class="chip-template ${selectedWpFilter === wp.id ? 'active-filter' : ''}" onclick="setWpFilter('${wp.id}')">
+      ${wp.icon || '💼'} ${wp.name}
+    </button>
+  `).join('');
+
+  container.innerHTML = html;
+}
+
+function setWpFilter(wpId) {
+  triggerHaptic();
+  selectedWpFilter = wpId;
+  renderWpFilterBar();
+  renderAll();
+}
+
 // Master Render Function
 function renderAll() {
   const monthPrefix = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-  const monthLogs = state.logs
+  
+  // All logs for current month
+  let monthLogs = state.logs
     .filter(l => l.date && l.date.startsWith(monthPrefix))
     .sort((a, b) => b.date.localeCompare(a.date));
+
+  // If a workplace filter is selected on home
+  let displayLogs = monthLogs;
+  if (selectedWpFilter !== 'all') {
+    displayLogs = monthLogs.filter(l => l.wpId === selectedWpFilter);
+    const filterWp = state.workplaces.find(w => w.id === selectedWpFilter);
+    if (filterWp) {
+      document.getElementById('heroFilterSublabel').textContent = `${filterWp.name} 정산액 (세후)`;
+    }
+  } else {
+    document.getElementById('heroFilterSublabel').textContent = '예상 실수령액 (세후 합산)';
+  }
 
   let totalGross = 0;
   let totalBase = 0;
@@ -1892,7 +2028,7 @@ function renderAll() {
   let totalOvertime = 0;
   let totalHours = 0;
 
-  monthLogs.forEach(l => {
+  displayLogs.forEach(l => {
     const res = calcSingleWork(l);
     totalGross += res.totalPay;
     totalBase += res.basePay;
@@ -1903,7 +2039,7 @@ function renderAll() {
 
   // Group by Week for Accurate Legal Weekly Holiday Allowance (Monday to Sunday)
   const weekMap = {};
-  monthLogs.forEach(l => {
+  displayLogs.forEach(l => {
     const dateObj = new Date(l.date + 'T00:00:00');
     const dayOfWeek = dateObj.getDay(); // 0 is Sun
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -1933,7 +2069,7 @@ function renderAll() {
 
   sortedWeeks.forEach((w, idx) => {
     const isEligible = w.hours >= 15;
-    const avgHourly = w.hours > 0 ? (w.hourlySum / w.hours) : state.hourly;
+    const avgHourly = w.hours > 0 ? (w.hourlySum / w.hours) : (state.hourly || 10320);
     const holidayHours = isEligible ? (Math.min(40, w.hours) / 40) * 8 : 0;
     const holidayPay = Math.round(holidayHours * avgHourly);
     totalHolidayPay += holidayPay;
@@ -1965,7 +2101,7 @@ function renderAll() {
   document.getElementById('heroBasePay').textContent = totalBase.toLocaleString() + '원';
   document.getElementById('heroHolidayPay').textContent = '+ ' + totalHolidayPay.toLocaleString() + '원';
   document.getElementById('heroNightPay').textContent = '+ ' + totalNight.toLocaleString() + '원';
-  document.getElementById('heroTotalWorkStats').textContent = `${monthLogs.length}일 · ${totalHours.toFixed(1)}시간`;
+  document.getElementById('heroTotalWorkStats').textContent = `${displayLogs.length}건 · ${totalHours.toFixed(1)}시간`;
 
   // Goal Tracker
   const target = state.monthlyTarget || 1000000;
@@ -1978,7 +2114,7 @@ function renderAll() {
   renderWeeklyChips(weeklyChips);
 
   // Render Logs List
-  renderRecentLogsList(monthLogs);
+  renderRecentLogsList(displayLogs);
   renderMonthDetailLogsList(monthLogs);
 
   // Render Calendar
@@ -2052,6 +2188,9 @@ function quickAddForWorkplace(wpId) {
   const wp = state.workplaces.find(w => w.id === wpId);
   if (wp) {
     document.getElementById('workHourly').value = wp.hourly;
+    if (wp.calcNight !== undefined) {
+      document.getElementById('workNightOverride').checked = wp.calcNight !== false;
+    }
   }
   updateLivePreview();
 }
@@ -2118,7 +2257,7 @@ function renderRecentLogsList(monthLogs) {
     return;
   }
 
-  container.innerHTML = monthLogs.slice(0, 10).map(log => {
+  container.innerHTML = monthLogs.slice(0, 15).map(log => {
     const res = calcSingleWork(log);
     const isNight = res.nightHours > 0;
     const wp = state.workplaces.find(w => w.id === log.wpId) || { name: log.memo || '근무', icon: '💼' };
@@ -2191,7 +2330,7 @@ function getKoreanDay(dateStr) {
   return days[new Date(dateStr + 'T00:00:00').getDay()];
 }
 
-// Calendar Generator
+// Calendar Generator: Supports Multiple Shifts per Day
 function renderCalendar(monthLogs) {
   const grid = document.getElementById('calendarGrid');
   if (!grid) return;
@@ -2216,18 +2355,21 @@ function renderCalendar(monthLogs) {
     const isToday = dateStr === todayStr;
 
     const dayLogs = monthLogs.filter(l => l.date === dateStr);
-    const hasWork = dayLogs.length > 0;
+    const count = dayLogs.length;
 
     let dayClass = 'cal-day-cell';
     if (dayOfWeek === 0) dayClass += ' sunday';
     if (dayOfWeek === 6) dayClass += ' saturday';
     if (isToday) dayClass += ' today';
-    if (hasWork) dayClass += ' has-work';
+    if (count > 0) dayClass += ' has-work';
 
     let workBadge = '';
-    if (hasWork) {
-      const sumPay = dayLogs.reduce((acc, l) => acc + calcSingleWork(l).totalPay, 0);
-      workBadge = `<div class="cal-work-dot">${(sumPay/10000).toFixed(1)}만</div>`;
+    if (count === 1) {
+      const p = calcSingleWork(dayLogs[0]).totalPay;
+      workBadge = `<div class="cal-work-dot">${(p/10000).toFixed(1)}만</div>`;
+    } else if (count > 1) {
+      const sumP = dayLogs.reduce((acc, l) => acc + calcSingleWork(l).totalPay, 0);
+      workBadge = `<div class="cal-work-dot" style="background:rgba(245,158,11,0.22);color:var(--amber);font-weight:800">${count}건 · ${(sumP/10000).toFixed(1)}만</div>`;
     }
 
     html += `
@@ -2243,17 +2385,70 @@ function renderCalendar(monthLogs) {
 
 function handleCalendarDateClick(dateStr) {
   triggerHaptic();
-  const existing = state.logs.filter(l => l.date === dateStr);
-  if (existing.length === 1) {
-    openEditModal(existing[0].id);
-  } else {
+  const dayLogs = state.logs.filter(l => l.date === dateStr);
+  selectedDayForDetail = dateStr;
+
+  if (dayLogs.length === 0) {
     openAddModal();
     document.getElementById('workDate').value = dateStr;
+    updateLivePreview();
+  } else if (dayLogs.length === 1) {
+    // If only 1 shift, open Day Detail Sheet with quick option to edit or add another shift on same day
+    openDayDetailModal(dateStr, dayLogs);
+  } else {
+    // Multiple shifts on same day
+    openDayDetailModal(dateStr, dayLogs);
+  }
+}
+
+function openDayDetailModal(dateStr, dayLogs) {
+  document.getElementById('dayDetailTitle').textContent = `${dateStr} (${getKoreanDay(dateStr)}) 근무 목록 (${dayLogs.length}건)`;
+  const container = document.getElementById('dayDetailList');
+
+  container.innerHTML = dayLogs.map(l => {
+    const r = calcSingleWork(l);
+    const wp = state.workplaces.find(w => w.id === l.wpId) || { name: l.memo || '근무', icon: '💼' };
+    return `
+      <div class="log-item" style="margin-bottom:8px">
+        <div class="log-item-left">
+          <div class="log-icon" style="font-size:20px">${wp.icon || '💼'}</div>
+          <div class="log-item-info">
+            <div class="log-title-row">
+              <span class="log-title">${wp.name}</span>
+              ${r.nightHours > 0 ? '<span class="log-night-badge">야간</span>' : ''}
+            </div>
+            <div class="log-time">${l.start} ~ ${l.end} (${r.totalHours.toFixed(1)}h)</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="text-align:right">
+            <div class="log-pay">${r.totalPay.toLocaleString()}원</div>
+          </div>
+          <button type="button" class="btn-wp-action" onclick="openEditModalFromDayDetail(${l.id})" title="수정">✏️</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  history.pushState({ modal: 'modalDayDetail' }, '');
+  document.getElementById('modalDayDetail').classList.add('open');
+}
+
+function openEditModalFromDayDetail(logId) {
+  closeModal('modalDayDetail');
+  openEditModal(logId);
+}
+
+function handleAddShiftOnDay() {
+  closeModal('modalDayDetail');
+  openAddModal();
+  if (selectedDayForDetail) {
+    document.getElementById('workDate').value = selectedDayForDetail;
     updateLivePreview();
   }
 }
 
-// Workplace Tab
+// Workplace Tab: Unlimited Multiple Workplaces
 function renderWorkplacesTab(monthLogs) {
   const container = document.getElementById('workplacesList');
   if (!state.workplaces || state.workplaces.length === 0) {
@@ -2290,6 +2485,7 @@ function renderWorkplacesTab(monthLogs) {
             <div style="display:flex;align-items:center;gap:6px">
               <span class="wp-title">${wp.name}</span>
               ${wp.calcHoliday !== false ? '<span class="chip-tag chip-blue">주휴대상</span>' : '<span class="chip-tag chip-subtle">주휴제외</span>'}
+              ${wp.calcNight !== false ? '<span class="chip-tag chip-blue">야간1.5x</span>' : '<span class="chip-tag chip-subtle">야간1.0x (5인미만)</span>'}
             </div>
             <div class="wp-hourly">기본시급 ${wp.hourly.toLocaleString()}원</div>
           </div>
@@ -2297,7 +2493,7 @@ function renderWorkplacesTab(monthLogs) {
         <div style="display:flex;align-items:center;gap:10px">
           <div class="wp-stats">
             <div class="wp-stats-sum">${totalP.toLocaleString()}원</div>
-            <div class="wp-stats-hours">${wpLogs.length}일 · ${totalH.toFixed(1)}시간</div>
+            <div class="wp-stats-hours">${wpLogs.length}건 · ${totalH.toFixed(1)}시간</div>
           </div>
           <div style="display:flex;gap:4px">
             <button type="button" class="btn-wp-action" onclick="openEditWorkplaceModal('${wp.id}')" title="수정">✏️</button>
@@ -2340,6 +2536,9 @@ function onWorkplaceChange() {
   const wp = state.workplaces.find(w => w.id === val);
   if (wp) {
     document.getElementById('workHourly').value = wp.hourly;
+    if (wp.calcNight !== undefined) {
+      document.getElementById('workNightOverride').checked = wp.calcNight !== false;
+    }
   }
   updateLivePreview();
 }
@@ -2408,7 +2607,7 @@ function updateLivePreview() {
   const start = document.getElementById('workStart').value;
   const end = document.getElementById('workEnd').value;
   const breakMin = parseInt(document.getElementById('workBreak').value) || 0;
-  const hourly = parseInt(document.getElementById('workHourly').value) || state.hourly || 10030;
+  const hourly = parseInt(document.getElementById('workHourly').value) || state.hourly || 10320;
 
   if (!start || !end) return;
 
@@ -2420,7 +2619,17 @@ function updateLivePreview() {
   document.getElementById('modalLivePay').textContent = res.totalPay.toLocaleString() + '원';
   document.getElementById('modalLiveHours').textContent = `실근무 ${res.totalHours.toFixed(1)}시간`;
   
+  const wp = state.workplaces.find(w => w.id === document.getElementById('workWpSelect').value);
+  const allowNight = document.getElementById('workNightOverride').checked;
   if (res.nightHours > 0) {
+    if (allowNight) {
+      document.getElementById('modalLiveNight').textContent = `야간할증 ${res.nightHours.toFixed(1)}h (+${res.nightPay.toLocaleString()}원)`;
+      document.getElementById('modalLiveNight').style.color = '#C084FC';
+    } else {
+      document.getElementById('modalLiveNight').textContent = `야간 ${res.nightHours.toFixed(1)}h (5인 미만: 1.0x 기본시급)`;
+      document.getElementById('modalLiveNight').style.color = 'var(--text-subtle)';
+    }
+  } else {
     document.getElementById('modalLiveNight').textContent = `야간할증 ${res.nightHours.toFixed(1)}h (+${res.nightPay.toLocaleString()}원)`;
   } else {
     document.getElementById('modalLiveNight').textContent = '야간할증 없음';
@@ -2431,6 +2640,49 @@ function setBreak(min) {
   triggerHaptic();
   document.getElementById('workBreak').value = min;
   updateLivePreview();
+}
+
+// Multi-Date Batch Feature
+function toggleMultiDateMode() {
+  triggerHaptic();
+  const selector = document.getElementById('multiDateSelector');
+  const isHidden = selector.style.display === 'none';
+  selector.style.display = isHidden ? 'block' : 'none';
+  document.getElementById('btnToggleMultiDate').textContent = isHidden ? '✕ 닫기' : '+ 이번 달 반복 선택';
+  if (!isHidden) clearRecurringDates();
+}
+
+function toggleRecurringPreset(type) {
+  triggerHaptic();
+  const baseDateStr = document.getElementById('workDate').value;
+  const parts = baseDateStr.split('-').map(Number);
+  const y = parts[0];
+  const m = parts[1];
+
+  const lastDate = new Date(y, m, 0).getDate();
+  batchRecurringDates = [];
+
+  let targetDays = [];
+  if (type === 'weekend') targetDays = [0, 6];
+  else if (type === 'weekday') targetDays = [1, 2, 3, 4, 5];
+  else if (type === 'mwf') targetDays = [1, 3, 5];
+
+  for (let d = 1; d <= lastDate; d++) {
+    const checkDate = new Date(y, m - 1, d);
+    if (targetDays.includes(checkDate.getDay())) {
+      const dStr = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      if (dStr !== baseDateStr) {
+        batchRecurringDates.push(dStr);
+      }
+    }
+  }
+
+  document.getElementById('batchDatesSummary').textContent = `추가 등록될 날짜: ${batchRecurringDates.length}일 (총 ${batchRecurringDates.length + 1}건 일괄 생성)`;
+}
+
+function clearRecurringDates() {
+  batchRecurringDates = [];
+  document.getElementById('batchDatesSummary').textContent = '추가 등록될 날짜: 0일';
 }
 
 // Navigation & Tab Switching
@@ -2470,6 +2722,9 @@ function openAddModal() {
   document.getElementById('workEnd').value = "18:00";
   document.getElementById('workBreak').value = "60";
   document.getElementById('workMemo').value = "";
+  clearRecurringDates();
+  document.getElementById('multiDateSelector').style.display = 'none';
+  document.getElementById('btnToggleMultiDate').textContent = '+ 이번 달 반복 선택';
 
   renderWorkplaceSelectOptions();
 
@@ -2477,8 +2732,9 @@ function openAddModal() {
     const firstWp = state.workplaces[0];
     document.getElementById('workWpSelect').value = firstWp.id;
     document.getElementById('workHourly').value = firstWp.hourly;
+    document.getElementById('workNightOverride').checked = firstWp.calcNight !== false;
   } else {
-    document.getElementById('workHourly').value = state.hourly || 10030;
+    document.getElementById('workHourly').value = state.hourly || 10320;
   }
 
   updateLivePreview();
@@ -2504,6 +2760,11 @@ function openEditModal(logId) {
   document.getElementById('workBreak').value = log.breakMin || 0;
   document.getElementById('workHourly').value = log.hourly;
   document.getElementById('workMemo').value = log.memo || '';
+  const editWp = state.workplaces.find(w => w.id === log.wpId);
+  document.getElementById('workNightOverride').checked = (log.calcNight !== undefined) ? log.calcNight : (editWp ? editWp.calcNight !== false : true);
+
+  clearRecurringDates();
+  document.getElementById('multiDateSelector').style.display = 'none';
 
   updateLivePreview();
   history.pushState({ modal: 'modalWork' }, '');
@@ -2519,8 +2780,9 @@ function openReceiptModal() {
 function openAddWorkplaceModal() {
   triggerHaptic();
   document.getElementById('wpNameInput').value = "";
-  document.getElementById('wpHourlyInput').value = state.hourly || 10030;
+  document.getElementById('wpHourlyInput').value = state.hourly || 10320;
   document.getElementById('wpHolidayCheck').checked = true;
+  document.getElementById('wpNightCheck').checked = true;
   history.pushState({ modal: 'modalAddWp' }, '');
   document.getElementById('modalAddWp').classList.add('open');
 }
@@ -2535,6 +2797,7 @@ function openEditWorkplaceModal(wpId) {
   document.getElementById('editWpHourlyInput').value = wp.hourly;
   document.getElementById('editWpIconSelect').value = wp.icon || '💼';
   document.getElementById('editWpHolidayCheck').checked = wp.calcHoliday !== false;
+  document.getElementById('editWpNightCheck').checked = wp.calcNight !== false;
 
   history.pushState({ modal: 'modalEditWp' }, '');
   document.getElementById('modalEditWp').classList.add('open');
@@ -2557,7 +2820,7 @@ function closeOnOverlay(e, id) {
   }
 }
 
-// Work Form Save
+// Work Form Save: Supports Single, Multi-Shift on same day, and Batch Dates
 function handleSaveWork(e) {
   e.preventDefault();
   triggerHaptic();
@@ -2568,28 +2831,54 @@ function handleSaveWork(e) {
   const start = document.getElementById('workStart').value;
   const end = document.getElementById('workEnd').value;
   const breakMin = parseInt(document.getElementById('workBreak').value) || 0;
-  const hourly = parseInt(document.getElementById('workHourly').value) || state.hourly;
+  const hourly = parseInt(document.getElementById('workHourly').value) || state.hourly || 10320;
   const memo = document.getElementById('workMemo').value || '';
+  const keepOpen = document.getElementById('workKeepOpenCheck').checked;
+  const calcNight = document.getElementById('workNightOverride').checked;
 
   if (editId) {
     // Edit existing
     const idx = state.logs.findIndex(l => l.id === Number(editId));
     if (idx !== -1) {
-      state.logs[idx] = { id: Number(editId), date, wpId, start, end, breakMin, hourly, memo };
+      state.logs[idx] = { id: Number(editId), date, wpId, start, end, breakMin, hourly, memo, calcNight };
       showToast('근무 기록이 수정되었습니다.');
     }
+    saveState();
+    closeModal('modalWork');
   } else {
     // New log
-    const newLog = {
+    const baseLog = {
       id: Date.now(),
-      date, wpId, start, end, breakMin, hourly, memo
+      date, wpId, start, end, breakMin, hourly, memo, calcNight
     };
-    state.logs.push(newLog);
-    showToast('새 근무가 성공적으로 등록되었습니다!');
-  }
+    state.logs.push(baseLog);
 
-  saveState();
-  closeModal('modalWork');
+    // If batch recurring dates were selected
+    if (batchRecurringDates.length > 0) {
+      batchRecurringDates.forEach((bDate, idx) => {
+        state.logs.push({
+          id: Date.now() + idx + 1,
+          date: bDate,
+          wpId, start, end, breakMin, hourly, memo, calcNight
+        });
+      });
+      showToast(`총 ${batchRecurringDates.length + 1}개 근무가 일괄 등록되었습니다!`);
+    } else {
+      showToast('새 근무가 성공적으로 등록되었습니다!');
+    }
+
+    saveState();
+
+    if (keepOpen) {
+      // Keep open for rapid continuous logging
+      document.getElementById('workMemo').value = "";
+      clearRecurringDates();
+      updateLivePreview();
+      showToast('저장 완료! 다음 근무를 계속 입력하세요.');
+    } else {
+      closeModal('modalWork');
+    }
+  }
 }
 
 function handleDeleteCurrentWork() {
@@ -2609,13 +2898,14 @@ function handleSaveWorkplace(e) {
   e.preventDefault();
   triggerHaptic();
   const name = document.getElementById('wpNameInput').value.trim();
-  const hourly = parseInt(document.getElementById('wpHourlyInput').value) || 10030;
+  const hourly = parseInt(document.getElementById('wpHourlyInput').value) || 10320;
   const icon = document.getElementById('wpIconSelect').value;
   const calcHoliday = document.getElementById('wpHolidayCheck').checked;
+  const calcNight = document.getElementById('wpNightCheck').checked;
 
   const newWp = {
     id: "wp_" + Date.now(),
-    name, hourly, icon, calcHoliday
+    name, hourly, icon, calcHoliday, calcNight
   };
 
   state.workplaces.push(newWp);
@@ -2643,14 +2933,16 @@ function handleUpdateWorkplace(e) {
   if (idx === -1) return;
 
   const name = document.getElementById('editWpNameInput').value.trim();
-  const hourly = parseInt(document.getElementById('editWpHourlyInput').value) || 10030;
+  const hourly = parseInt(document.getElementById('editWpHourlyInput').value) || 10320;
   const icon = document.getElementById('editWpIconSelect').value;
   const calcHoliday = document.getElementById('editWpHolidayCheck').checked;
+  const calcNight = document.getElementById('editWpNightCheck').checked;
 
   state.workplaces[idx].name = name;
   state.workplaces[idx].hourly = hourly;
   state.workplaces[idx].icon = icon;
   state.workplaces[idx].calcHoliday = calcHoliday;
+  state.workplaces[idx].calcNight = calcNight;
 
   saveState();
   closeModal('modalEditWp');
@@ -2664,6 +2956,7 @@ function deleteWorkplace(wpId) {
 
   if (confirm(`'${wp.name}' 알바처를 삭제하시겠습니까? (등록된 근무 기록의 근무처 연결이 해제됩니다)`)) {
     state.workplaces = state.workplaces.filter(w => w.id !== wpId);
+    if (selectedWpFilter === wpId) selectedWpFilter = 'all';
     saveState();
     showToast(`'${wp.name}' 알바처가 삭제되었습니다.`);
   }
@@ -2678,7 +2971,7 @@ function deleteWorkplaceFromEditModal() {
 
 // Settings
 function saveSettings() {
-  state.hourly = parseInt(document.getElementById('setHourlyInput').value) || 10030;
+  state.hourly = parseInt(document.getElementById('setHourlyInput').value) || 10320;
   state.monthlyTarget = parseInt(document.getElementById('setTargetInput').value) || 1000000;
   state.taxType = document.getElementById('setTaxType').value;
   state.calcOvertime = document.getElementById('setOvertimeCheck').checked;
@@ -2690,7 +2983,7 @@ function saveSettings() {
 
 // Simulator in Calc Tab
 function runSim() {
-  const h = parseInt(document.getElementById('simHourly').value) || 10030;
+  const h = parseInt(document.getElementById('simHourly').value) || 10320;
   const w = parseFloat(document.getElementById('simWeeklyHours').value) || 0;
 
   const eligible = w >= 15;
@@ -2774,7 +3067,7 @@ function exportCSV() {
   });
 
   const csvContent = rows.join(String.fromCharCode(10));
-  const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -2809,6 +3102,7 @@ function clearAllData() {
   if (confirm('등록된 모든 근무 기록과 알바처 정보를 영구 삭제하시겠습니까? (기기 내 로컬 저장소가 완전히 초기화되며 되돌릴 수 없습니다)')) {
     state.logs = [];
     state.workplaces = [];
+    selectedWpFilter = 'all';
     saveState();
     showToast('기기 내 모든 데이터가 완전 삭제되었습니다.');
   }
