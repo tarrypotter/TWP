@@ -2621,8 +2621,7 @@ function updateLivePreview() {
   document.getElementById('modalLivePay').textContent = res.totalPay.toLocaleString() + '원';
   document.getElementById('modalLiveHours').textContent = `실근무 ${res.totalHours.toFixed(1)}시간`;
   
-  const wp = state.workplaces.find(w => w.id === document.getElementById('workWpSelect').value);
-  const allowNight = document.getElementById('workNightOverride').checked;
+  const wp = state.workplaces.find(w => w.id === wpId);
   if (res.nightHours > 0) {
     if (allowNight) {
       document.getElementById('modalLiveNight').textContent = `야간할증 ${res.nightHours.toFixed(1)}h (+${res.nightPay.toLocaleString()}원)`;
