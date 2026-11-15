@@ -324,11 +324,15 @@ function comma(n){
   return sign+out;
 }
 function won(n){ return comma(n)+'원'; }
-function signedAmt(n, sign){
+function pre(n, sign){
   n=Math.round(Math.abs(Number(n)||0));
-  if(!n) return '0원';
-  return (sign||'')+comma(n)+'원';
+  return n? (sign||'')+comma(n) : '0';
 }
+function preWon(n, sign){
+  n=Math.round(Math.abs(Number(n)||0));
+  return n? (sign||'')+comma(n)+'원' : '0원';
+}
+function signedAmt(n, sign){ return preWon(n, sign); }
 function escapeHtml(s){
   return String(s==null?'':s).replace(/[&<>"']/g,function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
@@ -579,7 +583,8 @@ function noticeBanner(){
       + rows(todayIn,'in')+'</div>';
   }
   if(lateOut.length){
-    html+='<div class="bn-sec late"><div class="bn-h"><span>미납</span><b>'+lateOut.length+'건 · '+won(sumAmt(lateOut))+'</b></div>'
+    var lateLabel=isThisMonth()?'미납':(m+'월 미납');
+    html+='<div class="bn-sec late"><div class="bn-h"><span>'+lateLabel+'</span><b>'+lateOut.length+'건 · '+won(sumAmt(lateOut))+'</b></div>'
       + rows(lateOut,'late')+'</div>';
   }
   if(soonOut.length){
@@ -604,8 +609,8 @@ function heroCard(d){
     +'<div class="amount'+cls+'">'+won(d.balance)+'</div>'
     +'<div class="hero-sub">실제로 들어오고 나간 돈 기준</div>'
     +'<div class="hero-grid">'
-    +  '<div><span>수입</span><b class="plus">+'+comma(d.income)+'</b></div>'
-    +  '<div><span>지출</span><b class="minus">-'+comma(d.expense)+'</b></div>'
+    +  '<div><span>수입</span><b class="plus">'+pre(d.income,'+')+'</b></div>'
+    +  '<div><span>지출</span><b class="minus">'+pre(d.expense,'-')+'</b></div>'
     +  '<div><span>미납</span><b class="'+(d.missedOut?'red':'dim')+'">'+comma(d.missedOut)+'</b></div>'
     +'</div>'
     +'<div class="proj">'
@@ -660,14 +665,14 @@ function combinedCard(d){
   if(inRows.length) html+=inRows.map(fixedRow).join('');
   else html+='<p class="empty-line">고정수입 없음</p>';
   html+='<div class="var"><span class="tag">변동</span><span class="t">기록 '+d.varInCnt+'건</span>'
-    +'<b class="plus">+'+comma(d.varIn)+'원</b></div></div>';
+    +'<b class="plus">'+preWon(d.varIn,'+')+'</b></div></div>';
 
   html+='<div class="grp"><div class="grp-h"><span>지출</span>'
     +'<em>고정 '+comma(d.fixedOutTotal)+' · 변동 '+comma(d.varOut)+'</em></div>';
   if(outRows.length) html+=outRows.map(fixedRow).join('');
   else html+='<p class="empty-line">고정지출 없음</p>';
   html+='<div class="var"><span class="tag">변동</span><span class="t">기록 '+d.varOutCnt+'건</span>'
-    +'<b class="minus">-'+comma(d.varOut)+'원</b></div></div>';
+    +'<b class="minus">'+preWon(d.varOut,'-')+'</b></div></div>';
 
   html+='<div class="sumline first"><span>지금 잔액</span><b>'+won(d.balance)+'</b></div>'
     +'<div class="sumline"><span>남은 고정수입</span><b class="plus">'+signedAmt(d.unpaidIn,'+')+'</b></div>'
@@ -761,8 +766,8 @@ function viewFixed(){
   html+='<div class="card">'
     +'<div class="card-head"><h3>이번 달 고정</h3><span class="muted">'+monthLabel(ui.y,ui.m)+'</span></div>'
     +'<div class="hero-grid" style="border-top:0;margin-top:0;padding-top:0">'
-    +  '<div><span>고정수입</span><b class="plus">+'+comma(d.fixedInTotal)+'</b></div>'
-    +  '<div><span>고정지출</span><b class="minus">-'+comma(d.fixedOutTotal)+'</b></div>'
+    +  '<div><span>고정수입</span><b class="plus">'+pre(d.fixedInTotal,'+')+'</b></div>'
+    +  '<div><span>고정지출</span><b class="minus">'+pre(d.fixedOutTotal,'-')+'</b></div>'
     +  '<div><span>미납</span><b class="'+(d.missedOut?'red':'dim')+'">'+comma(d.missedOut)+'</b></div>'
     +'</div>'
     +(d.missedN?'<div class="sumline first" style="border-top:0;padding-top:4px;color:var(--red)"><span>미납 '+d.missedN+'건</span><b class="red">'+won(d.missedOut)+'</b></div>':'')
