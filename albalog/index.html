@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#f4f5f7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>알바로그</title>
@@ -13,18 +13,24 @@
   --green:#0e7a52; --red:#c62f2f; --r:16px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0}
+/* 앱 셸 — 문서는 스크롤하지 않고 상·하단 바는 스크롤 영역 밖에 고정 */
+html,body{
+  margin:0; padding:0; height:100%; height:100dvh; overflow:hidden;
+  overscroll-behavior:none; touch-action:manipulation;
+  -webkit-text-size-adjust:100%; text-size-adjust:100%;
+}
 body{
   background:var(--bg); color:var(--ink); font-size:15px; line-height:1.45;
   font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic","Noto Sans KR",sans-serif;
-  -webkit-text-size-adjust:100%;
   font-variant-numeric:tabular-nums;
+  -webkit-touch-callout:none;
 }
-#app{max-width:430px;margin:0 auto;min-height:100dvh;padding-bottom:calc(84px + env(safe-area-inset-bottom));}
+input,select,textarea{-webkit-touch-callout:default}
+#app{max-width:430px;margin:0 auto;width:100%;height:100%;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 
 /* top */
 .topbar{
-  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:8px;
+  flex:none;z-index:30;display:flex;align-items:center;gap:8px;
   padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;
   background:rgba(244,245,247,.94);backdrop-filter:saturate(1.2) blur(12px);
 }
@@ -43,7 +49,10 @@ body{
 }
 .icon-btn svg{width:19px;height:19px}
 
-main{padding:0 16px 8px}
+main{
+  flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;padding:0 16px 8px;
+}
 
 /* month bar */
 .monthbar{display:flex;align-items:center;gap:6px;padding:2px 0 12px}
@@ -172,7 +181,7 @@ main{padding:0 16px 8px}
 
 /* tabbar */
 .tabbar{
-  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:40;
+  flex:none;z-index:40;
   display:flex;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);
   border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);
 }
@@ -197,7 +206,7 @@ main{padding:0 16px 8px}
 .sheet-head{display:flex;align-items:center;padding:12px 18px 6px;flex:none}
 .sheet-head h2{margin:0;font-size:16px;font-weight:700;letter-spacing:-.3px;flex:1}
 .sheet-head .x{border:0;background:transparent;color:var(--ink2);font-size:13px;font-weight:700;font-family:inherit;padding:6px 0 6px 12px}
-.sheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 18px calc(22px + env(safe-area-inset-bottom))}
+.sheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px 18px calc(22px + env(safe-area-inset-bottom))}
 
 .field{margin-bottom:14px}
 .field > label{display:block;font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:6px}
@@ -267,7 +276,7 @@ input.sw:checked::after{transform:translateX(18px)}
 .datarow .arrow{color:#c3c8d2;font-size:16px}
 .datarow.dangerous b{color:var(--red)}
 textarea.import{width:100%;height:120px;border:1px solid var(--line2);border-radius:12px;padding:11px;
-  font-size:12px;font-family:ui-monospace,Menlo,monospace;resize:vertical}
+  font-size:16px;font-family:ui-monospace,Menlo,monospace;resize:vertical}
 </style>
 </head>
 <body>
@@ -290,6 +299,35 @@ textarea.import{width:100%;height:120px;border:1px solid var(--line2);border-rad
    알바로그 3.0 — 로컬 전용 근무 기록·급여 계산
    모든 데이터는 이 브라우저의 localStorage 에만 저장됩니다.
    ============================================================ */
+
+/* ---------- 확대·더블탭 차단 ---------- */
+(function(){
+  var opts={passive:false};
+  ['gesturestart','gesturechange','gestureend'].forEach(function(t){
+    document.addEventListener(t, function(e){ e.preventDefault(); }, opts);
+  });
+  /* 두 손가락 핀치 */
+  document.addEventListener('touchmove', function(e){
+    if(e.touches && e.touches.length>1) e.preventDefault();
+  }, opts);
+  /* 300ms 안의 연속 탭 = 확대. 버튼·링크·입력은 건드리지 않는다 */
+  var lastT=0, lastX=0, lastY=0;
+  document.addEventListener('touchend', function(e){
+    if(!e.changedTouches || e.changedTouches.length!==1) return;
+    var t=e.target;
+    if(t && t.closest && t.closest('button,a,input,select,textarea,label,[data-act]')) return;
+    var p=e.changedTouches[0], now=Date.now();
+    if(now-lastT<300 && Math.abs(p.clientX-lastX)<24 && Math.abs(p.clientY-lastY)<24){
+      e.preventDefault(); lastT=0; return;
+    }
+    lastT=now; lastX=p.clientX; lastY=p.clientY;
+  }, opts);
+  document.addEventListener('dblclick', function(e){
+    var t=e.target;
+    if(t && t.closest && t.closest('input,select,textarea')) return;
+    e.preventDefault();
+  }, opts);
+})();
 
 /* ---------- 계산 (순수 함수) ---------- */
 /* CALC_START */
@@ -892,6 +930,10 @@ function render(){
   else if(ui.tab==='places') main.innerHTML=viewPlaces();
   else main.innerHTML=viewHome();
 }
+function resetScroll(){
+  var m=document.getElementById('main');
+  if(m) m.scrollTop=0;
+}
 
 /* ---------- 시트 ---------- */
 function openSheet(title, bodyHtml){
@@ -1237,7 +1279,7 @@ function openSettings(){
   openSheet('설정', body);
 }
 function openImportSheet(){
-  var body='<div class="field"><label>파일</label><input type="file" id="impFile" accept="application/json,.json" style="padding:12px 0;font-size:13px;border:0"></div>'
+  var body='<div class="field"><label>파일</label><input type="file" id="impFile" accept="application/json,.json" style="padding:12px 0;font-size:16px;border:0"></div>'
     + '<div class="field"><label>또는 붙여넣기</label><textarea class="import" id="impText" placeholder="JSON 내용을 붙여넣으세요"></textarea></div>'
     + '<div class="sheet-actions"><button class="btn primary" data-act="importJson">불러오기</button>'
     + '<button class="btn ghost" data-act="openSettings">취소</button></div>';
@@ -1259,7 +1301,7 @@ document.addEventListener('click', function(ev){
   var el=ev.target.closest('[data-act]');
   if(!el) return;
   var act=el.getAttribute('data-act');
-  if(act==='tab'){ ui.tab=el.getAttribute('data-tab'); render(); window.scrollTo(0,0); return; }
+  if(act==='tab'){ ui.tab=el.getAttribute('data-tab'); render(); resetScroll(); return; }
   if(act==='prevMonth'){
     ui.m--; if(ui.m<1){ ui.m=12; ui.y--; } render(); return;
   }
