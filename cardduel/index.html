@@ -102,6 +102,10 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .half.foe{flex:1.06}
 .half.me{flex:1.06}
 .rowZ{display:flex;justify-content:center;gap:5px}
+.rowZ.foehand{gap:3px;height:16px;align-items:center;margin-bottom:2px}
+.mini{width:11px;height:16px;border-radius:2px;border:1px solid #3f5170;background:linear-gradient(#243550,#131c2b)}
+.half.foe{padding-top:0}
+.half.me{padding-bottom:0}
 .rowZ.st{gap:6px}
 .slot{width:var(--cw,58px);height:var(--ch,80px);border-radius:8px;border:1px dashed #253048;background:#0a0f18a8;position:relative;display:grid;place-items:center;transition:border-color .15s,box-shadow .15s}
 .slot.st{--cw:44px;--ch:30px;border-style:dashed}
@@ -160,7 +164,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .foe .lpv{color:#ffb0b0}
 .anchor{position:relative;display:flex;flex-direction:column;align-items:center}
 .anchor .lbl{font-size:8px;color:#3b4a66;letter-spacing:.1em;margin-top:2px}
-.sheet{position:absolute;left:8px;right:8px;bottom:calc(100% - 2px);background:#0d1522f5;border:1px solid #2a3852;border-radius:12px;padding:8px;display:none;z-index:30;box-shadow:0 -12px 30px -16px #000}
+.sheet{position:absolute;left:8px;right:8px;bottom:6px;background:#0d1522f5;border:1px solid #2a3852;border-radius:12px;padding:8px;display:none;z-index:30;box-shadow:0 -12px 30px -16px #000}
 .sheet.on{display:block}
 .sheet .sh{display:flex;align-items:center;gap:8px;margin-bottom:7px}
 .sheet .sh b{font-size:12px}
@@ -285,6 +289,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 
     <div class="board" id="board">
       <div class="half foe" id="foeHalf">
+        <div class="rowZ foehand" id="foeHandRow"></div>
         <div class="rowZ" id="foeMon"></div>
         <div class="rowZ st" id="foeSt"></div>
       </div>
@@ -652,6 +657,9 @@ function renderDuel(){
     fs += `<div class="anchor">${cardHTML(inst.i, {foe:true, hidden:true, w:44, h:30})}</div>`;
   }
   el('foeSt').innerHTML = fs;
+  let fh2 = '';
+  for(let i=0;i<Math.min(7, G.a.hk);i++) fh2 += `<div class="mini"></div>`;
+  el('foeHandRow').innerHTML = fh2;
 
   // 내 필드
   let ms = '';
