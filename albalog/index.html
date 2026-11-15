@@ -739,6 +739,7 @@ function recordListCard(st){
       var sub=wpName;
       if(r.calc.breakMin) sub+=' · 휴게 '+r.calc.breakMin+'분';
       if(r.calc.nightMin && r.calc.nightOn) sub+=' · 야간 '+durLabel(r.calc.nightMin);
+      if(r.calc.holidayOn) sub+=' · 공휴일';
       var amt=r.calc.gross>0 ? won(r.calc.gross*(1-taxRate(r.wp?(r.wp.tax||'none'):'none'))) : durLabel(r.calc.netMin);
       html+='<button class="row" data-act="editLog" data-id="'+r.log.id+'">'
         + '<span class="row-l"><b>'+r.log.start+' → '+r.log.end+'</b><i>'+sub+'</i></span>'
@@ -992,6 +993,11 @@ function openRecordSheet(opts){
     var w=wpById(wpSel.value);
     var hw=document.getElementById('rHolidayWrap');
     if(hw) hw.style.display = (w && w.holiday) ? 'flex' : 'none';
+    var br=document.getElementById('rBreak');
+    if(br && br.options.length){
+      br.options[0].text = w ? '근무지 설정 ('+breakLabel(w)+')' : '기본 (없음)';
+    }
+    updatePreview();
   });
   if(wpSel){
     var w0=wpById(wpSel.value);
