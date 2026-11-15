@@ -1123,7 +1123,13 @@ btnSpec.addEventListener('pointerdown', (e) => {
   exp.bf_special();
   if (view()[14] > b){ beep(520, 130, 0.22, 'sawtooth', 0.055); }
 }, {passive:false});
-document.getElementById('badge').addEventListener('click', () => { muted = !muted; });
+document.getElementById('badge').addEventListener('click', () => {
+  muted = !muted;
+  el.badge.style.color = muted ? '#5a5f6c' : '';
+  el.badge.title = muted ? '음소거' : '';
+  const dot = el.badge.querySelector('i');
+  if (dot) dot.style.background = muted ? '#7a3038' : '';
+});
 
 // ---- boot
 async function boot(){
