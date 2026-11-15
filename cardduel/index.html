@@ -745,7 +745,8 @@ function renderSheet(){
     }
     html += `<button class="btn ghost" data-t="cancel">취소</button></div>`;
   } else if(s.type === 'mon'){
-    const inst = G.p.mz[s.z], c = CARD[inst.id];
+    const inst = G.p.mz[s.z], c = inst && CARD[inst.i];
+    if(!c){ sh.classList.remove('on'); sh.innerHTML=''; return; }
     html = `<div class="sh"><b>${esc(c.name)}</b><span>${inst.p===0?'공격 표시':inst.p===1?'수비 표시':'뒷면'} · ${c.atk+(inst.ab||0)}/${c.def+(inst.db||0)}</span></div><div class="acts">`;
     const canSwitch = G.turn===0 && G.ph===0 && inst.p<=1 && !inst.sw;
     const canAtk = G.turn===0 && G.ph===1 && inst.p===0 && !inst.at && !inst.sw;
