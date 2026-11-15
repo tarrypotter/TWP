@@ -926,11 +926,11 @@ function drawSlash(x, y, ang, range, tp, elem, kind){
   const r0 = range*(0.62 + 0.38*tp);
   const grad = ctx.createRadialGradient(x,y,r0*0.3,x,y,r0);
   grad.addColorStop(0, hexA(col, 0));
-  grad.addColorStop(0.45, hexA(col, 0.30));
-  grad.addColorStop(0.86, hexA(col, 0.72));
-  grad.addColorStop(0.97, hexA('#ffffff', 0.85));
+  grad.addColorStop(0.45, hexA(col, 0.52));
+  grad.addColorStop(0.86, hexA(col, 0.96));
+  grad.addColorStop(0.97, hexA('#ffffff', 1));
   grad.addColorStop(1, hexA('#ffffff', 0));
-  ctx.globalAlpha = al*0.78;
+  ctx.globalAlpha = al*0.92;
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(x, y, r0, ang - sweep/2, ang + sweep/2);
@@ -938,7 +938,7 @@ function drawSlash(x, y, ang, range, tp, elem, kind){
   ctx.closePath();
   ctx.fill();
   // leading edge
-  ctx.globalAlpha = al*0.62;
+  ctx.globalAlpha = al*0.85;
   ctx.strokeStyle = hexA('#ffffff', 1);
   ctx.lineWidth = 1.8*(1-tp)+0.5;
   ctx.beginPath(); ctx.arc(x,y,r0, ang-sweep/2, ang+sweep/2); ctx.stroke();
