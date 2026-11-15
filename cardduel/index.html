@@ -209,7 +209,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   border:1px solid #38496b;position:relative;overflow:hidden}
 .sharecard:after{content:"";position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(#7fd0c822,#0000 70%)}
 .sharecard .s1{font-size:10px;letter-spacing:.3em;color:#8fa6c9}
-.sharecard .s2{font-size:24px;font-weight:800;letter-spacing:.06em;margin-top:2px}
+.sharecard .s2{font-size:25px;font-weight:800;letter-spacing:.01em;margin-top:5px}
+.sharecard .tierpill{font-size:10.5px;border:1px solid;border-radius:6px;padding:1px 7px;font-weight:700;letter-spacing:.02em}
 .sharecard .s3{display:flex;align-items:center;gap:8px;margin-top:12px}
 .sharecard .s3 .code{font-size:12px;color:var(--gold);border:1px solid #4a3d1e;border-radius:6px;padding:2px 6px;background:#151105}
 .sharecard .s3 .nm{font-size:15px;font-weight:700}
@@ -1140,12 +1141,15 @@ function shareText(){
 }
 function shareCardHTML(){
   const {lab, hash} = shareData();
-  return `<div class="s1">SHADOWDUEL</div>
-    <div class="s2" style="color:${tierColorVar(tierIdx(S.rating))}">${lab}</div>
-    <div class="s3"><span class="code mono">#${esc(S.prof.code)}</span><span class="nm">${esc(S.prof.name)}</span></div>
+  const col = tierColorVar(tierIdx(S.rating));
+  const rate = S.duels ? Math.round(S.wins / S.duels * 100) : 0;
+  return `<div class="s1">SHADOWDUEL · LOCAL LADDER</div>
+    <div class="s2">${esc(S.prof.name)}</div>
+    <div class="s3"><span class="code mono">#${esc(S.prof.code)}</span>
+      <span class="tierpill" style="color:${col};border-color:${col}">${lab}</span></div>
     <div class="s4"><b>${S.streak}연승</b> · ${S.rating}점</div>
-    <div class="s5"><span>${S.duels}전 ${S.wins}승</span><span>최고 연승 ${S.bestStreak}</span></div>
-    <div class="s6"><span>로컬 AI 랭킹전</span><span>검증 ${hash}</span></div>`;
+    <div class="s5"><span>${S.duels}전 ${S.wins}승</span><span>최고 연승 ${S.bestStreak}</span><span>승률 ${rate}%</span></div>
+    <div class="s6"><span>AI 대전 · 서버 랭킹 없음</span><span>검증 ${hash}</span></div>`;
 }
 async function copyText(txt){
   try{
@@ -1275,7 +1279,7 @@ function renderDeck(){
   el('deckGrid').innerHTML = ids.map(id => {
     const c = CARD[id], n = cnt[id] || 0;
     return `<div class="gitem">
-      <div class="gtop">${cardHTML(id, {})}<div class="cnt">${n}/3</div></div>
+      <div class="gtop">${cardHTML(id, {})}</div>
       <div class="gbar">
         <button class="btn sm" data-t="deckSub" data-i="${id}" ${n?'':'disabled'}>−</button>
         <span class="n">${n}/3</span>
@@ -1314,11 +1318,10 @@ function renderCodex(){
     const c = CARD[id], have = S.unlocked.includes(id);
     return `<div class="gitem">
       <div class="gtop">${cardHTML(id, {dim: !have})}
-        <div class="cnt" style="color:${have?'#7fd0c8':'#8fa0bb'}">${have?'보유':(c.rarity>=4?'ULTRA':c.rarity===3?'SUPER':c.rarity===2?'RARE':'NORMAL')}</div>
         ${have ? '' : `<div class="lock"><span>미보유</span><b>${c.cost} DP</b>
           <button class="btn sm gold" data-t="unlock" data-i="${id}" ${S.dp>=c.cost?'':'disabled'} style="margin-top:4px;font-size:10px;padding:5px 8px">해금</button></div>`}
       </div>
-      <div class="tiny" style="color:#78859c;line-height:1.35;min-height:28px">${esc(c.text)}</div>
+      <div class="tiny" style="color:#78859c;line-height:1.35;min-height:28px"><span style="color:${have?'#6fbfa6':'#6b768c'};font-size:8.5px;letter-spacing:.06em">${have?'보유':(c.rarity>=4?'ULTRA':c.rarity===3?'SUPER':c.rarity===2?'RARE':'NORMAL')}</span> ${esc(c.text)}</div>
     </div>`;
   }).join('');
 }
