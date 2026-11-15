@@ -5,7 +5,7 @@
 - **엔진**: `src/lib.rs` — 외부 크레이트 없이 `std`만 사용, `crate-type = ["cdylib"]`, `wasm32-unknown-unknown`
 - **셸**: `template.html` — 단일 파일 모바일 앱(100dvh 고정, 확대 차단, 캔버스 렌더)
 - **빌드**: `build.py` — `target/.../bladeforge.wasm`을 base64로 `template.html`에 인라인 → `dist/index.html`
-- **배포**: `.github/workflows/deploy.yml` — push 시 wasm 빌드 → 인라인 → GitHub Pages
+- **배포**: `abyssblade/index.html` 빌드 산출물을 `tarrypotter/TWP`에 커밋 (저장소 Pages가 서빙)
 
 ## 엔진이 하는 일
 
@@ -26,5 +26,9 @@ python3 build.py      # dist/index.html
 
 ## 배포
 
-`main`에 push하면 GitHub Actions가 wasm을 빌드해 인라인하고 Pages로 올립니다.
-https://tarrypotter.github.io/bladeforge/
+`tarrypotter/TWP` 저장소의 `abyssblade/` 경로로 호스팅합니다(저장소 Pages, main 브랜치).
+
+https://tarrypotter.github.io/TWP/abyssblade/
+
+`.github/workflows/deploy.yml`은 이 프로젝트를 단독 저장소로 옮겼을 때 쓰는 자체 배포 워크플로입니다.
+`cargo build --target wasm32-unknown-unknown --release` → `python3 build.py` → `dist/` 업로드 순서로 동작합니다.
