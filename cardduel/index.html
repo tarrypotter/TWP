@@ -220,11 +220,15 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 
 /* ---------- 덱/도감 ---------- */
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px 16px}
-.gitem{position:relative;border-radius:10px;overflow:hidden}
-.gitem .card{--cw:100%;--ch:118px;width:100%;height:118px}
-.gitem .cnt{position:absolute;right:4px;bottom:4px;background:#05080ee6;border:1px solid #3a4a68;border-radius:6px;font-size:10px;padding:1px 5px;color:var(--cyan);font-weight:700}
-.gitem .lock{position:absolute;inset:0;background:#04070cc9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;color:var(--dim)}
+.gitem{position:relative;display:flex;flex-direction:column;gap:4px}
+.gitem .gtop{position:relative;border-radius:9px;overflow:hidden}
+.gitem .gtop .card{--cw:100%;--ch:112px;width:100%;height:112px}
+.gitem .cnt{position:absolute;left:4px;top:4px;background:#05080ed0;border:1px solid #3a4a68;border-radius:5px;font-size:9px;padding:1px 4px;color:var(--cyan);font-weight:700}
+.gitem .lock{position:absolute;inset:0;background:#04070cd0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;color:var(--dim)}
 .gitem .lock b{color:var(--gold);font-size:11px}
+.gbar{display:flex;align-items:center;gap:4px}
+.gbar .btn{flex:1;padding:6px 0;font-size:13px;line-height:1}
+.gbar .n{font-size:9px;color:var(--cyan);min-width:26px;text-align:center;font-weight:700}
 .deckbar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #131b2a;background:#080d15}
 .deckbar .n{font-size:12px;color:var(--dim)}
 .deckbar .n b{color:var(--ink);font-size:15px}
@@ -1271,11 +1275,11 @@ function renderDeck(){
   el('deckGrid').innerHTML = ids.map(id => {
     const c = CARD[id], n = cnt[id] || 0;
     return `<div class="gitem">
-      ${cardHTML(id, {})}
-      <div class="cnt">${n}/3</div>
-      <div style="display:flex;gap:4px;margin-top:4px">
-        <button class="btn sm" style="flex:1" data-t="deckSub" data-i="${id}" ${n?'':'disabled'}>−</button>
-        <button class="btn sm primary" style="flex:1" data-t="deckAdd" data-i="${id}" ${n>=3||ui.deck.length>=30?'disabled':''}>+</button>
+      <div class="gtop">${cardHTML(id, {})}<div class="cnt">${n}/3</div></div>
+      <div class="gbar">
+        <button class="btn sm" data-t="deckSub" data-i="${id}" ${n?'':'disabled'}>−</button>
+        <span class="n">${n}/3</span>
+        <button class="btn sm primary" data-t="deckAdd" data-i="${id}" ${n>=3||ui.deck.length>=30?'disabled':''}>+</button>
       </div></div>`;
   }).join('') || `<div class="tiny" style="grid-column:1/-1;padding:20px">보유한 카드가 없다.</div>`;
 }
@@ -1309,11 +1313,12 @@ function renderCodex(){
   el('codexGrid').innerHTML = ids.map(id => {
     const c = CARD[id], have = S.unlocked.includes(id);
     return `<div class="gitem">
-      ${cardHTML(id, {dim: !have})}
-      ${have ? '' : `<div class="lock"><span>미보유</span><b>${c.cost} DP</b>
-        <button class="btn sm gold" data-t="unlock" data-i="${id}" ${S.dp>=c.cost?'':'disabled'} style="margin-top:4px;font-size:10px;padding:5px 8px">해금</button></div>`}
-      <div class="cnt" style="color:${have?'#7fd0c8':'#5c687e'}">${have?'보유':(c.rarity>=4?'ULTRA':c.rarity===3?'SUPER':c.rarity===2?'RARE':'NORMAL')}</div>
-      <div class="tiny" style="margin-top:4px;color:#78859c;line-height:1.35;min-height:26px">${esc(c.text)}</div>
+      <div class="gtop">${cardHTML(id, {dim: !have})}
+        <div class="cnt" style="color:${have?'#7fd0c8':'#8fa0bb'}">${have?'보유':(c.rarity>=4?'ULTRA':c.rarity===3?'SUPER':c.rarity===2?'RARE':'NORMAL')}</div>
+        ${have ? '' : `<div class="lock"><span>미보유</span><b>${c.cost} DP</b>
+          <button class="btn sm gold" data-t="unlock" data-i="${id}" ${S.dp>=c.cost?'':'disabled'} style="margin-top:4px;font-size:10px;padding:5px 8px">해금</button></div>`}
+      </div>
+      <div class="tiny" style="color:#78859c;line-height:1.35;min-height:28px">${esc(c.text)}</div>
     </div>`;
   }).join('');
 }
