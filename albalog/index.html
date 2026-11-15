@@ -927,8 +927,8 @@ function openRecordSheet(opts){
   var l = editing ? Object.assign({}, editing) : {
     id:'', date: opts.date || todayStr(), wpId:'', start:'', end:'', breakMin:null, holiday:false
   };
-  /* 새 기록이면 그 요일의 고정 근무표로 미리 채움 */
-  if(!editing){
+  /* 새 기록이면 그 요일의 고정 근무표로 미리 채움 (간단 모드는 시간만 적으므로 건드리지 않음) */
+  if(!editing && !simple){
     var wd=parseYmd(l.date).getDay();
     var matched=null;
     for(var i=0;i<state.workplaces.length;i++){
@@ -938,6 +938,8 @@ function openRecordSheet(opts){
     if(matched && !l.wpId){ l.wpId=matched.id; l.start=matched.startTime; l.end=matched.endTime; }
     if(!l.wpId && state.workplaces.length===1) l.wpId=state.workplaces[0].id;
   }
+  /* 편집 할 때는 저장된 값을 그대로 유지 */
+  if(editing){ l.wpId=editing.wpId||''; l.breakMin=editing.breakMin; l.holiday=!!editing.holiday; }
   var wp=l.wpId ? wpById(l.wpId) : null;
   var body='<form id="recordForm">'
     + '<input type="hidden" id="rId" value="'+escapeHtml(l.id||'')+'">'
@@ -1019,6 +1021,16 @@ function currentRecordDraft(){
   if(br && br.value!=='') d.breakMin=Number(br.value);
   var hd=document.getElementById('rHoliday');
   if(hd) d.holiday=!!hd.checked;
+  /* 간단 모드처럼 근무지/휴게 칸이 없으면 저장된 기록의 값을 그대로 둘다 */
+  if(!wpSel || !br || !hd){
+    var rid=(document.getElementById('rId')||{}).value||'';
+    var cur=rid?logById(rid):null;
+    if(cur){
+      if(!wpSel) d.wpId=cur.wpId||'';
+      if(!br) d.breakMin=cur.breakMin;
+      if(!hd) d.holiday=!!cur.holiday;
+    }
+  }
   return d;
 }
 function updatePreview(){
@@ -1104,7 +1116,7 @@ function openDaySheet(ds){
 function openWpSheet(id){
   var w = id ? wpById(id) : null;
   var d = w ? Object.assign({}, w) : {
-    id:'', name:'', wage:MIN_WAGE_2026, weekly:true, night:true, holiday:false, tax:'none',
+    id:'', name:'', wage:MIN_WAGE_2026, weekly:true, night:false, holiday:false, tax:'none',
     breakType:'none', breakCustom:60, weekdays:[], startTime:'', endTime:''
   };
   var wdHtml='';
