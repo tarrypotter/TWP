@@ -824,7 +824,7 @@ section.tab-pane.active { display: block; }
     </div>
 
     
-    <!-- AlbaLog Pro -->
+    <!-- AlbaLog -->
     <div class="deep-card">
       <div class="deep-header">
         <div>
@@ -832,8 +832,8 @@ section.tab-pane.active { display: block; }
             <span class="deep-num" style="background:rgba(16,185,129,0.15);color:var(--accent-green)">PROJECT 04 (NEW)</span>
             <span class="deep-category">업무·생활금융</span>
           </div>
-          <div class="deep-title">알바로그 Pro (AlbaLog Pro)</div>
-          <div class="deep-caption">22:00~06:00 야간할증 1.5배 & 주휴수당 자동 정산 모바일 네이티브 웹앱</div>
+          <div class="deep-title">알바로그 v3.0 (AlbaLog)</div>
+          <div class="deep-caption">근무지별 수당·공제를 따로 정해 월 급여와 실수령액을 계산하는 모바일 웹앱</div>
         </div>
         <a href="https://tarrypotter.github.io/TWP/albalog/" target="_blank" class="nav-btn primary">라이브 웹앱 실행 ↗</a>
       </div>
@@ -841,16 +841,26 @@ section.tab-pane.active { display: block; }
         <span class="stack-chip">Vanilla JS</span>
         <span class="stack-chip">CSS3 Tokens</span>
         <span class="stack-chip">LocalStorage</span>
-        <span class="stack-chip">History API</span>
+        <span class="stack-chip">GitHub Pages</span>
       </div>
       <div class="deep-quote">
-        "물류센터, 피시방, 편의점 야간 알바를 뛰면서 <b>'이번 달 주휴수당이랑 야간수당 1.5배 제대로 들어왔나? 세금 떼면 얼마지?'</b>를 매번 손으로 계산하던 불편함을 직접 해결하기 위해 만든 토스 스타일 모바일 웹앱입니다."
+        "물류센터, 피시방, 편의점 야간 알바를 여러 곳 뛰다 보니 근무지마다 시급도 수당도 공제도 다 달라서, <b>'이번 달에 어디서 얼마 받고 세금 떼면 얼마인지'</b>를 매번 손으로 계산했습니다. 그걸 근무지 단위로 적어 두고 바로 보자고 만든 앱입니다."
       </div>
-      <div class="deep-section-label">🛠️ 실전 트러블슈팅 &amp; 모바일 네이티브 UX</div>
+      <div class="deep-section-label">📌 앱에서 되는 것</div>
+      <ul style="padding-left:20px;color:var(--text-muted);font-size:14.5px;line-height:1.8">
+        <li><b>N잡 근무지 관리</b>: 근무지를 여러 개 만들고 근무지마다 시급·휴게시간·수당을 따로 정합니다.</li>
+        <li><b>수당 개별 토글</b>: 주휴수당(주 15시간 이상 일한 주), 야간수당 1.5배(22:00~06:00), 공휴일 휴일근로 1.5배(8시간 초과 2배)를 근무지마다 켜고 끕니다.</li>
+        <li><b>공제와 실수령</b>: 공제 없음·3.3%·4대보험 9.4% 중 고르면 월 급여에서 공제를 빼 실수령액까지 보여 줍니다.</li>
+        <li><b>휴게시간 차감</b>: 휴게시간을 빼고 실제 근무시간으로 계산하며, 4시간 미만 근무에는 고정 휴게를 빼지 않습니다.</li>
+        <li><b>월말 예상 급여</b>: 근무지에 고정 근무일을 넣어 두면 남은 날짜까지 더해 이번 달 받을 금액을 예상하고, 일정이 없으면 지금까지 하루 평균으로 계산합니다.</li>
+        <li><b>초간단 출퇴근 모드</b>: 날짜와 출퇴근 시간만 적고 저장하면 기본 시급으로 계산합니다. 근무지와 수당은 나중에 붙일 수 있습니다.</li>
+        <li><b>JSON 백업·복원</b>: 근무지와 기록 전체를 파일로 내보내고, 파일이나 붙여넣은 내용으로 되돌립니다. 기록은 서버로 보내지 않고 브라우저 localStorage에만 저장됩니다.</li>
+      </ul>
+      <div class="deep-section-label">🛠️ 실전 트러블슈팅</div>
       <div class="trouble-box">
-        <div class="trouble-title">⚠️ 모바일 웹 앱 제약 해결: 스크롤 시 헤더/탭바 고정 및 더블탭 줌 차단</div>
-        <p class="trouble-text">모바일 사파리에서 스크롤 시 하단 메뉴가 밀리거나 더블터치 시 원치 않는 화면 확대가 일어나는 현상이 있었습니다.</p>
-        <p class="trouble-solve">💡 해결: viewport-fit=cover와 fixed 네비게이션, touch-action: manipulation 및 300ms 이내 연속 터치 차단 스크립트를 적용해 완벽한 네이티브 앱 터치 감각을 구현했습니다.</p>
+        <div class="trouble-title">⚠️ 문제: 달을 넘어가는 주의 주휴수당이 두 달에 겹쳐 잡히던 계산</div>
+        <p class="trouble-text">주 단위로 주휴수당을 계산하다 보니 월말과 월초에 걸친 주가 양쪽 달 정산에 모두 들어가, 실제로 받지 않은 주휴수당이 붙었습니다.</p>
+        <p class="trouble-solve">💡 해결: 월~일 기준으로 주를 잘라 그 주 일요일이 속한 달에만 주휴수당을 잡도록 정산 기준을 바꿔 중복 없이 계산되게 했습니다.</p>
       </div>
     </div>
 
@@ -1062,12 +1072,12 @@ section.tab-pane.active { display: block; }
       </div>
 
       
-      <!-- 12 (NEW: AlbaLog Pro) -->
+      <!-- 12 (NEW: AlbaLog v3.0) -->
       <div class="matrix-card" style="border-color:var(--brand);background:rgba(56,189,248,0.04)">
         <div class="matrix-card-top">
           <span class="matrix-num" style="color:var(--brand)">PROJECT 12 (NEW)</span>
-          <div class="matrix-name">알바로그 Pro</div>
-          <p class="matrix-caption">야간할증 1.5배 & 주휴수당 자동 정산 토스형 모바일 웹앱</p>
+          <div class="matrix-name">알바로그 v3.0</div>
+          <p class="matrix-caption">근무지별 수당·공제 정산과 초간단 출퇴근 기록</p>
         </div>
         <div class="matrix-card-foot">
           <span style="color:var(--text-muted)">Vanilla JS · LocalStorage</span>
