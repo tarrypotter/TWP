@@ -180,6 +180,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .me .lpv{color:#9fd8ff}
 .foe .lpv{color:#ffb0b0}
 .anchor{position:relative;display:flex;flex-direction:column;align-items:center}
+.pbadge{position:absolute;left:2px;top:2px;font-size:6.5px;letter-spacing:.04em;background:#0a1420e0;border:1px solid #46618f;color:#9fd8ff;border-radius:3px;padding:0 2px;z-index:3}
 .anchor .lbl{font-size:8px;color:#3b4a66;letter-spacing:.1em;margin-top:2px}
 .sheet{position:absolute;left:8px;right:8px;bottom:6px;background:#0d1522f5;border:1px solid #2a3852;border-radius:12px;padding:8px;display:none;z-index:30;box-shadow:0 -12px 30px -16px #000}
 .sheet.on{display:block}
@@ -681,7 +682,7 @@ function renderDuel(){
     const hidden = inst.p === 2;
     const tgt = ui.sel && ui.sel.type === 'attack' && !hidden ? true : (ui.sel && ui.sel.type === 'attack');
     fh += `<div class="anchor">${cardHTML(inst.i, {foe:true, pos:inst.p, hidden, ab:inst.ab, db:inst.db,
-      t: ui.sel && ui.sel.type==='attack' ? 'atarget' : '', z, tgt: !!(ui.sel && ui.sel.type==='attack')})}</div>`;
+      t: ui.sel && ui.sel.type==='attack' ? 'atarget' : '', z, tgt: !!(ui.sel && ui.sel.type==='attack')})}${inst.p >= 1 ? '<span class="pbadge">수비</span>' : ''}</div>`;
   }
   el('foeMon').innerHTML = fh;
 
@@ -720,7 +721,7 @@ function renderDuel(){
     const sel = ui.sel && ui.sel.type === 'mon' && ui.sel.z === z;
     const picked = ui.sel && ui.sel.type === 'tribute' && ui.sel.picked.includes(z);
     mm += `<div class="anchor">${cardHTML(inst.i, {pos:inst.p, hidden: inst.p === 2, ab:inst.ab, db:inst.db, sel,
-      t:'mymon', z})}${picked?'<div style="position:absolute;inset:0;border:2px solid #7fd0c8;border-radius:7px;pointer-events:none"></div>':''}</div>`;
+      t:'mymon', z})}${inst.p >= 1 ? '<span class="pbadge">수비</span>' : ''}${picked?'<div style="position:absolute;inset:0;border:2px solid #7fd0c8;border-radius:7px;pointer-events:none"></div>':''}</div>`;
   }
   el('meMon').innerHTML = mm;
 
