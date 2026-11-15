@@ -73,7 +73,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .mbtn .go{color:var(--dim2);font-size:15px}
 .mbtn.hl{border-color:#4a5f86;background:linear-gradient(#1d2b44,#131c2c)}
 .mbtn.hl .ic{color:var(--gold);border-color:#4a3d1e;background:#141005}
-.ladder{margin-top:auto;border:1px solid #1e283c;border-radius:13px;padding:11px 12px;background:linear-gradient(#0f1523,#0a0f18)}
+.ladder{margin-top:2px;border:1px solid #1e283c;border-radius:13px;padding:11px 12px;background:linear-gradient(#0f1523,#0a0f18)}
 .ladder .ladTop{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:var(--dim2);margin-bottom:9px;letter-spacing:.02em}
 .ladder .ladTop b{color:var(--dim);font-weight:600}
 .ladder .ladRow{display:flex;gap:4px}
@@ -84,7 +84,10 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .ladder .lad.on span{color:#7f93b3}
 .ladder .lad.cur i{background:linear-gradient(90deg,#6fd6e8,#e6bd63);box-shadow:0 0 10px -2px #6fd6e888}
 .ladder .lad.cur span{color:#fff}
-.foot{display:flex;gap:8px;padding-top:2px}
+.foot{display:flex;gap:8px;padding-top:2px;margin-top:auto}
+.rules{border:1px solid #1b2436;border-radius:12px;padding:10px 12px;background:#0a0f18;display:flex;flex-direction:column;gap:6px}
+.rules div{font-size:10.5px;color:#7d8ba4;line-height:1.4;display:flex;gap:7px}
+.rules div b{color:#a9b8cf;font-weight:600;min-width:38px;display:inline-block}
 .foot .btn{flex:1}
 .tiny{font-size:10px;color:var(--dim2);text-align:center;letter-spacing:.04em;line-height:1.5}
 
@@ -274,6 +277,12 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
         <div class="tx"><b>카드 도감</b><span id="codexsum">보유 14장 · 해금 0장</span></div>
         <div class="go">›</div>
       </button>
+    </div>
+    <div class="rules">
+      <div><b>필드</b>몬스터 5존 · 마법·함정 3존 · LP 8000</div>
+      <div><b>제물</b>레벨 5~6은 1장, 7 이상은 2장을 바친다</div>
+      <div><b>함정</b>세트한 다음 상대 행동에 반응해 발동</div>
+      <div><b>보상</b>랭킹전 승리 → 레이팅·연승·DP, DP로 카드 해금</div>
     </div>
     <div class="ladder" id="ladder"></div>
     <div class="foot">
@@ -615,7 +624,7 @@ function renderHome(){
   el('myCode').textContent = '#' + S.prof.code;
   const nx = ti + 1;
   el('ladder').innerHTML = `<div class="ladTop"><span>티어 로드맵</span><b>${nx < TIERS.length ? `다음 ${TIERS[nx][0]}까지 ${Math.max(0,TIERS[nx][1]-r)}점` : '최고 티어'}</b></div>
-    <div class="ladRow">${TIERS.map((t,i)=>`<div class="lad ${i<=ti?'on':''} ${i===ti?'cur':''}"><i></i><span>${t[0].slice(0,3)}</span></div>`).join('')}</div>`;
+    <div class="ladRow">${TIERS.map((t,i)=>`<div class="lad ${i<=ti?'on':''} ${i===ti?'cur':''}"><i></i><span>${['브론즈','실버','골드','플래','다이아','마스터','그랜드'][i]}</span></div>`).join('')}</div>`;
 }
 
 /* ================= 듀얼 시작 ================= */
