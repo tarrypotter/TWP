@@ -892,7 +892,7 @@ function updateItemPreview(){
   var el=document.getElementById('iPreview');
   if(!el) return;
   el.innerHTML='<span>'+(ds?koDate(ds):'날짜 없음')+' · '+(t==='in'?'수입':'지출')+'</span>'
-    +'<span class="money">'+(t==='in'?'+':'-')+won(a)+'</span>';
+    +'<span class="money">'+preWon(a, t==='in'?'+':'-')+'</span>';
 }
 function openItemSheet(opts){
   opts=opts||{};
@@ -973,7 +973,7 @@ function updateFixedPreview(){
   var day=clamp(Math.round(Number(g('fDay').value)||1),1,31);
   var kind=g('fKind').value;
   el.innerHTML='<span>매월 '+day+'일 · '+(kind==='income'?'고정수입':'고정지출')+'</span>'
-    +'<span class="money">'+(kind==='income'?'+':'-')+won(amt)+'</span>';
+    +'<span class="money">'+preWon(amt, kind==='income'?'+':'-')+'</span>';
 }
 function openFixedSheet(opts){
   opts=opts||{};
