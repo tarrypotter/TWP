@@ -479,7 +479,7 @@ function projectMonth(stats, allLogs, workplaces, defaultWage, y, m, todayStr){
     }
   }
   if(cnt>0) return {basis:'fixed', amount:Math.round(stats.total.net+net), count:cnt, hours:hours, plan:plan, daysLeft:dim-startDay+1};
-  if(stats.logCount===0) return null;
+  if(stats.total.logCount===0) return null;
   if(todayDay<=0) return null;
   var daily=stats.total.net/todayDay;
   return {basis:'pace', amount:Math.round(daily*dim), daily:daily, daysLeft:dim-todayDay+1, count:0};
@@ -497,8 +497,7 @@ function emptyState(){
 var state=emptyState();
 var ui={tab:'home', y:0, m:0, pickDate:null};
 
-function uid(p){ return (p||'id')+'_'+Date.now().toString(36)+Math.floor(Math.random()*1000).toString(36); }
-function wpById(id){ if(!id) return null; for(var i=0;i<state.workplaces.length;i++){ if(state.workplaces[i].id===id) return state.workplaces[i]; } return null; }
+function uid(p){ return (p||'id')+'_'+Date.now().toString(36)+Math.floor(Math.random()*1000).toString(36); }function wpById(id){ if(!id) return null; for(var i=0;i<state.workplaces.length;i++){ if(state.workplaces[i].id===id) return state.workplaces[i]; } return null; }
 function logById(id){ for(var i=0;i<state.logs.length;i++){ if(String(state.logs[i].id)===String(id)) return state.logs[i]; } return null; }
 
 function normalizeState(s){
@@ -550,7 +549,7 @@ function migrateOld(){
     st.workplaces = (o.workplaces||[]).map(function(w){
       return {
         id: uid('wp'), name: String(w.name||'근무지'), wage: Number(w.hourly||w.wage)||MIN_WAGE_2026,
-        weekly:false, night: w.calcNight!==false, holiday: !!w.calcHoliday,
+        weekly:true, night: w.calcNight!==false, holiday: !!w.calcHoliday,
         tax: o.taxType==='3.3' ? '3.3' : 'none',
         breakType:'none', breakCustom:60, weekdays:[], startTime:'', endTime:''
       };
@@ -593,6 +592,21 @@ function toast(msg){
   toast._t=setTimeout(function(){ el.classList.remove('show'); }, 1900);
 }
 function todayStr(){ return ymdOf(new Date()); }
+/* 시간 입력: 숫자만 넣으면 HH:MM 으로 맞춰 줌 (22 → 22:00, 2200 → 22:00) */
+function fmtTime(raw){
+  var s=String(raw||'').replace(/[^0-9]/g,'');
+  if(!s) return '';
+  if(s.length<=2){ var h=Number(s); return h>23?'':pad2(h)+':00'; }
+  var hh=Number(s.slice(0,2)), mm=Number(s.slice(2,4)||0);
+  if(hh>23||mm>59) return '';
+  return pad2(hh)+':'+pad2(mm);
+}
+function timeTypeHandler(ev){
+  var el=ev.target;
+  var digits=String(el.value||'').replace(/[^0-9]/g,'').slice(0,4);
+  var next = digits.length>2 ? digits.slice(0,2)+':'+digits.slice(2) : digits;
+  if(el.value!==next) el.value=next;
+}
 function isThisMonth(){ var n=new Date(); return ui.y===n.getFullYear() && ui.m===n.getMonth()+1; }
 function monthLabel(y,m){ return y+'년 '+m+'월'; }
 var WEEKDAY=['일','월','화','수','목','금','토'];
@@ -938,8 +952,8 @@ function openRecordSheet(opts){
     }
   }
   body+='<div class="field-row">'
-    + '<div class="field"><label>출근</label><input type="time" id="rStart" value="'+l.start+'"></div>'
-    + '<div class="field"><label>퇴근</label><input type="time" id="rEnd" value="'+l.end+'"></div>'
+    + '<div class="field"><label>출근</label><input type="text" id="rStart" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="22:00" value="'+l.start+'"></div>'
+    + '<div class="field"><label>퇴근</label><input type="text" id="rEnd" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="08:00" value="'+l.end+'"></div>'
     + '</div>'
     + '<p class="hint">퇴근이 출근보다 이르면 다음 날로 계산해요. (예: 22:00 → 08:00)</p>';
   if(!simple){
@@ -967,6 +981,12 @@ function openRecordSheet(opts){
     if(el) el.addEventListener('input', updatePreview);
     if(el) el.addEventListener('change', updatePreview);
   });
+  ['rStart','rEnd'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('input', timeTypeHandler);
+    el.addEventListener('blur', function(){ el.value=fmtTime(el.value); updatePreview(); });
+  });
   var wpSel=document.getElementById('rWp');
   if(wpSel) wpSel.addEventListener('change', function(){
     var w=wpById(wpSel.value);
@@ -983,8 +1003,8 @@ function openRecordSheet(opts){
 function currentRecordDraft(){
   var d={
     date:(document.getElementById('rDate')||{}).value || todayStr(),
-    start:(document.getElementById('rStart')||{}).value||'',
-    end:(document.getElementById('rEnd')||{}).value||'',
+    start:fmtTime((document.getElementById('rStart')||{}).value||''),
+    end:fmtTime((document.getElementById('rEnd')||{}).value||''),
     wpId:'', breakMin:null, holiday:false
   };
   var wpSel=document.getElementById('rWp');
@@ -1026,6 +1046,7 @@ function saveRecord(e){
   var d=currentRecordDraft();
   var id=(document.getElementById('rId')||{}).value||'';
   if(!d.date){ toast('날짜를 넣어 주세요'); return; }
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d.date)){ toast('날짜를 다시 골라 주세요'); return; }
   if(!d.start||!d.end){ toast('출근·퇴근 시간을 넣어 주세요'); return; }
   if(d.start===d.end){ toast('출근과 퇴근 시간이 같아요'); return; }
   var wp=d.wpId?wpById(d.wpId):null;
@@ -1117,8 +1138,8 @@ function openWpSheet(id){
     + '<div class="sec" style="margin:0 2px 8px">고정 근무일 <span style="font-weight:600;color:var(--ink3)">(선택)</span></div>'
     + '<div class="wd" id="wWd">'+wdHtml+'</div>'
     + '<div class="field-row" style="margin-top:12px">'
-    +   '<div class="field"><label>출근</label><input type="time" id="wStart" value="'+d.startTime+'"></div>'
-    +   '<div class="field"><label>퇴근</label><input type="time" id="wEnd" value="'+d.endTime+'"></div>'
+    +   '<div class="field"><label>출근</label><input type="text" id="wStart" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="22:00" value="'+d.startTime+'"></div>'
+    +   '<div class="field"><label>퇴근</label><input type="text" id="wEnd" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="08:00" value="'+d.endTime+'"></div>'
     + '</div>'
     + '<p class="hint" style="margin:-8px 0 16px">넣어 두면 월말 예상 급여를 이 일정으로 계산하고, 기록할 때 시간이 미리 채워져요.</p>'
 
@@ -1132,6 +1153,12 @@ function openWpSheet(id){
   function toggleCustom(){ document.getElementById('wBreakCustomWrap').style.display = brk.value==='custom'?'block':'none'; }
   brk.addEventListener('change', toggleCustom);
   toggleCustom();
+  ['wStart','wEnd'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('input', timeTypeHandler);
+    el.addEventListener('blur', function(){ el.value=fmtTime(el.value); });
+  });
 }
 function saveWorkplace(e){
   e.preventDefault();
@@ -1152,8 +1179,8 @@ function saveWorkplace(e){
     breakType:document.getElementById('wBreak').value,
     breakCustom:Math.max(0,Number(document.getElementById('wBreakCustom').value)||0),
     weekdays:wds.sort(),
-    startTime:document.getElementById('wStart').value||'',
-    endTime:document.getElementById('wEnd').value||''
+    startTime:fmtTime(document.getElementById('wStart').value||''),
+    endTime:fmtTime(document.getElementById('wEnd').value||'')
   };
   if(id){
     var cur=wpById(id);
