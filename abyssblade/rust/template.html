@@ -232,10 +232,14 @@ const EL = ['#cfd6e2','#ff7a2a','#a9e6ff','#5fd0ff','#ff3355','#ffe08a'];
 const STRIDE = [9,7,7,6,6,5,7];
 
 // ---- wasm
-let exp = null, mem = null, f32 = null, f32buf = null;
+let exp = null, mem = null, f32 = null, f32buf = null, f32off = -1, f32len = -1;
 const dec = new TextDecoder();
 function view(){
-  if (f32buf !== mem.buffer){ f32buf = mem.buffer; f32 = new Float32Array(f32buf); }
+  const ptr = exp.bf_out_ptr(), n = exp.bf_out_len();
+  if (f32buf !== mem.buffer || f32off !== ptr || f32len !== n){
+    f32buf = mem.buffer; f32off = ptr; f32len = n;
+    f32 = new Float32Array(f32buf, ptr, n);
+  }
   return f32;
 }
 function rd(ptr, len){
