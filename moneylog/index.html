@@ -75,10 +75,18 @@ main{
 .lbl{font-size:13px;font-weight:600;color:var(--ink2)}
 .chip-soft{font-size:11.5px;font-weight:600;color:var(--ink2);background:#f1f2f5;border-radius:999px;padding:3px 9px}
 .chip-soft.on{background:var(--accent-soft);color:var(--accent)}
-.amount{font-size:31px;font-weight:750;letter-spacing:-1.2px;margin:6px 0 2px;color:var(--ink)}
-.amount.zero{color:var(--ink3)}
-.amount.neg{color:var(--red)}
-.hero-sub{font-size:12.5px;color:var(--ink3)}
+/* 수입·지출 2열 (상단 메인) */
+.hero-cols{display:flex;margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
+.hcol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3px}
+.hcol + .hcol{padding-left:14px;border-left:1px solid var(--line)}
+.hcl{font-size:12px;font-weight:700;color:var(--ink2)}
+.hcv{font-size:26px;font-weight:750;letter-spacing:-1px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hcv .u{font-size:.58em;font-weight:700;font-style:normal;letter-spacing:-.2px;margin-left:1px;opacity:.75}
+.hcv.sz2{font-size:22px}
+.hcv.sz3{font-size:19px}
+.miss{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:12px;padding-top:11px;
+  border-top:1px solid var(--line);font-size:12.5px;font-weight:700;color:var(--red)}
+.miss b{font-size:13px;font-weight:700;letter-spacing:-.2px;white-space:nowrap}
 .hero-grid{display:flex;gap:10px;margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
 .hero-grid > div{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
 .hero-grid span{font-size:11.5px;color:var(--ink3)}
@@ -638,19 +646,25 @@ function noticeBanner(){
 }
 
 /* ---------- 그리기: 요약 ---------- */
+function amtSize(a,b){
+  var n=Math.max(Math.abs(Number(a)||0),Math.abs(Number(b)||0));
+  if(n>=100000000) return ' sz3';
+  if(n>=1000000) return ' sz2';
+  return '';
+}
 function heroCard(d){
   var cur=isThisMonth();
-  var cls=d.balance===0?' zero':(d.balance<0?' neg':'');
+  var sz=amtSize(d.income,d.expense);
   var html='<div class="card hero">'
-    +'<div class="hero-head"><span class="lbl">'+(cur?'이번 달':'이 달')+' 잔액</span>'
+    +'<div class="hero-head"><span class="lbl">'+(cur?'이번 달':'이 달')+'</span>'
     +'<span class="chip-soft">기록 '+d.items.length+'건</span></div>'
-    +'<div class="amount'+cls+'">'+won(d.balance)+'</div>'
-    +'<div class="hero-sub">실제로 들어오고 나간 돈 기준</div>'
-    +'<div class="hero-grid">'
-    +  '<div><span>수입</span><b class="plus">'+pre(d.income,'+')+'</b></div>'
-    +  '<div><span>지출</span><b class="minus">'+pre(d.expense,'-')+'</b></div>'
-    +  '<div><span>미납</span><b class="'+(d.missedOut?'red':'dim')+'">'+comma(d.missedOut)+'</b></div>'
+    +'<div class="hero-cols">'
+    +  '<div class="hcol"><span class="hcl">수입</span>'
+    +    '<b class="hcv'+(d.income?' plus':' dim')+sz+'">'+pre(d.income,'+')+'<i class="u">원</i></b></div>'
+    +  '<div class="hcol"><span class="hcl">지출</span>'
+    +    '<b class="hcv'+(d.expense?' minus':' dim')+sz+'">'+pre(d.expense,'-')+'<i class="u">원</i></b></div>'
     +'</div>'
+    +(d.missedN? '<div class="miss"><span>미납 '+d.missedN+'건</span><b>'+won(d.missedOut)+'</b></div>' : '')
     +'<div class="proj">'
     +  '<div class="proj-l"><span>월말 예상'+(simActive()?' · 조절 중':'')+'</span>'
     +  '<b class="'+(d.expected<0?'red':'')+'">'+won(d.expected)+'</b></div>'
