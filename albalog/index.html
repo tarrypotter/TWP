@@ -771,7 +771,7 @@ function viewSettle(){
     + (st.total.night? kv('야간수당 (가산)', won(st.total.night)) : '')
     + (st.total.holiday? kv('공휴일 수당 (가산)', won(st.total.holiday)) : '')
     + kv('세전 합계', won(st.total.gross), 'sep')
-    + '<div class="kv"><span>공제</span><b class="minus">-'+(st.total.deduction?won(st.total.deduction):'0원')+'</b></div>'
+    + '<div class="kv"><span>공제</span><b class="minus">'+(st.total.deduction? '-'+won(st.total.deduction) : '0원')+'</b></div>'
     + '<div class="kv total"><span>실수령</span><b>'+won(st.total.net)+'</b></div>'
     + '</div>';
 
