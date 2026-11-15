@@ -708,8 +708,11 @@ function draw(h, dt){
   vg.addColorStop(1,'rgba(0,0,0,.72)');
   ctx.fillStyle = vg; ctx.fillRect(0,0,W,H);
   if (h[58] > 0.01){
-    ctx.fillStyle = 'rgba(190,20,40,' + (h[58]*0.22) + ')';
-    ctx.fillRect(0,0,W,H);
+    // 피격 시 화면 가장자리만 붉게 (중앙 시야 유지)
+    const hg = ctx.createRadialGradient(W*0.5, H*0.5, Math.min(W,H)*0.22, W*0.5, H*0.5, Math.max(W,H)*0.7);
+    hg.addColorStop(0, 'rgba(190,20,40,0)');
+    hg.addColorStop(1, 'rgba(200,25,45,' + (h[58]*0.34).toFixed(3) + ')');
+    ctx.fillStyle = hg; ctx.fillRect(0,0,W,H);
   }
 }
 
