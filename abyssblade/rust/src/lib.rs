@@ -1161,16 +1161,16 @@ impl Game {
                 ny /= l;
             }
         }
-        self.time += dt;
         self.msg_t = (self.msg_t - dt).max(0.0);
         self.shake = (self.shake - dt * 42.0).max(0.0);
         self.p.hit_flash = (self.p.hit_flash - dt * 3.0).max(0.0);
 
         if self.phase != P_PLAY {
-            // 카드 선택/사망 중에도 이펙트는 천천히 흐른다
+            // 카드 선택/사망 중에는 시간이 멈춘다 (이펙트만 천천히 흐른다)
             self.step_fx(dt * 0.35);
             return;
         }
+        self.time += dt;
 
         // 플레이어 이동
         let spd = self.p.speed * self.st.speed * if self.p.dash > 0.0 { 4.6 } else { 1.0 };

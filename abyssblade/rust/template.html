@@ -459,7 +459,7 @@ const runes = [];
 function initRunes(){
   runes.length = 0;
   for (let i=0;i<8;i++){
-    runes.push({ r: 46 + i*34, a: 0.02 + Math.random()*0.03, tk: 6 + (i%4)*6 });
+    runes.push({ r: 46 + i*34, a: 0.045 + Math.random()*0.045, tk: 6 + (i%4)*6 });
   }
 }
 
@@ -480,7 +480,7 @@ function draw(h, dt){
   // rune rings
   ctx.save();
   ctx.translate(W*0.5, H*0.5);
-  ctx.strokeStyle = '#6b7a94';
+  ctx.strokeStyle = '#7d8ca6';
   for (const r of runes){
     ctx.globalAlpha = r.a;
     ctx.lineWidth = 1;
@@ -490,9 +490,27 @@ function draw(h, dt){
       const a = i*TAU/n + t*0.02;
       ctx.beginPath();
       ctx.moveTo(Math.cos(a)*r.r, Math.sin(a)*r.r);
-      ctx.lineTo(Math.cos(a)*(r.r-5), Math.sin(a)*(r.r-5));
+      ctx.lineTo(Math.cos(a)*(r.r-6), Math.sin(a)*(r.r-6));
       ctx.stroke();
     }
+  }
+  // center emblem (forge sigil)
+  ctx.globalAlpha = 0.13;
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  for (let i=0;i<6;i++){
+    const a = i*TAU/6 + t*0.05;
+    const x = Math.cos(a)*26, y = Math.sin(a)*26;
+    i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+  }
+  ctx.closePath(); ctx.stroke();
+  ctx.globalAlpha = 0.07;
+  for (let i=0;i<3;i++){
+    const a = i*TAU/3;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a)*26, Math.sin(a)*26);
+    ctx.lineTo(Math.cos(a+Math.PI)*90, Math.sin(a+Math.PI)*90);
+    ctx.stroke();
   }
   ctx.restore();
 
@@ -705,12 +723,12 @@ function drawEnemy(x,y,hp,r,kind,flash,slow,elite,aim,t){
   ctx.beginPath(); ctx.ellipse(0, r*0.75, r*0.85, r*0.35, 0, 0, TAU); ctx.fill();
   ctx.globalAlpha = 1;
 
-  let body = '#1a1c26', edge = '#4c5364', core = '#7d8598';
-  if (kind === 1){ body='#1d1a24'; edge='#6a4f5e'; core='#c98a9c'; }
-  else if (kind === 2){ body='#1c1f22'; edge='#586168'; core='#9aa3a8'; }
-  else if (kind === 3){ body='#1a2230'; edge='#3f6f88'; core='#6fd0ff'; }
-  else if (kind === 4){ body='#2a1418'; edge='#a03a3a'; core='#ff6a5a'; }
-  if (slow){ edge = '#5fd0ff'; }
+  let body = '#20222d', edge = '#6e7a90', core = '#a2abbf';
+  if (kind === 1){ body='#241f2b'; edge='#8a6a7c'; core='#e2a3b6'; }
+  else if (kind === 2){ body='#232730'; edge='#7d8894', core='#b6bfc6'; }
+  else if (kind === 3){ body='#1d2836'; edge='#4f93b4'; core='#7fdcff'; }
+  else if (kind === 4){ body='#33161c'; edge='#c9503f'; core='#ff7a62'; }
+  if (slow){ edge = '#5fd0ff'; core = '#bdefff'; }
 
   if (elite){
     ctx.globalAlpha = 0.55 + 0.25*Math.sin(t*5);
@@ -754,8 +772,16 @@ function drawEnemy(x,y,hp,r,kind,flash,slow,elite,aim,t){
     ctx.closePath();
   }
   ctx.fillStyle = body; ctx.fill();
-  ctx.lineWidth = kind===4 ? 2 : 1.3;
+  ctx.lineWidth = kind===4 ? 2.4 : 1.6;
   ctx.strokeStyle = edge; ctx.stroke();
+  // rim glow
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = 0.22;
+  ctx.strokeStyle = edge;
+  ctx.lineWidth = 3.5;
+  ctx.stroke();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
 
   // core
   ctx.beginPath();
@@ -829,8 +855,8 @@ function drawPlayer(h, t){
   ctx.translate(x, y+bob);
   const sw = swing > 0 ? Math.sin(Math.min(1,swing)*Math.PI) : 0;
   ctx.rotate(aim - 0.7 + sw*1.5);
-  const bl = 34 + Math.min(lv,30)*2.1 + tier*9;
-  const bw = 3.4 + Math.min(lv,30)*0.12 + tier*1.3;
+  const bl = 36 + Math.min(lv,30)*2.2 + tier*10;
+  const bw = 4.4 + Math.min(lv,30)*0.16 + tier*1.6;
   // hilt
   ctx.fillStyle = '#3b2a1c';
   ctx.fillRect(9, -2.2, 7, 4.4);
@@ -847,14 +873,24 @@ function drawPlayer(h, t){
   ctx.lineTo(15, bw);
   ctx.closePath();
   ctx.fillStyle = g2;
-  ctx.globalAlpha = 0.96;
+  ctx.globalAlpha = 0.98;
   ctx.fill();
+  // blade core highlight
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = 0.55;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(17, 0); ctx.lineTo(15+bl+4, 0);
+  ctx.stroke();
+  ctx.globalCompositeOperation = 'source-over';
   if (elem > 0){
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = 0.5 + 0.2*Math.sin(t*8);
-    ctx.strokeStyle = col; ctx.lineWidth = 2.2;
+    ctx.globalAlpha = 0.55 + 0.2*Math.sin(t*8);
+    ctx.strokeStyle = col; ctx.lineWidth = 2.6;
     ctx.stroke();
     ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
   }
   ctx.restore();
 
@@ -890,8 +926,9 @@ function drawSlash(x, y, ang, range, tp, elem, kind){
   const r0 = range*(0.62 + 0.38*tp);
   const grad = ctx.createRadialGradient(x,y,r0*0.35,x,y,r0*1.02);
   grad.addColorStop(0, hexA(col, 0));
-  grad.addColorStop(0.55, hexA(col, 0.55));
-  grad.addColorStop(1, hexA(col, 0.95));
+  grad.addColorStop(0.5, hexA(col, 0.62));
+  grad.addColorStop(0.92, hexA(col, 1));
+  grad.addColorStop(1, hexA('#ffffff', 0.85));
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(x, y, r0, ang - sweep/2, ang + sweep/2);
@@ -899,9 +936,13 @@ function drawSlash(x, y, ang, range, tp, elem, kind){
   ctx.closePath();
   ctx.fill();
   // outer edge
-  ctx.globalAlpha = al*0.8;
+  ctx.globalAlpha = al;
+  ctx.strokeStyle = hexA('#ffffff', 1);
+  ctx.lineWidth = 2.2*(1-tp)+0.8;
+  ctx.beginPath(); ctx.arc(x,y,r0, ang-sweep/2, ang+sweep/2); ctx.stroke();
   ctx.strokeStyle = hexA(col, 1);
-  ctx.lineWidth = 1.6*(1-tp)+0.6;
+  ctx.lineWidth = 5*(1-tp)+1;
+  ctx.globalAlpha = al*0.5;
   ctx.beginPath(); ctx.arc(x,y,r0, ang-sweep/2, ang+sweep/2); ctx.stroke();
 }
 function hexA(hex, a){
