@@ -324,6 +324,11 @@ function comma(n){
   return sign+out;
 }
 function won(n){ return comma(n)+'원'; }
+function signedAmt(n, sign){
+  n=Math.round(Math.abs(Number(n)||0));
+  if(!n) return '0원';
+  return (sign||'')+comma(n)+'원';
+}
 function escapeHtml(s){
   return String(s==null?'':s).replace(/[&<>"']/g,function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
@@ -557,32 +562,32 @@ function noticeBanner(){
   function rows(list, kind){
     return list.map(function(f){
       var dd=ddayOf(f,y,m);
-      var dt=kind==='late'? (Math.abs(dd)+'일 지남') : ((f.day)+'일');
-      return '<div class="bn-row"><span class="nm">'+escapeHtml(f.name)+'</span><span class="dt">'+dt+'</span>'
-        +'<b class="'+(kind==='income'?'plus':'minus')+'">'+(kind==='income'?'+':'-')+comma(f.amount)+'원</b></div>';
+      var dt = kind==='late' ? (Math.abs(dd)+'일 지남') : (kind==='soon' ? 'D-'+dd : '');
+      return '<div class="bn-row"><span class="nm">'+escapeHtml(f.name)+'</span>'
+        +(dt?'<span class="dt">'+dt+'</span>':'')
+        +'<b class="'+(kind==='in'?'plus':'minus')+'">'+(kind==='in'?'+':'-')+comma(f.amount)+'원</b></div>';
     }).join('');
   }
 
   var html='<div class="banner">';
-  if(todayOut.length || todayIn.length){
-    html+='<div class="bn-sec"><div class="bn-h"><span>오늘 '+(todayOut.length?'결제':'입금')+'</span>'
-      +'<b>'+(todayOut.length? todayOut.length+'건 · '+won(sumAmt(todayOut)) : '')+'</b></div>';
-    if(todayOut.length) html+=rows(todayOut,'out');
-    if(todayIn.length) html+=rows(todayIn,'income');
-    html+='</div>';
+  if(todayOut.length){
+    html+='<div class="bn-sec"><div class="bn-h"><span>오늘 결제</span><b>'+todayOut.length+'건 · '+won(sumAmt(todayOut))+'</b></div>'
+      + rows(todayOut,'today')+'</div>';
+  }
+  if(todayIn.length){
+    html+='<div class="bn-sec"><div class="bn-h"><span>오늘 입금</span><b>'+todayIn.length+'건 · '+won(sumAmt(todayIn))+'</b></div>'
+      + rows(todayIn,'in')+'</div>';
   }
   if(lateOut.length){
     html+='<div class="bn-sec late"><div class="bn-h"><span>미납</span><b>'+lateOut.length+'건 · '+won(sumAmt(lateOut))+'</b></div>'
       + rows(lateOut,'late')+'</div>';
   }
   if(soonOut.length){
-    var ddList=soonOut.map(function(f){ return ddayOf(f,y,m); });
-    var maxDd=Math.max.apply(null,ddList);
-    html+='<div class="bn-sec"><div class="bn-h"><span>'+maxDd+'일 안 결제</span><b>'+soonOut.length+'건 · '+won(sumAmt(soonOut))+'</b></div>'
-      + rows(soonOut,'out')+'</div>';
+    html+='<div class="bn-sec"><div class="bn-h"><span>3일 안 결제</span><b>'+soonOut.length+'건 · '+won(sumAmt(soonOut))+'</b></div>'
+      + rows(soonOut,'soon')+'</div>';
   }
   html+='<div class="bn-foot"><button data-act="tab" data-tab="fixed">고정 관리</button>';
-  if('Notification' in window && Notification.permission!=='granted'){
+  if('Notification' in window && Notification.permission==='default'){
     html+='<button class="pri" data-act="notify">알림 받기</button>';
   }
   html+='</div></div>';
@@ -665,8 +670,8 @@ function combinedCard(d){
     +'<b class="minus">-'+comma(d.varOut)+'원</b></div></div>';
 
   html+='<div class="sumline first"><span>지금 잔액</span><b>'+won(d.balance)+'</b></div>'
-    +'<div class="sumline"><span>남은 고정수입</span><b class="plus">+'+comma(d.unpaidIn)+'원</b></div>'
-    +'<div class="sumline"><span>남은 고정지출</span><b class="minus">-'+comma(d.unpaidOut)+'원</b></div>'
+    +'<div class="sumline"><span>남은 고정수입</span><b class="plus">'+signedAmt(d.unpaidIn,'+')+'</b></div>'
+    +'<div class="sumline"><span>남은 고정지출</span><b class="minus">'+signedAmt(d.unpaidOut,'-')+'</b></div>'
     +'<div class="sumline total"><span>월말 예상</span><b class="'+(d.expected<0?'minus':'plus')+'">'+won(d.expected)+'</b></div>';
 
   html+='<button class="btn ghost sm wide" data-act="openSim" style="margin:12px 0 0">고정 항목 조절</button>';
@@ -1044,7 +1049,7 @@ function simPreviewHtml(){
   var d=monthData(ui.y,ui.m);
   return '<span>월말 예상 · '+monthLabel(ui.y,ui.m)+'</span>'
     +'<span class="money">'+won(d.expected)+'</span>'
-    +'<span style="font-size:11.5px;color:var(--ink3)">지금 잔액 '+won(d.balance)+' · 남은 고정수입 +'+comma(d.unpaidIn)+' · 남은 고정지출 -'+comma(d.unpaidOut)+'</span>';
+    +'<span style="font-size:11.5px;color:var(--ink3)">지금 잔액 '+won(d.balance)+' · 남은 고정수입 '+signedAmt(d.unpaidIn,'+')+' · 남은 고정지출 '+signedAmt(d.unpaidOut,'-')+'</span>';
 }
 function updateSimPreview(){
   var el=document.getElementById('simPreview');
@@ -1185,6 +1190,8 @@ document.addEventListener('click', function(ev){
     var cur=catEl.value;
     var list=(CATS[type]||CATS.out);
     catEl.innerHTML=catOptions(type, list.indexOf(cur)>=0?cur:list[0]);
+    var title=document.querySelector('#sheet .sheet-head h2');
+    if(title) title.textContent=document.getElementById('iId').value? '기록 수정' : (type==='in'?'수입 적기':'지출 적기');
     updateItemPreview();
     return;
   }
@@ -1202,6 +1209,8 @@ document.addEventListener('click', function(ev){
     var fcur=fc.value;
     var flist=(CATS[kind==='income'?'in':'out']);
     fc.innerHTML=catOptions(kind==='income'?'in':'out', flist.indexOf(fcur)>=0?fcur:flist[0]);
+    var ftitle=document.querySelector('#sheet .sheet-head h2');
+    if(ftitle) ftitle.textContent=document.getElementById('fId').value? '고정 항목 수정' : (kind==='income'?'고정수입 등록':'고정지출 등록');
     updateFixedPreview();
     return;
   }
