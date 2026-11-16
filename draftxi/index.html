@@ -663,7 +663,7 @@ function matchTick(){
   const M = U.match; if(!M || M.over) return;
   M.min += 5;
   if(M.min === 45){
-    pushEvent({type:'half', mm:"45'", text:'전반 종료. ' + scoreText(M) + '. ' + (M.me === M.op ? '균형을 이룬' : M.me > M.op ? '앞서 나가는' : '끌려가는') + ' 채 후반을 맞습니다.', cls:'half'});
+    pushEvent({type:'half', mm:"45'", text:'전반 종료. ' + scoreText(M) + '. ' + (M.me === M.op ? '균형을 이룬' : M.me > M.op ? '리드를 잡은' : '끌려가는') + ' 채 후반을 맞습니다.', cls:'half'});
   } else if(M.min === 90){
     finishMatch(); return;
   } else {
@@ -707,8 +707,8 @@ function simulateMinute(M){
     const tpl = [
       p + ', 골망을 가릅니다! ' + (a ? a + '의 패스를 받아 ' : '') + '침착하게 마무리.',
       p + '의 헤더! 골키퍼 손끝을 스치고 골문 안으로 들어갑니다.',
-      '역습 한 방! ' + p + '가 수비수 두 명을 제치고 골망을 흔듭니다.',
-      '문전 혼전! ' + p + '가 끝까지 밀어 넣습니다.',
+      '역습 한 방! ' + p + ga(p) + ' 수비수 두 명을 제치고 골망을 흔듭니다.',
+      '문전 혼전! ' + p + ga(p) + ' 끝까지 밀어 넣습니다.',
       p + '의 감아차기, 반대편 구석에 정확히 꽂힙니다!'
     ];
     pushEvent({type:'goal', side, text: pick(tpl), mm, cls:'goal', score: scoreText(M)});
