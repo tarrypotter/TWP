@@ -476,11 +476,27 @@ const TIERS = [
   {n:'실버', min:1100, c:'#c3d0d8'},
   {n:'골드', min:1250, c:'#e9bb43'},
   {n:'플래티넘', min:1400, c:'#6fe3c8'},
+  {n:'에메랄드', min:1475, c:'#3fd68a'},
   {n:'다이아', min:1550, c:'#6cb6ff'},
   {n:'마스터', min:1700, c:'#c58cff'},
   {n:'그랜드마스터', min:1850, c:'#ff8a63'},
-  {n:'레전드', min:2000, c:'#cdf95f'}
+  {n:'챌린저', min:1950, c:'#ff6fae'},
+  {n:'레전드', min:2050, c:'#cdf95f'},
+  {n:'마에스트로', min:2200, c:'#f5c96a'},
+  {n:'아이콘', min:2350, c:'#9ef7ff'},
+  {n:'오버로드', min:2500, c:'#ff4f6d'}
 ];
+/* 티어별 AI 성향 */
+const AI_TACTICS = {
+  probe:{name:'탐색전', att:0, def:0},
+  press:{name:'전방 압박', att:3, def:-2},
+  counter:{name:'역습', att:2, def:1},
+  lock:{name:'수비 잠금', att:-3, def:4},
+  setpiece:{name:'세트피스', att:2, def:1}
+};
+function aiProfile(tierIdx){
+  return {tier:tierIdx, smart:tierIdx >= 3, ovr:Math.round(tierIdx * 0.9), cond:Math.min(1.4, tierIdx * 0.22), applied:{att:0, def:0}, tactic:'probe'};
+}
 const MODES = {
   normal:{name:'일반전', ic:'⚔️', coins:[260,110,55], desc:'유럽 5대 리그 클럽과 믹스 팀이 번갈아 상대합니다.'},
   friendly:{name:'친선전', ic:'🤝', coins:[180,80,40], desc:'리그와 난이도를 직접 골라 가볍게 붙습니다.'},
@@ -1004,7 +1020,7 @@ function randomClub(){
   return pick(keys);
 }
 function rankedTarget(rating){
-  return clamp(80 + (rating - 1000) * 0.022, 74, 120);
+  return clamp(80 + (rating - 1000) * 0.022, 74, 132);
 }
 function rankedOpponent(target){
   let best = null, bd = 99;
@@ -1020,7 +1036,9 @@ function opponentFor(mode){
     const target = rankedTarget(S.rank.r);
     const o = opponentOf(rankedOpponent(target));
     const boost = Math.max(0, target - o.base) + rnd(-1, 1.5);
-    return {...o, base: Math.round(o.base + boost), att:o.att+boost, mid:o.mid+boost, def:o.def+boost};
+    const prof = aiProfile(tierOf(S.rank.r).idx);
+    const b2 = boost + prof.ovr;
+    return {...o, base: Math.round(o.base + b2), att:o.att + b2, mid:o.mid + b2, def:o.def + b2, cond:prof.cond, ai:prof};
   }
   return null;
 }
@@ -1063,10 +1081,26 @@ function matchTick(){
   simulateMinute(M);
   paintMatch();
 }
+function aiHalftime(M){
+  const ai = M.opp && M.opp.ai;
+  if(!ai || !ai.smart) return;
+  const diff = M.me - M.op;
+  let key, line;
+  if(diff > 0){ key = 'lock'; line = '리드를 지키려 수비를 잠급니다.'; }
+  else if(diff < 0){ key = ai.tier >= 8 ? 'setpiece' : 'press'; line = key === 'setpiece' ? '세트피스에 힘을 싣습니다.' : '전방 압박으로 나섭니다.'; }
+  else { key = ai.tier >= 6 ? 'counter' : 'probe'; line = key === 'counter' ? '라인을 내리고 역슴을 노립니다.' : '중원에서 계속 탐색합니다.'; }
+  const t = AI_TACTICS[key], old = ai.applied || {att:0, def:0};
+  M.opp.att += t.att - old.att;
+  M.opp.def += t.def - old.def;
+  ai.applied = {att:t.att, def:t.def};
+  ai.tactic = key;
+  pushEvent({type:'tactic', mm:'HT', text:'상대 벤치, 후반을 ' + t.name + josa(t.name,'으로','로') + ' 전환합니다. ' + line, cls:'big'});
+}
 function startHalftime(M){
   M.half = true;
   if(M.timer) clearInterval(M.timer);
   M.timer = null;
+  aiHalftime(M);
   paintMatch();
   setTimeout(() => {
     if(!U.match || U.match !== M || M.over) return;
@@ -1316,7 +1350,7 @@ function draftHTML(){
   <div class="dhead">
     <div>
       <div class="eyebrow">RENTAL DRAFT · ${f}</div>
-      <div class="row" style="gap:7px;margin-top:3px"><b style="font-size:15px;letter-spacing:-.03em">${slotIdx+1}번째 선택</b><span class="tag lime">${role}</span>${bl?`<span class="tag amber">${g} 버프 +${bl}</span>`:''}<span class="tag ${(d.low||0)>0?'sky':''}">최저픽 ${d.low||0}/11</span></div>
+      <div class="row" style="gap:7px;margin-top:3px"><b style="font-size:15px;letter-spacing:-.03em">${slotIdx+1}번째 선택</b><span class="tag lime">${role}</span>${bl?`<span class="tag amber">${g} +${bl}</span>`:''}</div>
     </div>
     <div class="prog">${prog}</div>
   </div>
@@ -1326,7 +1360,10 @@ function draftHTML(){
   </div>
   <div class="between" style="margin-top:12px">
     <div class="tiny">${picks.length}/11 선택 완료${picks.length?` · 평균 OVR <b style="color:var(--lime)">${teamOvr}</b>`:''}</div>
-    <button class="chip" data-act="reroll">🔄 리롤 <span class="mono" style="color:var(--lime)">80</span></button>
+    <div class="row" style="gap:6px">
+      <span class="tag ${(d.low||0)>0?'sky':''}">최저픽 ${d.low||0}/11</span>
+      <button class="chip" data-act="reroll">🔄 리롤 <span class="mono" style="color:var(--lime)">80</span></button>
+    </div>
   </div>
   <div class="picks">${cards}</div>
   <div class="tiny" style="margin-top:12px;line-height:1.6">카드 OVR = 이번 판 기본 능력치(70·80·90대 랜덤) + 포지션 버프 Lv. 이미 뽑힌 선수는 다시 나오지 않고, 포지션이 다르면 임시 배치(−3 OVR)로 들어갑니다.</div>
@@ -1710,7 +1747,7 @@ function renderMatchScreen(){
         <div class="sc"><b id="mMe">0</b><i>:</i><b id="mOp">0</b></div>
         <div class="side r"><div class="n">${esc(M.opp.club)}</div><div class="o">OVR ${Math.round(M.opp.base)}</div></div>
       </div>
-      <div class="clock"><span class="live">LIVE</span><span class="m" id="mMin">0'</span><span class="tiny" id="mHalf">전반</span><span class="tiny" id="mCond">컨디션 →</span></div>
+      <div class="clock"><span class="live">LIVE</span><span class="m" id="mMin">0'</span><span class="tiny" id="mHalf">전반</span><span class="tiny" id="mCond">컨디션 →</span><span class="tiny" id="mTac" style="color:var(--amber)"></span></div>
       <div class="halfbox" id="mHalfBox" style="display:none"></div>
       <div class="mbar"><i id="mBar" style="width:0%"></i></div>
       ${M.drain ? `<div class="tiny" style="text-align:center;margin-top:7px;color:var(--amber)">전력 흡수 · 내 OVR +${M.drain} / 상대 OVR −${M.drain}</div>` : ''}
@@ -1743,6 +1780,7 @@ function paintMatch(){
   else { set('mMin', M.min + "'"); set('mHalf', M.min <= 45 ? '전반' : '후반'); }
   const c = condOf(M.t.cond || 0);
   set('mCond', '컨디션 ' + c.n + ' ' + c.s);
+  set('mTac', (M.opp && M.opp.ai && M.opp.ai.tactic && M.opp.ai.tactic !== 'probe') ? '· 상대 ' + AI_TACTICS[M.opp.ai.tactic].name : '');
   const hb = document.getElementById('mHalfBox');
   if(hb){
     hb.style.display = M.half ? 'block' : 'none';
@@ -2081,7 +2119,7 @@ document.addEventListener('click', ev => {
     while(m.min < 90 && !m.over){
       m.min += 5;
       if(m.min >= 90){ finishMatch(); break; }
-      if(m.min === 45){ pushEvent({type:'half', mm:"45'", text:'전반 종료. ' + scoreText(m) + '.', cls:'half'}); continue; }
+      if(m.min === 45){ pushEvent({type:'half', mm:"45'", text:'전반 종료. ' + scoreText(m) + '.', cls:'half'}); aiHalftime(m); continue; }
       simulateMinute(m);
     }
     paintMatch();
