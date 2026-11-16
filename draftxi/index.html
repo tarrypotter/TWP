@@ -125,7 +125,7 @@ main::-webkit-scrollbar{display:none}
 .gchip small{font-family:var(--mono);font-size:9px;font-weight:800;color:var(--dim);letter-spacing:-.02em}
 .gchip.on{background:rgba(205,249,95,.14);border-color:rgba(205,249,95,.55);color:var(--lime)}
 .gchip.on small{color:#a9e12f}
-.gchip.add{border-style:dashed;color:var(--dim);align-items:center;justify-content:center}
+.gchip.add{border-style:dashed;color:var(--dim);align-items:center;justify-content:center;white-space:nowrap}
 
 /* ---------- generic ---------- */
 .eyebrow{font-size:9.5px;font-weight:800;letter-spacing:.16em;color:var(--lime);text-transform:uppercase}
@@ -1586,7 +1586,7 @@ function paintDuel(){
   const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
   set('dMe', M.me); set('dOp', M.op);
   set('dMin', M.half ? 'HT' : M.min + "'");
-  set('dHalf', M.half ? '하프타임' : (M.min <= 45 ? '전반' : '후반'));
+  set('dHalf', M.half ? '' : (M.min <= 45 ? '전반' : '후반'));
   set('dPoss', '점유 ' + M.poss + '%');
   set('dCount', M.ev.length + '개');
   const bar = document.getElementById('dBar'); if(bar) bar.style.width = clamp(M.min / 90 * 100, 0, 100) + '%';
@@ -2180,8 +2180,8 @@ function renderMatchScreen(){
       </div>
       <div class="clock"><span class="live">LIVE</span><span class="m" id="mMin">0'</span><span class="tiny" id="mHalf">전반</span><span class="tiny" id="mCond">컨디션 →</span><span class="tiny" id="mTac" style="color:var(--amber)"></span></div>
       <div class="tacbar" id="mTacBar">${TACT_KEYS.map(k => `<button class="tacbtn ${(S.tactic || 'balance') === k ? 'on' : ''}" data-act="tactic" data-k="${k}"><b>${TACTS[k].ic} ${TACTS[k].name}</b><small>${TACTS[k].tag}</small></button>`).join('')}</div>
-      <div class="halfbox" id="mHalfBox" style="display:none"></div>
       <div class="mbar"><i id="mBar" style="width:0%"></i></div>
+      <div class="halfbox" id="mHalfBox" style="display:none"></div>
       ${M.drain ? `<div class="tiny" style="text-align:center;margin-top:7px;color:var(--amber)">전력 흡수 · 내 OVR +${M.drain} / 상대 OVR −${M.drain}</div>` : ''}
       <div class="stats3">
         <div><span>점유</span><b id="sPoss">50%</b></div>
@@ -2208,7 +2208,7 @@ function paintMatch(){
   const M = U.match; if(!M) return;
   const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
   set('mMe', M.me); set('mOp', M.op);
-  if(M.half){ set('mMin', 'HT'); set('mHalf', '하프타임'); }
+  if(M.half){ set('mMin', 'HT'); set('mHalf', ''); }
   else { set('mMin', M.min + "'"); set('mHalf', M.min <= 45 ? '전반' : '후반'); }
   const c = condOf(M.t.cond || 0);
   set('mCond', '컨디션 ' + c.n + ' ' + c.s);
