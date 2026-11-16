@@ -557,6 +557,11 @@ const QUESTS = {
   rep:{label:'반복', reset:'수령하면 다음 사이클', items:[
     {id:'g3', name:'경기 3회', goal:3, coin:150, get:q=>q.rep.games},
     {id:'w2', name:'승리 2회', goal:2, coin:200, get:q=>q.rep.wins}
+  ]},
+  chal:{label:'도전', reset:'매일 KST 00:00', items:[
+    {id:'low', name:'최저픽 11인으로 승리', goal:1, coin:1200, get:q=>q.chal.low},
+    {id:'band', name:'전원 같은 등급으로 승리', goal:1, coin:800, get:q=>q.chal.band},
+    {id:'dog', name:'언더독 역전승', goal:1, coin:600, get:q=>q.chal.dog}
   ]}
 };
 
@@ -621,7 +626,8 @@ function freshState(){
     squad:null, formation:null, draft:null, matches:0,
     record:{w:0,d:0,l:0}, rank:{r:1000,w:0,d:0,l:0},
     best:{ovr:0,name:''}, bestTeam:{ovr:0,f:''}, recent:[],
-    q:freshQuests(), drain:{day:'', used:0}, grow:{i:null, lv:0, prot:false, last:null}};
+    q:freshQuests(), drain:{day:'', used:0}, grow:{i:null, lv:0, prot:false, last:null},
+    squadInfo:null};
 }
 function sanitize(s){
   if(!s || typeof s !== 'object' || !s.code) return null;
@@ -637,6 +643,7 @@ function sanitize(s){
   }
   if(!s.q || typeof s.q !== 'object') s.q = freshQuests();
   if(!s.drain || typeof s.drain !== 'object') s.drain = {day:'', used:0};
+  if(!s.squadInfo || typeof s.squadInfo !== 'object') s.squadInfo = null;
   if(!s.grow || typeof s.grow !== 'object') s.grow = {i:null, lv:0, prot:false, last:null};
   s.grow.i = (typeof s.grow.i === 'number' && s.grow.i >= 0 && s.grow.i < P.length) ? s.grow.i : null;
   s.grow.lv = Math.max(0, Math.min(GROW_MAX, Math.round(+s.grow.lv || 0)));
@@ -754,12 +761,23 @@ function pickBiased(list, k, out){
     out.push(v); pool.splice(pool.indexOf(v), 1);
   }
 }
+function bandOfSquad(squad){
+  if(!squad || !squad.length) return null;
+  const bs = squad.map(x => baseOf(x));
+  if(bs.every(v => v >= 70 && v <= 79)) return '70';
+  if(bs.every(v => v >= 80 && v <= 89)) return '80';
+  if(bs.every(v => v >= 90)) return '90';
+  return null;
+}
 function choosePick(opt){
   const d = S.draft; if(!d || !opt) return;
+  const minB = d.opts.reduce((m,o) => Math.min(m, o.b), 99);
+  if(opt.b === minB) d.low = (d.low || 0) + 1;
   d.picks.push({i:opt.i, b:opt.b, c:opt.c});
   if(d.picks.length >= 11){
     S.squad = d.picks.map(p => ({i:p.i, b:p.b, c:p.c}));
     S.formation = d.f;
+    S.squadInfo = {low: d.low || 0, band: bandOfSquad(S.squad)};
     S.draft = null;
     S.squad.forEach(updateBest);
     updateBestTeam();
@@ -891,7 +909,8 @@ function openRankedSheet(){
 function freshQuests(){
   return {day:kstDay(), week:kstWeekKey(), month:kstMonthKey(),
     today:{draft:0, win:0, games:0}, weekC:{win:0, ranked:0, buff:0}, monthC:{win:0, buf:0},
-    claimed:{day:{}, week:{}, month:{}}, login:{last:'', streak:0},
+    chal:{low:0, band:0, dog:0},
+    claimed:{day:{}, week:{}, month:{}, chal:{}}, login:{last:'', streak:0},
     rep:{games:0, wins:0}};
 }
 function ensureQuests(){
@@ -901,11 +920,12 @@ function ensureQuests(){
   if(!q.weekC || typeof q.weekC !== 'object') q.weekC = {win:0, ranked:0, buff:0};
   if(!q.monthC || typeof q.monthC !== 'object') q.monthC = {win:0, buf:0};
   if(!q.claimed || typeof q.claimed !== 'object') q.claimed = {day:{}, week:{}, month:{}};
-  q.claimed.day ||= {}; q.claimed.week ||= {}; q.claimed.month ||= {};
+  q.claimed.day ||= {}; q.claimed.week ||= {}; q.claimed.month ||= {}; q.claimed.chal ||= {};
+  if(!q.chal || typeof q.chal !== 'object') q.chal = {low:0, band:0, dog:0};
   if(!q.login || typeof q.login !== 'object') q.login = {last:'', streak:0};
   if(!q.rep || typeof q.rep !== 'object') q.rep = {games:0, wins:0};
   const d = kstDay(), w = kstWeekKey(), m = kstMonthKey();
-  if(q.day !== d){ q.day = d; q.today = {draft:0, win:0, games:0}; q.claimed.day = {}; }
+  if(q.day !== d){ q.day = d; q.today = {draft:0, win:0, games:0}; q.chal = {low:0, band:0, dog:0}; q.claimed.day = {}; q.claimed.chal = {}; }
   if(q.week !== w){ q.week = w; q.weekC = {win:0, ranked:0, buff:0}; q.claimed.week = {}; }
   if(q.month !== m){ q.month = m; q.monthC = {win:0, buf:0}; q.claimed.month = {}; }
   return q;
@@ -936,7 +956,7 @@ function claimQuest(scope, id){
 function claimCount(){
   const q = ensureQuests();
   let n = q.login.last !== kstDay() ? 1 : 0;
-  ['day','week','month'].forEach(sc => {
+  ['day','week','month','chal'].forEach(sc => {
     QUESTS[sc].items.forEach(it => { if(!q.claimed[sc][it.id] && it.get(q) >= it.goal) n++; });
   });
   QUESTS.rep.items.forEach(it => { if(it.get(q) >= it.goal) n++; });
@@ -1020,7 +1040,7 @@ function startMatch(mode, opp, opts){
     opp = {...opp, base: Math.max(0, opp.base - drain), att: opp.att - drain, mid: opp.mid - drain, def: opp.def - drain};
     save(); paintHud();
   }
-  U.match = {mode, opp, t: team, f:S.formation, drain, min:0, me:0, op:0, ev:[], shotsMe:0, shotsOp:0, poss:50,
+  U.match = {mode, opp, t: team, f:S.formation, info:S.squadInfo, drain, min:0, me:0, op:0, ev:[], shotsMe:0, shotsOp:0, poss:50,
     over:false, timer:null, goals:[], rating:0, coins:0, diff:U.friendly.diff || 0};
   if(mode === 'friendly'){
     const d = U.friendly.diff;
@@ -1177,6 +1197,12 @@ function finishMatch(){
   questAdd('game', 1);
   if(M.mode === 'ranked') questAdd('ranked', 1);
   if(res === 'w') questAdd('win', 1);
+  if(res === 'w'){
+    const qq = ensureQuests();
+    if(M.info && M.info.low >= 11) qq.chal.low += 1;
+    if(M.info && M.info.band) qq.chal.band += 1;
+    if(Math.round(M.opp.base) > M.t.ovr) qq.chal.dog += 1;
+  }
   S.recent = [{m:M.mode, o:M.opp.club, me:M.me, op:M.op, res}].concat(S.recent || []).slice(0,4);
   S.coins += coins;
   if(M.t.ovr > (S.bestTeam.ovr || 0)) S.bestTeam = {ovr: M.t.ovr, f: M.f || ''};
@@ -1290,7 +1316,7 @@ function draftHTML(){
   <div class="dhead">
     <div>
       <div class="eyebrow">RENTAL DRAFT · ${f}</div>
-      <div class="row" style="gap:7px;margin-top:3px"><b style="font-size:15px;letter-spacing:-.03em">${slotIdx+1}번째 선택</b><span class="tag lime">${role}</span>${bl?`<span class="tag amber">${g} 버프 +${bl}</span>`:''}</div>
+      <div class="row" style="gap:7px;margin-top:3px"><b style="font-size:15px;letter-spacing:-.03em">${slotIdx+1}번째 선택</b><span class="tag lime">${role}</span>${bl?`<span class="tag amber">${g} 버프 +${bl}</span>`:''}<span class="tag ${(d.low||0)>0?'sky':''}">최저픽 ${d.low||0}/11</span></div>
     </div>
     <div class="prog">${prog}</div>
   </div>
@@ -1343,7 +1369,7 @@ function squadHTML(){
   <div class="teamhead">
     <div>
       <div class="eyebrow">RENTAL XI · ${f}</div>
-      <div class="nm" style="margin-top:3px">임대 스쿼드 <span class="tag lime" style="margin-left:4px">${S.squad.length}명</span></div>
+      <div class="nm" style="margin-top:3px">임대 스쿼드 <span class="tag lime" style="margin-left:4px">${S.squad.length}명</span>${S.squadInfo && S.squadInfo.low >= 11 ? '<span class="tag amber" style="margin-left:4px">최저픽 11/11</span>' : ''}${S.squadInfo && S.squadInfo.band ? '<span class="tag sky" style="margin-left:4px">전원 ' + S.squadInfo.band + '대</span>' : ''}</div>
       <div class="tiny" style="margin-top:3px">전적 <b style="color:var(--ink)">${rec.w}승 ${rec.d}무 ${rec.l}패</b> · 총 버프 Lv ${fmt(totalBuf())} · 컨디션 ${condSummary(t.entries)}</div>
     </div>
     <div class="ovr"><b>${t.ovr}</b><small>TEAM OVR</small></div>
@@ -1514,7 +1540,7 @@ function growMatch(mode){
 function doGrowMatch(mode){
   const g = buildGrowSquad();
   if(!g){ toast('먼저 키울 선수를 뽑으세요'); return; }
-  S.squad = g.squad; S.formation = g.f; save();
+  S.squad = g.squad; S.formation = g.f; S.squadInfo = null; save();
   U.match = null;
   if(mode === 'invite') startMatch('invite', opponentFromInvite(U.invite));
   else if(mode === 'ranked') startMatch('ranked', opponentFor('ranked'));
@@ -1636,7 +1662,7 @@ function stadiumHTML(){
     <h2 class="title">경기장 <span class="mono" style="font-size:13px;color:var(--dim)">OVR ${t.ovr}</span></h2>
     <div class="card" style="padding:10px 12px;margin-top:10px;display:flex;align-items:center;gap:10px">
       <div style="flex:1 1 auto;min-width:0"><div style="font-size:11.5px;font-weight:900;letter-spacing:-.02em">임대 XI 준비 완료</div>
-      <div class="tiny" style="margin-top:2px">${S.formation} · ${t.ovr} OVR · 이번 경기 한 판</div></div>
+      <div class="tiny" style="margin-top:2px">${S.formation} · ${t.ovr} OVR · 이번 경기 한 판${S.squadInfo && S.squadInfo.low >= 11 ? ' · 최저픽 11/11' : ''}${S.squadInfo && S.squadInfo.band ? ' · 전원 ' + S.squadInfo.band + '대' : ''}</div></div>
       <button class="chip" data-act="go-squad">스쿼드 보기</button>
     </div>
     <div class="rental" style="margin-top:8px"><span class="ic">⏳</span><span class="tx">모드를 골라 <b>1경기</b>를 뛰면 이 11명은 반납됩니다. 결과 화면에서 바로 새 드래프트로 이어집니다.</span></div>
@@ -1858,7 +1884,7 @@ function questHTML(){
       <div class="att">${att}</div>
     </div>
     <div class="tiny" style="margin-top:9px">${hint ? '받을 수 있는 보상 ' + hint + '개' : '받을 수 있는 보상이 없습니다'} · 모든 기간은 한국시간(KST) 기준입니다</div>
-    ${sec('day')}${sec('week')}${sec('month')}${sec('rep')}`;
+    ${sec('day')}${sec('week')}${sec('month')}${sec('chal')}${sec('rep')}`;
 }
 
 /* ---------- grow board ---------- */
