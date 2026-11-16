@@ -57,14 +57,55 @@ main::-webkit-scrollbar{display:none}
 .tabs{flex:0 0 auto;display:grid;grid-template-columns:repeat(6,1fr);height:calc(var(--navh) + env(safe-area-inset-bottom));
   padding-bottom:env(safe-area-inset-bottom);border-top:1px solid var(--line);background:rgba(8,15,12,.97);
   backdrop-filter:blur(12px);z-index:20}
-.tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  color:var(--dim);font-size:9.5px;font-weight:800;letter-spacing:-.02em;transition:color .15s}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:48px;
+  padding:5px 0 4px;-webkit-tap-highlight-color:transparent;
+  color:var(--dim);font-size:9px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;transition:color .15s}
+.tab span:not(.badge){white-space:nowrap}
+.tab:active{opacity:.65}
 .tab svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .tab.on{color:var(--lime)}
 .tab.on:before{content:"";position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:26px;height:2px;
   background:var(--lime);border-radius:0 0 3px 3px;box-shadow:0 0 10px rgba(205,249,95,.6)}
 .tab .badge{position:absolute;top:8px;right:calc(50% - 20px);min-width:15px;height:15px;padding:0 3px;border-radius:8px;
   background:var(--lime);color:#0a120c;font-size:9px;font-weight:900;display:grid;place-items:center}
+
+/* ---------- tactics ---------- */
+.tacbar{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:9px}
+.tacbtn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 3px;border-radius:10px;
+  background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--sub);transition:all .15s}
+.tacbtn b{font-size:10px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
+.tacbtn small{font-size:7.5px;font-weight:800;letter-spacing:-.02em;color:var(--dim);white-space:nowrap}
+.tacbtn.on{background:rgba(205,249,95,.14);border-color:rgba(205,249,95,.55);color:var(--lime);box-shadow:0 0 0 1px rgba(205,249,95,.18) inset}
+.tacbtn.on small{color:#a9e12f}
+.hbtop{display:flex;align-items:baseline;gap:7px;font-size:11px;font-weight:800}
+
+/* ---------- box score · MVP ---------- */
+.boxscore{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+.bscol{background:rgba(255,255,255,.028);border:1px solid var(--line);border-radius:11px;padding:8px 9px;min-width:0}
+.bshead{font-size:9px;font-weight:800;letter-spacing:-.02em;color:var(--dim);display:flex;justify-content:space-between;gap:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
+.bshead b{font-family:var(--mono);font-size:13px;color:var(--ink)}
+.bshead.mine b{color:var(--lime)}
+.bsrow{display:flex;gap:6px;align-items:baseline;padding:3px 0;border-top:1px solid rgba(255,255,255,.04);min-width:0}
+.bsrow:first-of-type{border-top:0}
+.bsrow .mm{flex:0 0 auto;font-family:var(--mono);font-size:9px;font-weight:800;color:var(--lime);width:22px}
+.bsrow .nm{font-size:10.5px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bsrow.empty .nm{color:var(--dim);font-weight:700}
+.mvp{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:12px;
+  background:linear-gradient(100deg,rgba(205,249,95,.13),rgba(205,249,95,.03));border:1px solid rgba(205,249,95,.4)}
+.mvpic{flex:0 0 auto;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:16px;
+  background:rgba(205,249,95,.16);color:var(--lime)}
+.mvp .nm{font-size:13px;font-weight:800;letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mvpr{flex:0 0 auto;text-align:right}
+.mvpr b{font-family:var(--mono);font-size:21px;font-weight:800;letter-spacing:-.06em;color:var(--lime);line-height:1}
+.mvpr small{display:block;font-size:7px;font-weight:800;letter-spacing:.12em;color:var(--dim);margin-top:2px}
+.honor{margin-top:10px;display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:-.02em;
+  padding:8px 11px;border-radius:10px;color:#ffe8a3;
+  background:linear-gradient(100deg,rgba(255,196,60,.18),rgba(255,196,60,.05));border:1px solid rgba(255,196,60,.45);
+  animation:grpop .35s ease both}
+.honor b{font-family:var(--mono);font-size:12px;color:#ffd97a}
+.honor.top{background:linear-gradient(100deg,rgba(255,224,120,.3),rgba(255,160,60,.12));border-color:rgba(255,224,120,.75);
+  box-shadow:0 0 18px rgba(255,200,70,.25);color:#fff3c4}
 
 /* ---------- generic ---------- */
 .eyebrow{font-size:9.5px;font-weight:800;letter-spacing:.16em;color:var(--lime);text-transform:uppercase}
@@ -486,6 +527,15 @@ const TIERS = [
   {n:'아이콘', min:2350, c:'#9ef7ff'},
   {n:'오버로드', min:2500, c:'#ff4f6d'}
 ];
+/* 플레이어 전술 (경기 전 · 하프타임 1탭 전환) */
+const TACTS = {
+  balance:{key:'balance', name:'밸런스', ic:'⚖️', att:0, mid:0, def:0, tag:'공수 균형'},
+  press:{key:'press', name:'전방 압박', ic:'🔥', att:3, mid:1, def:-2, tag:'공격+ · 실점위험+'},
+  counter:{key:'counter', name:'선수비 후역습', ic:'🛡️', att:1, mid:0, def:3, tag:'수비+ · 역습+'}
+};
+const TACT_KEYS = ['balance','press','counter'];
+const tacOf = k => TACTS[k] || TACTS.balance;
+function tacTag(k){ const t = tacOf(k); return t.ic + ' ' + t.name; }
 /* 티어별 AI 성향 */
 const AI_TACTICS = {
   probe:{name:'탐색전', att:0, def:0},
@@ -535,9 +585,9 @@ const CARE = {
   lift:{cost:450, name:'컨디션 회복'},
   max:{cost:1000, name:'최상 케어'}
 };
-const TICK_MS = 380, HALF_MS = 1500;
+const TICK_MS = 380, HALF_MS = 2600;
 /* 선수 키우기 (0~+15강) */
-const GROW_MAX = 15, PROT_COST = 800, GROW_STEP = 2;
+const GROW_MAX = 15, PROT_COST = 500, GROW_STEP = 2;
 const GROW_T = [
   {cost:300, p:95},{cost:450, p:90},{cost:650, p:85},{cost:900, p:78},{cost:1200, p:70},
   {cost:1600, p:62},{cost:2100, p:55},{cost:2700, p:48},{cost:3400, p:42},{cost:4200, p:36},
@@ -642,8 +692,8 @@ function freshState(){
     squad:null, formation:null, draft:null, matches:0,
     record:{w:0,d:0,l:0}, rank:{r:1000,w:0,d:0,l:0},
     best:{ovr:0,name:''}, bestTeam:{ovr:0,f:''}, recent:[],
-    q:freshQuests(), drain:{day:'', used:0}, grow:{i:null, lv:0, prot:false, last:null},
-    squadInfo:null};
+    q:freshQuests(), drain:{day:'', used:0}, grow:{i:null, lv:0, prot:false, last:null, best:0},
+    squadInfo:null, tactic:'balance'};
 }
 function sanitize(s){
   if(!s || typeof s !== 'object' || !s.code) return null;
@@ -660,10 +710,12 @@ function sanitize(s){
   if(!s.q || typeof s.q !== 'object') s.q = freshQuests();
   if(!s.drain || typeof s.drain !== 'object') s.drain = {day:'', used:0};
   if(!s.squadInfo || typeof s.squadInfo !== 'object') s.squadInfo = null;
-  if(!s.grow || typeof s.grow !== 'object') s.grow = {i:null, lv:0, prot:false, last:null};
+  if(!s.grow || typeof s.grow !== 'object') s.grow = {i:null, lv:0, prot:false, last:null, best:0};
   s.grow.i = (typeof s.grow.i === 'number' && s.grow.i >= 0 && s.grow.i < P.length) ? s.grow.i : null;
   s.grow.lv = Math.max(0, Math.min(GROW_MAX, Math.round(+s.grow.lv || 0)));
   s.grow.prot = !!s.grow.prot;
+  s.grow.best = Math.max(s.grow.lv, Math.min(GROW_MAX, Math.round(+s.grow.best || 0)));
+  if(!TACT_KEYS.includes(s.tactic)) s.tactic = 'balance';
   if(!s.grow.last || typeof s.grow.last !== 'object') s.grow.last = null;
   else s.grow.last.lv = s.grow.lv;
   if(Array.isArray(s.squad)) s.squad.forEach(x => { if(x && typeof x === 'object') x.c = Math.max(-2, Math.min(2, Math.round(+x.c || 0))); });
@@ -1058,7 +1110,9 @@ function startMatch(mode, opp, opts){
     opp = {...opp, base: Math.max(0, opp.base - drain), att: opp.att - drain, mid: opp.mid - drain, def: opp.def - drain};
     save(); paintHud();
   }
-  U.match = {mode, opp, t: team, f:S.formation, info:S.squadInfo, drain, min:0, me:0, op:0, ev:[], shotsMe:0, shotsOp:0, poss:50,
+  const tacKey = S.tactic || 'balance';
+  team = applyTactic(team, tacKey);
+  U.match = {mode, opp, t: team, f:S.formation, info:S.squadInfo, drain, tac:tacKey, min:0, me:0, op:0, ev:[], shotsMe:0, shotsOp:0, poss:50,
     over:false, timer:null, goals:[], rating:0, coins:0, diff:U.friendly.diff || 0};
   if(mode === 'friendly'){
     const d = U.friendly.diff;
@@ -1067,6 +1121,26 @@ function startMatch(mode, opp, opts){
   U.tab = 'stadium';
   renderMatchScreen();
   U.match.timer = setInterval(matchTick, TICK_MS);
+}
+function applyTactic(t, key){
+  const c = tacOf(key);
+  return {...t, att:t.att + c.att, mid:(t.mid || 0) + c.mid, def:t.def + c.def};
+}
+function setTactic(key){
+  if(!TACT_KEYS.includes(key)) return;
+  const M = U.match, from = S.tactic || 'balance';
+  if(from === key && (!M || M.over)){ toast(tacOf(key).ic + ' ' + tacOf(key).name + ' 전술 유지'); return; }
+  S.tactic = key; save();
+  const a = tacOf(from), b = tacOf(key);
+  if(M && !M.over){
+    M.t.att += b.att - a.att; M.t.mid += b.mid - a.mid; M.t.def += b.def - a.def;
+    M.tac = key;
+    pushEvent({type:'tactic', mm:(M.half ? 'HT' : M.min + "'"),
+      text:'내 벤치, ' + (M.half ? '후반을 ' : '전술을 ') + b.name + josa(b.name, '으로', '로') + ' 전환합니다. ' + b.tag, cls:'big'});
+    paintMatch();
+    if(M.half) paintHalf();
+    toast(b.ic + ' ' + b.name + ' · ' + b.tag);
+  } else render();
 }
 function matchTick(){
   const M = U.match; if(!M || M.over || M.half) return;
@@ -1149,6 +1223,8 @@ function simulateMinute(M){
   const mm = M.min + "'";
   if(Math.random() < gp){
     if(side === 'me') M.me++; else M.op++;
+    if(!M.goals) M.goals = [];
+    M.goals.push({mm, min:M.min, side, name:p});
     const a = mateName(M, side, p);
     const tpl = [
       p + ', 골망을 가릅니다! ' + (a ? a + '의 패스를 받아 ' : '') + '침착하게 마무리.',
@@ -1237,6 +1313,7 @@ function finishMatch(){
     if(M.info && M.info.band) qq.chal.band += 1;
     if(Math.round(M.opp.base) > M.t.ovr) qq.chal.dog += 1;
   }
+  M.mvp = pickMVP(M);
   S.recent = [{m:M.mode, o:M.opp.club, me:M.me, op:M.op, res}].concat(S.recent || []).slice(0,4);
   S.coins += coins;
   if(M.t.ovr > (S.bestTeam.ovr || 0)) S.bestTeam = {ovr: M.t.ovr, f: M.f || ''};
@@ -1245,6 +1322,28 @@ function finishMatch(){
   S.squad = null; S.formation = null; S.draft = null;
   save(); paintHud();
   renderResult();
+}
+
+/* 경기 MVP — 컨디션·득점·OVR·결과 반영 */
+function pickMVP(M){
+  if(!M) return null;
+  const tally = {};
+  (M.goals || []).forEach(g => { if(g.side === 'me') tally[g.name] = (tally[g.name] || 0) + 1; });
+  const e = squadEntries();
+  if(!e.length) return null;
+  const gd = M.me - M.op;
+  let best = null;
+  e.forEach(x => {
+    const nm = P[x.inst.i][0];
+    const goals = tally[nm] || 0;
+    const fit = x.role === 'FW' ? 1 : grp(x.role) === 'MF' ? 0.6 : 0.3;
+    const sc = ovrOf(x.inst) * 0.5 + (x.c || 0) * 2.8 + goals * 14 + gd * 1.4 + fit * 3 + Math.random() * 3;
+    if(!best || sc > best.sc) best = {name:nm, role:x.role, ovr:ovrOf(x.inst), goals, c:x.c || 0, sc};
+  });
+  if(!best) return null;
+  let rating = 6.4 + best.goals * 1.1 + (best.c || 0) * 0.25 + (gd > 0 ? 0.6 : gd < 0 ? -0.4 : 0) + Math.min(1.2, (best.ovr - 70) * 0.025);
+  rating = Math.round(Math.max(5.5, Math.min(10, rating)) * 10) / 10;
+  return {...best, rating};
 }
 
 /* ---------- rendering: shell ---------- */
@@ -1521,7 +1620,13 @@ function growAttempt(){
   S.coins -= price;
   const ok = Math.random() * 100 < t.p;
   let out;
-  if(ok){ S.grow.lv = lv + 1; out = {res:'ok', from:lv, to:lv+1, msg:'성공! +' + (lv+1) + '강'}; }
+  if(ok){
+    S.grow.lv = lv + 1;
+    const prev = Math.max(0, Math.round(+S.grow.best || 0));
+    if(lv + 1 > prev) S.grow.best = lv + 1;
+    out = {res:'ok', from:lv, to:lv+1, msg:'성공! +' + (lv+1) + '강'};
+    if(lv + 1 >= 10 && lv + 1 > prev) out.msg += lv + 1 >= 15 ? ' · 👑 최고 기록 +15강!' : ' · 🥇 최고 기록 +' + (lv+1) + '강 돌파!';
+  }
   else if(prot){
     if(Math.random() < 0.55){ out = {res:'keep', from:lv, to:lv, msg:'보호카드 발동 · +' + lv + '강 유지'}; }
     else {
@@ -1536,7 +1641,11 @@ function growAttempt(){
   out.lv = S.grow.lv;
   S.grow.last = out;
   save(); paintHud(); renderGrow(true);
-  if(out.res === 'ok') popFx('+' + out.to + '강');
+  if(out.res === 'ok'){
+    popFx('+' + out.to + '강');
+    if(out.to >= 10 && /최고 기록/.test(out.msg)) toast(out.msg.slice(out.msg.indexOf('·') + 2));
+    else if(out.to === 10 || out.to === 15) toast((out.to >= 15 ? '👑 ' : '🥇 ') + '최고 강화 +' + out.to + '강 달성');
+  }
   else if(out.res === 'boom') popFx('0강');
 }
 function renderGrow(keepScroll){
@@ -1713,6 +1822,10 @@ function stadiumHTML(){
       <div class="tx"><b>초대 대결 도착 · #${esc(U.invite.code)}</b><span>${U.invite.f} · 상대 팀 OVR ${opponentFromInvite(U.invite).base}</span></div>
       <button class="btn sm primary" data-act="play-invite">대결</button>
     </div>` : ''}
+    <div class="sect"><div class="sect-h"><div class="eyebrow g">경기 전 전술</div><div class="tiny">하프타임에도 1탭 전환</div></div>
+      <div class="tacbar" id="mTacBar">${TACT_KEYS.map(k => `<button class="tacbtn ${(S.tactic || 'balance') === k ? 'on' : ''}" data-act="tactic" data-k="${k}"><b>${TACTS[k].ic} ${TACTS[k].name}</b><small>${TACTS[k].tag}</small></button>`).join('')}</div>
+      <div class="tiny" style="margin-top:6px"> ${esc(tacOf(S.tactic || 'balance').tag)} · ${S.tactic === 'press' ? '공격 +3 / 수비 -2' : S.tactic === 'counter' ? '수비 +3 / 공격 +1' : '공격·중원·수비 그대로'}</div>
+    </div>
     <div class="sect stack">${modeCard('normal')}${modeCard('friendly')}${modeCard('ranked')}</div>
     ${body}
     ${(S.recent && S.recent.length) ? `<div class="sect">
@@ -1748,6 +1861,7 @@ function renderMatchScreen(){
         <div class="side r"><div class="n">${esc(M.opp.club)}</div><div class="o">OVR ${Math.round(M.opp.base)}</div></div>
       </div>
       <div class="clock"><span class="live">LIVE</span><span class="m" id="mMin">0'</span><span class="tiny" id="mHalf">전반</span><span class="tiny" id="mCond">컨디션 →</span><span class="tiny" id="mTac" style="color:var(--amber)"></span></div>
+      <div class="tacbar" id="mTacBar">${TACT_KEYS.map(k => `<button class="tacbtn ${(S.tactic || 'balance') === k ? 'on' : ''}" data-act="tactic" data-k="${k}"><b>${TACTS[k].ic} ${TACTS[k].name}</b><small>${TACTS[k].tag}</small></button>`).join('')}</div>
       <div class="halfbox" id="mHalfBox" style="display:none"></div>
       <div class="mbar"><i id="mBar" style="width:0%"></i></div>
       ${M.drain ? `<div class="tiny" style="text-align:center;margin-top:7px;color:var(--amber)">전력 흡수 · 내 OVR +${M.drain} / 상대 OVR −${M.drain}</div>` : ''}
@@ -1781,15 +1895,22 @@ function paintMatch(){
   const c = condOf(M.t.cond || 0);
   set('mCond', '컨디션 ' + c.n + ' ' + c.s);
   set('mTac', (M.opp && M.opp.ai && M.opp.ai.tactic && M.opp.ai.tactic !== 'probe') ? '· 상대 ' + AI_TACTICS[M.opp.ai.tactic].name : '');
+  document.querySelectorAll('#mTacBar .tacbtn').forEach(b => b.classList.toggle('on', b.dataset.k === (M.tac || S.tactic || 'balance')));
   const hb = document.getElementById('mHalfBox');
   if(hb){
     hb.style.display = M.half ? 'block' : 'none';
-    if(M.half) hb.textContent = '하프타임 · ' + M.me + ' : ' + M.op + ' · 슈팅 ' + M.shotsMe + '-' + M.shotsOp + ' · 잠시 후 후반 시작';
+    if(M.half) paintHalf();
   }
   set('sPoss', M.poss + '%'); set('sShots', M.shotsMe + ' - ' + M.shotsOp);
   const mom = M.t.att - M.opp.def > 2 ? '압도' : M.t.att - M.opp.def > -2 ? '팽팽' : '열세';
   set('sMom', mom); set('mCount', M.ev.length + '개');
   const bar = document.getElementById('mBar'); if(bar) bar.style.width = clamp(M.min / 90 * 100, 0, 100) + '%';
+}
+function paintHalf(){
+  const M = U.match; if(!M) return;
+  const hb = document.getElementById('mHalfBox'); if(!hb) return;
+  hb.innerHTML = `<div class="hbtop"><b>하프타임</b> <span class="mono">${M.me} : ${M.op}</span> <span class="tiny">슈팅 ${M.shotsMe}-${M.shotsOp}</span></div>
+    <div class="tiny" style="margin-top:5px">전술을 고르면 후반에 바로 적용됩니다 · 지금 ${esc(tacTag(M.tac || S.tactic))}</div>`;
 }
 function renderResult(){
   const M = U.match;
@@ -1813,7 +1934,13 @@ function renderResult(){
             : `<b>${M.poss}% <span style="font-size:10px;color:var(--dim)">점유</span></b>`}</div>
       </div>
       <div class="hr"></div>
-      <div class="between"><span class="eyebrow g">MATCH REPORT</span><span class="tiny">점유 ${M.poss}% · 슈팅 ${M.shotsMe}-${M.shotsOp}</span></div>
+      <div class="between"><span class="eyebrow g">득점 타임라인</span><span class="tiny">점유 ${M.poss}% · 슈팅 ${M.shotsMe}-${M.shotsOp}</span></div>
+      ${goalsCard(M)}
+      <div class="hr"></div>
+      <div class="eyebrow g" style="margin-bottom:8px">오늘의 MVP</div>
+      ${mvpCard(M)}
+      <div class="hr"></div>
+      <div class="between"><span class="eyebrow g">MATCH REPORT</span><span class="tiny">${esc(tacTag(M.tac))}</span></div>
       <div class="ticker" style="margin-top:9px">${M.ev.filter(e=>e.type==='goal').slice(0,6).map(e=>`
         <div class="tk goal"><div class="mm">${esc(e.mm)}</div><div class="tx"><b style="font-size:9px;letter-spacing:.06em;${
           e.side==='me'?'color:var(--lime)':'color:#ff9c8c'}">${e.side==='me'?'임대 XI':esc(M.opp.club)}</b> · ${esc(e.text)}</div></div>`).join('') || '<div class="tiny">득점 없이 경기가 끝났습니다.</div>'}</div>
@@ -1827,6 +1954,30 @@ function renderResult(){
     </div>
     <div class="rental" style="margin-top:10px"><span class="ic">⏳</span><span class="tx"><b>임대 계약 종료</b> · 11명을 반납했습니다. 버프 Lv ${fmt(totalBuf())}은 남아서 다음 드래프트에 바로 적용됩니다.</span></div>
     <div class="tiny" style="text-align:center;margin-top:12px">보유 코인 ${fmt(S.coins)} · 랭킹전 ${S.rank.w}승 ${S.rank.d}무 ${S.rank.l}패</div>`;
+}
+
+function goalsCard(M){
+  const g = (M.goals || []).slice().sort((a, b) => a.min - b.min);
+  if(!g.length) return '<div class="tiny" style="margin-top:8px">득점 없이 경기가 끝났습니다.</div>';
+  const line = side => g.filter(x => x.side === side).map(x =>
+    `<div class="bsrow"><span class="mm">${esc(x.mm)}</span><span class="nm">${esc(x.name)}</span></div>`).join('') || '<div class="bsrow empty"><span class="nm">득점 없음</span></div>';
+  return `<div class="boxscore">
+    <div class="bscol"><div class="bshead mine">임대 XI <b>${M.me}</b></div>${line('me')}</div>
+    <div class="bscol"><div class="bshead theirs">${esc(M.opp.club)} <b>${M.op}</b></div>${line('op')}</div>
+  </div>`;
+}
+function mvpCard(M){
+  const v = M.mvp;
+  if(!v) return '<div class="tiny">MVP 기록이 없습니다.</div>';
+  const c = condOf(v.c);
+  return `<div class="mvp">
+    <div class="mvpic">★</div>
+    <div style="min-width:0;flex:1">
+      <div class="nm">${esc(v.name)}</div>
+      <div class="tiny" style="margin-top:2px">${v.role} · OVR ${v.ovr} · 컨디션 <span style="color:${c.col}">${c.s} ${c.n}</span> · ${v.goals}골</div>
+    </div>
+    <div class="mvpr"><b>${v.rating.toFixed(1)}</b><small>RATING</small></div>
+  </div>`;
 }
 
 /* ---------- upgrade ---------- */
@@ -1952,7 +2103,10 @@ function growHTML(){
       <div class="tiny" style="width:34px;text-align:right;color:var(--dim)">+${lv*GROW_STEP + bl}</div>
     </div>`).join('');
   const res = g.last ? `<div class="gr-res ${g.last.res}">${esc(g.last.msg)}</div>` : '';
+  const bestLv = Math.max(0, Math.round(+g.best || 0));
+  const honor = bestLv >= 10 ? `<div class="honor ${bestLv >= 15 ? 'top' : ''}">${bestLv >= 15 ? '👑' : '🥇'} 최고 기록 <b>+${bestLv}강</b>${bestLv >= 15 ? ' · 명예의 전당' : ''}</div>` : '';
   return `${head}
+  ${honor}
   <div class="gr-hero" style="margin-top:11px">
     <div class="between">
       <div style="min-width:0">
@@ -2005,6 +2159,7 @@ function shareText(){
     + 'AI 랭킹전 ' + t.n + ' ' + S.rank.r + '점 (' + recordText() + ')\n'
     + '총 버프 Lv ' + fmt(totalBuf()) + ' · ' + bufLine() + '\n'
     + '최고 팀 OVR ' + tOvr + (S.bestTeam.f ? ' (' + S.bestTeam.f + ')' : '') + '\n'
+    + (S.grow && S.grow.best ? '최고 강화 +' + S.grow.best + '강' + (S.grow.best >= 10 ? ' 🥇' : '') + '\n' : '')
     + '경기 ' + S.matches + '회 · 승률 ' + wr + '%';
 }
 function rankingHTML(){
@@ -2030,7 +2185,7 @@ function rankingHTML(){
       <div class="gcard"><span>최고 팀 OVR</span><b>${S.bestTeam.ovr || tOvr || '—'}</b><small>${esc(S.bestTeam.f || '기록 없음')}</small></div>
       <div class="gcard"><span>총 버프 Lv</span><b>${fmt(totalBuf())}</b><small>${esc(bufLine())}</small></div>
       <div class="gcard"><span>전체 전적</span><b>${S.record.w}-${S.record.d}-${S.record.l}</b><small>승률 ${wr}%</small></div>
-      <div class="gcard"><span>경기 수</span><b>${fmt(S.matches || 0)}</b><small>임대 스쿼드 소진 ${fmt(S.matches || 0)}회</small></div>
+      <div class="gcard"><span>최고 강화</span><b>+${Math.round((S.grow && S.grow.best) || 0)}</b><small>${(S.grow && S.grow.best >= 10) ? '🥇 명예 배지' : '키우기 최고 기록'}</small></div>
     </div>
     <div class="sect stack">
       <div class="sect-h"><div class="eyebrow g">TIER LADDER</div><div class="tiny">AI 랭킹전 기준</div></div>
@@ -2073,6 +2228,7 @@ document.addEventListener('click', ev => {
     $('#sheetHost').classList.remove('on');
     S.squad = null; S.formation = null; S.draft = null; save(); startDraft();
   }
+  else if(act === 'tactic'){ setTactic(el.dataset.k); }
   else if(act === 'go-stadium'){ if(U.match && U.match.timer) clearInterval(U.match.timer); U.match=null; U.tab='stadium'; render(); }
   else if(act === 'go-upgrade'){ if(U.match && U.match.timer) clearInterval(U.match.timer); U.match=null; U.tab='upgrade'; render(); }
   else if(act === 'mode'){
