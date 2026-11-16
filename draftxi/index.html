@@ -3268,10 +3268,12 @@ function renderMatchScreen(){
   const M = U.match;
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
   $('#main').innerHTML = `
-    <div class="between" style="margin-bottom:9px">
-      <div class="eyebrow">${MODES[M.mode].name}${M.roundName ? ' · ' + esc(M.roundName) : ''}${M.drain ? ' · 전력 흡수' : ''}</div>
-      <div class="tiny" style="margin-top:2px">${esc(leagueText(M))} · 상대 OVR ${Math.round(M.opp.base)}</div></div>
-      <button class="chip" data-act="skip">⏩ 바로 결과</button>
+    <div class="between" style="margin-bottom:9px;gap:8px">
+      <div style="flex:1 1 auto;min-width:0">
+        <div class="eyebrow" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${MODES[M.mode].name}${M.roundName ? ' · ' + esc(M.roundName) : ''}${M.drain ? ' · 전력 흡수' : ''}</div>
+        <div class="tiny" style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(leagueText(M))} · 상대 OVR ${Math.round(M.opp.base)}</div>
+      </div>
+      <button class="chip" data-act="skip" style="flex:0 0 auto;padding:0 9px">⏩ 바로 결과</button>
     </div>
     <div class="board">
       <div class="tm">
