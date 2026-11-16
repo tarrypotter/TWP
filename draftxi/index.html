@@ -440,7 +440,7 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .tie.live{border-color:rgba(245,201,106,.6);box-shadow:0 0 0 1px rgba(245,201,106,.15) inset}
 .tie .tr{display:flex;align-items:center;gap:7px;padding:3px 3px;border-radius:6px;min-width:0}
 .tie .tr .nm{flex:1 1 auto;min-width:0;font-size:11px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--sub)}
-.tie .tr i{flex:0 0 auto;font-style:normal;font-family:var(--mono);font-size:9px;font-weight:800;color:var(--dim);opacity:.75;min-width:13px;text-align:right}
+.tie .tr i{flex:0 0 auto;font-style:normal;font-family:var(--mono);font-size:8.5px;font-weight:800;color:var(--dim);opacity:.6;min-width:12px;text-align:right}
 .tie .tr.w i{color:var(--lime);opacity:.85}
 .tie .tr b{flex:0 0 auto;min-width:11px;text-align:right;font-family:var(--mono);font-size:11.5px;font-weight:800;color:var(--dim)}
 .tie .tr.w .nm{color:var(--lime)}
@@ -1775,8 +1775,8 @@ function cupTieRow(t){
   const live = mine && c && !c.done && c.rounds[c.round] && c.rounds[c.round].ties.indexOf(t) >= 0 && !t.win;
   const A = cupById(t.a), B = cupById(t.b);
   return `<div class="tie ${mine ? 'mine' : ''} ${live ? 'live' : ''}">
-    <div class="tr ${wA ? 'w' : ''} ${t.a === c.my ? 'me' : ''}"><span class="nm">${esc(cupLabel(t.a, true))}</span><i>${A ? A.ovr : ''}</i><b>${t.sa == null ? '·' : t.sa}</b></div>
-    <div class="tr ${wB ? 'w' : ''} ${t.b === c.my ? 'me' : ''}"><span class="nm">${esc(cupLabel(t.b, true))}</span><i>${B ? B.ovr : ''}</i><b>${t.sb == null ? '·' : t.sb}</b></div>
+    <div class="tr ${wA ? 'w' : ''} ${t.a === c.my ? 'me' : ''}"><span class="nm">${esc(cupLabel(t.a, true))}</span><i>${A ? A.ovr : ''}</i><b>${t.sa == null ? '–' : t.sa}</b></div>
+    <div class="tr ${wB ? 'w' : ''} ${t.b === c.my ? 'me' : ''}"><span class="nm">${esc(cupLabel(t.b, true))}</span><i>${B ? B.ovr : ''}</i><b>${t.sb == null ? '–' : t.sb}</b></div>
     ${t.forfeit ? '<div class="tf">몰수</div>' : t.pens ? `<div class="tf">승부차기 ${esc(t.pens)}</div>` : (!t.win ? '<div class="tf wait">예정</div>' : '')}
   </div>`;
 }
