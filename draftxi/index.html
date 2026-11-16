@@ -1198,7 +1198,7 @@ function shareText(){
   const t = tierOf(S.rank.r);
   const bestName = S.best.bonusName || (S.squad ? P[S.squad.reduce((a,b)=>ovrOf(b)>ovrOf(a)?b:a).i][0] : '-');
   const tOvr = teamStats() ? teamStats().ovr : 0;
-  return `⚽ DRAFT XI 26/27\n식별코드 #${S.code}\n랭킹전 ${t.n} ${S.rank.r}점 (${recordText()})\n최고 OVR ${S.best.ovr || tOvr} · ${S.best.name || '-'}\n최고 강화 ${bestName} +${S.best.bonus || 0}\n내 팀 OVR ${tOvr}`;
+  return `⚽ DRAFT XI 26/27\n식별코드 #${S.code}\n랭킹전 ${t.n} ${S.rank.r}점 (${recordText()})\n최고 OVR ${S.best.ovr || tOvr || '-'} · ${S.best.name || '-'}\n최고 강화 ${S.best.bonus ? bestName + ' +' + S.best.bonus : '-'}\n내 팀 OVR ${tOvr || '-'}`;
 }
 function rankingHTML(){
   const t = tierOf(S.rank.r);
@@ -1221,8 +1221,8 @@ function rankingHTML(){
       <div class="tierp"><i style="width:${pct}%"></i></div>
     </div>
     <div class="grid2" style="margin-top:9px">
-      <div class="gcard"><span>최고 OVR</span><b>${S.best.ovr || tOvr}</b><small>${esc(S.best.name || '—')}</small></div>
-      <div class="gcard"><span>최고 강화</span><b>+${S.best.bonus || 0}</b><small>${esc(bestInst)}</small></div>
+      <div class="gcard"><span>최고 OVR</span><b>${S.best.ovr || tOvr || '—'}</b><small>${esc(S.best.name || '—')}</small></div>
+      <div class="gcard"><span>최고 강화</span><b>${S.best.bonus ? '+' + S.best.bonus : '—'}</b><small>${esc(bestInst)}</small></div>
       <div class="gcard"><span>전체 전적</span><b>${S.record.w}-${S.record.d}-${S.record.l}</b><small>승률 ${wr}%</small></div>
       <div class="gcard"><span>누적 강화</span><b>${fmt(S.ups)}</b><small>회</small></div>
     </div>
