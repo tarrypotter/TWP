@@ -439,7 +439,8 @@ const SURNAME_FIRST = new Set(['이강인','스즈키 자이온','가마다 다�
 const shortNm = n => {
   const s = String(n || '');
   if(s.indexOf(' ') < 0) return s;
-  return SURNAME_FIRST.has(s) ? s.split(' ')[0] : s.split(' ').slice(-1)[0];
+  if(SURNAME_FIRST.has(s) || /주니오르$/.test(s)) return s.split(' ')[0];
+  return s.split(' ').slice(-1)[0];
 };
 const eun = w => josa(w, '은', '는');
 const eul = w => josa(w, '을', '를');
