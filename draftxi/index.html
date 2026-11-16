@@ -427,6 +427,14 @@ function josa(word, a, b){
   return b;
 }
 const ga = w => josa(w, '이', '가');
+const RECENT = [];
+function pickV(arr){
+  for(let t=0;t<6;t++){
+    const v = arr[Math.floor(Math.random()*arr.length)];
+    if(RECENT.indexOf(v) < 0){ RECENT.push(v); if(RECENT.length > 8) RECENT.shift(); return v; }
+  }
+  return arr[Math.floor(Math.random()*arr.length)];
+}
 const eun = w => josa(w, '은', '는');
 const eul = w => josa(w, '을', '를');
 
@@ -708,39 +716,39 @@ function simulateMinute(M){
     const tpl = [
       p + ', 골망을 가릅니다! ' + (a ? a + '의 패스를 받아 ' : '') + '침착하게 마무리.',
       p + '의 헤더! 골키퍼 손끝을 스치고 골문 안으로 들어갑니다.',
-      '역습 한 방! ' + p + ga(p) + ' 수비수 두 명을 제치고 골망을 흔듭니다.',
-      '문전 혼전! ' + p + ga(p) + ' 끝까지 밀어 넣습니다.',
+      '역습 한 방! ' + p + ', 수비수 두 명을 제치고 골망을 흔듭니다.',
+      '문전 혼전! ' + p + ', 끝까지 밀어 넣습니다.',
       p + '의 감아차기, 반대편 구석에 정확히 꽂힙니다!'
     ];
-    pushEvent({type:'goal', side, text: pick(tpl), mm, cls:'goal', score: scoreText(M)});
+    pushEvent({type:'goal', side, text: pickV(tpl), mm, cls:'goal', score: scoreText(M)});
     if(side === 'me') M.shotsMe++; else M.shotsOp++;
     return;
   }
   const r = Math.random();
   if(r < 0.34){
     if(side === 'me') M.shotsMe++; else M.shotsOp++;
-    pushEvent({type:'shot', side, mm, text: pick([
+    pushEvent({type:'shot', side, mm, text: pickV([
       p + '의 중거리포, 골키퍼가 몸을 날려 쳐냅니다.',
       p + '의 감아차기, 골키퍼 정면으로 향합니다.',
       p + '의 슛이 수비수 발에 굴절되어 골키퍼가 잡습니다.',
-      p + ga(p) + ' 수비 뒤 공간으로 침투했지만 슈팅이 막힙니다.'
+      p + ', 수비 뒤 공간으로 침투했지만 슈팅이 막힙니다.',
     ])});
   } else if(r < 0.53){
     if(side === 'me') M.shotsMe++; else M.shotsOp++;
-    pushEvent({type:'shot', side, mm, text: pick([
+    pushEvent({type:'shot', side, mm, text: pickV([
       p + '의 슛이 골대 위로 날아갑니다.',
       p + '의 헤더, 크로스바를 살짝 넘어갑니다.',
       p + '의 왼발 슛, 옆그물을 흔듭니다.',
       p + '의 발리슛이 허공을 갈랐습니다.'
     ])});
   } else if(r < 0.7){
-    pushEvent({type:'corner', side, mm, text: pick([
+    pushEvent({type:'corner', side, mm, text: pickV([
       team + ' 코너킥. 문전으로 날카로운 공이 올라옵니다.',
       team + ' 프리킥 기회, 벽을 넘기지 못합니다.',
       '수비수 몸에 맞고 코너킥. ' + team + ga(team) + ' 압박을 이어갑니다.'
     ])});
   } else if(r < 0.84){
-    pushEvent({type:'info', side, mm, text: pick([
+    pushEvent({type:'info', side, mm, text: pickV([
       team + ga(team) + ' 후방에서 볼을 돌리며 상대를 흔듭니다.',
       '중원 싸움이 치열합니다. ' + team + ga(team) + ' 압박 강도를 높입니다.',
       team + ' 벤치가 몸을 일으킵니다. 흐름을 바꿀 교체 카드.',
@@ -748,8 +756,8 @@ function simulateMinute(M){
       team + '의 측면 돌파가 이어집니다. 크로스가 수비에 막힙니다.'
     ])});
   } else {
-    pushEvent({type:'info', side, mm, text: pick([
-      p + ga(p) + ' 드리블로 공간을 만듭니다. 수비가 따라붙습니다.',
+    pushEvent({type:'info', side, mm, text: pickV([
+      p + ', 드리블로 공간을 만듭니다. 수비가 따라붙습니다.',
       '경고 카드가 나옵니다. 거친 태클이었습니다.',
       team + '의 오프사이드. 아쉽게 무산됩니다.',
       'VAR 체크. 득점 여부를 확인하지만 그대로 진행됩니다.'
