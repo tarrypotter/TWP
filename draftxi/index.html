@@ -323,6 +323,9 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .att span{display:block;font-size:8px;color:var(--dim);font-weight:800}
 .att b{display:block;font-family:var(--mono);font-size:10.5px;margin-top:2px}
 .att div.now b{color:var(--lime)}
+.cond{font-family:var(--mono);font-size:9.5px;font-weight:900;letter-spacing:-.02em}
+.halfbox{margin-top:9px;padding:9px 11px;border-radius:10px;border:1px solid #3d6a3a;
+  background:rgba(205,249,95,.08);text-align:center;font-size:11px;font-weight:800;color:var(--lime);letter-spacing:-.01em}
 .pop{position:fixed;z-index:120;font-family:var(--mono);font-size:14px;font-weight:800;color:var(--lime);
   pointer-events:none;animation:pop .8s ease-out forwards;text-shadow:0 2px 10px rgba(0,0,0,.6)}
 @keyframes pop{0%{opacity:0;transform:translateY(4px) scale(.9)}30%{opacity:1;transform:translateY(-10px) scale(1.05)}100%{opacity:0;transform:translateY(-34px) scale(1)}}
@@ -467,6 +470,27 @@ const bufCost = L => Math.round(30 + 14 * L + 0.6 * L * L);
 function bufCostN(L, n){ let c = 0; for(let k=0;k<n;k++) c += bufCost(L + k); return c; }
 /* AI 랭킹전 1회성 전력 흡수 */
 const DRAIN_COST = 1500, DRAIN_MAX = 5, DRAIN_BOOST = 6;
+/* 컨디션 5단계 */
+const COND = [
+  {v:2, s:'↑↑', n:'최상', col:'#cdf95f'},
+  {v:1, s:'↑', n:'좋음', col:'#a9e12f'},
+  {v:0, s:'→', n:'보통', col:'#8ba399'},
+  {v:-1, s:'↓', n:'나쁨', col:'#ffb43a'},
+  {v:-2, s:'↓↓', n:'최악', col:'#ff5b45'}
+];
+const COND_W = [0.12, 0.24, 0.36, 0.18, 0.10];
+function rollCond(){
+  const r = Math.random(); let acc = 0;
+  for(let k=0;k<COND.length;k++){ acc += COND_W[k]; if(r <= acc) return COND[k].v; }
+  return 0;
+}
+const condOf = v => COND[2 - clamp(Math.round(v || 0), -2, 2)];
+const condBadge = v => { const c = condOf(v); return `<span class="cond" style="color:${c.col}">${c.s}</span>`; };
+const CARE = {
+  lift:{cost:450, name:'컨디션 회복'},
+  max:{cost:1000, name:'최상 케어'}
+};
+const TICK_MS = 380, HALF_MS = 1500;
 /* 한국시간(KST = UTC+9) 기준 기간 계산 */
 const KST_OFF = 9 * 3600 * 1000;
 function kstDate(shiftDays){ return new Date(Date.now() + KST_OFF + (shiftDays || 0) * 86400000); }
@@ -619,7 +643,7 @@ function squadEntries(){
   const f = FORMS[S.formation] || [];
   return S.squad.map((inst, idx) => {
     const slot = f[idx] || ['CM',50,50];
-    return {inst, role:slot[0], fit:fitOf(inst, slot[0]), ovr:ovrOf(inst) - (fitOf(inst, slot[0]) ? 0 : 3)};
+    return {inst, role:slot[0], fit:fitOf(inst, slot[0]), ovr:ovrOf(inst) - (fitOf(inst, slot[0]) ? 0 : 3), c:(typeof inst.c === 'number' ? inst.c : 0)};
   });
 }
 function teamStats(){
@@ -634,7 +658,8 @@ function aggregate(e){
   const fw = e.filter(x => grp(x.role) === 'FW').map(x => x.ovr);
   const avg = a => a.length ? a.reduce((s,v)=>s+v,0)/a.length : 60;
   const def = avg(df)*0.78 + (gk.length ? gk[0]*0.22 : 60*0.22);
-  return {ovr: Math.round(e.reduce((s,x)=>s+x.ovr,0)/11), att: avg(fw), mid: avg(mf), def, gk: gk[0] || 60, entries:e};
+  const cond = e.length ? e.reduce((s,x) => s + (typeof x.c === 'number' ? x.c : 0), 0) / e.length : 0;
+  return {ovr: Math.round(e.reduce((s,x)=>s+x.ovr,0)/11), att: avg(fw), mid: avg(mf), def, gk: gk[0] || 60, cond, entries:e};
 }
 function updateBest(inst){
   const o = ovrOf(inst), nm = P[inst.i][0];
@@ -672,7 +697,7 @@ function sampleOptions(f, slotIdx, taken){
   pickBiased(exact, 3 - chosen.length, chosen);
   if(chosen.length < 3) pickBiased(near, 3 - chosen.length, chosen);
   if(chosen.length < 3) pickBiased(group, 3 - chosen.length, chosen);
-  return chosen.slice(0,3).map(i => ({i, b: rollBase(i)}));
+  return chosen.slice(0,3).map(i => ({i, b: rollBase(i), c: rollCond()}));
 }
 function pickBiased(list, k, out){
   const pool = list.filter(i => !out.includes(i));
@@ -685,9 +710,9 @@ function pickBiased(list, k, out){
 }
 function choosePick(opt){
   const d = S.draft; if(!d || !opt) return;
-  d.picks.push({i:opt.i, b:opt.b});
+  d.picks.push({i:opt.i, b:opt.b, c:opt.c});
   if(d.picks.length >= 11){
-    S.squad = d.picks.map(p => ({i:p.i, b:p.b}));
+    S.squad = d.picks.map(p => ({i:p.i, b:p.b, c:p.c}));
     S.formation = d.f;
     S.draft = null;
     S.squad.forEach(updateBest);
@@ -742,7 +767,7 @@ function b64d(str){
 }
 function inviteURL(){
   if(!S.squad || !S.formation) return '';
-  const payload = {v:1, c:S.code, f:S.formation, p:S.squad.map(x => [x.i, baseOf(x)]), b:BUF_KEYS.map(k => S.buf[k] || 0)};
+  const payload = {v:1, c:S.code, f:S.formation, p:S.squad.map(x => [x.i, baseOf(x), (typeof x.c === 'number' ? x.c : 0)]), b:BUF_KEYS.map(k => S.buf[k] || 0)};
   return location.origin + location.pathname + '#vs=' + b64e(JSON.stringify(payload));
 }
 function parseInvite(hash){
@@ -752,13 +777,15 @@ function parseInvite(hash){
   try{
     const o = JSON.parse(b64d(m[1]));
     if(!o || !FORMS[o.f] || !Array.isArray(o.p) || o.p.length !== 11) return null;
-    const p = o.p.map(v => Array.isArray(v) ? [Number(v[0]), Math.round(Number(v[1]))] : [Number(v), null]);
+    const p = o.p.map(v => Array.isArray(v) ? [Number(v[0]), Math.round(Number(v[1])), Math.round(Number(v[2]))] : [Number(v), null, 0]);
     if(p.some(x => !(x[0] >= 0 && x[0] < P.length))) return null;
     if(new Set(p.map(x => x[0])).size !== 11) return null;
     const b = {};
     BUF_KEYS.forEach((k, i) => { b[k] = Math.max(0, Math.min(9999, Math.round(+((o.b || [])[i]) || 0))); });
     const c = String(o.c || '').replace(/\D/g,'').slice(0,6);
-    return {code: c || '000000', f: o.f, p: p.map(x => ({i:x[0], b: (x[1] == null || !isFinite(x[1])) ? baseOvrOf(x[0]) : Math.max(40, Math.min(140, x[1]))})), b};
+    return {code: c || '000000', f: o.f,
+      p: p.map(x => ({i:x[0], b: (x[1] == null || !isFinite(x[1])) ? baseOvrOf(x[0]) : Math.max(40, Math.min(140, x[1])),
+        c: isFinite(x[2]) ? Math.max(-2, Math.min(2, x[2])) : 0})), b};
   }catch(e){ return null; }
 }
 function copyInvite(){
@@ -773,9 +800,9 @@ function ovrWith(inst, buf){
 function opponentFromInvite(inv){
   const f = inv.f;
   const entries = inv.p.map((pi, idx) => {
-    const inst = (pi && typeof pi === 'object') ? {i:pi.i, b:pi.b} : {i:pi};
+    const inst = (pi && typeof pi === 'object') ? {i:pi.i, b:pi.b, c:pi.c} : {i:pi};
     const slot = FORMS[f][idx] || ['CM',50,50], fit = fitOf(inst, slot[0]);
-    return {inst, role:slot[0], fit, ovr: Math.round(ovrWith(inst, inv.b)) - (fit ? 0 : 3)};
+    return {inst, role:slot[0], fit, ovr: Math.round(ovrWith(inst, inv.b)) - (fit ? 0 : 3), c:(typeof inst.c === 'number' ? inst.c : 0)};
   });
   const t = aggregate(entries);
   return {club:'초대 XI #' + inv.code, league:'INVITE', base:t.ovr, att:t.att, mid:t.mid, def:t.def,
@@ -953,25 +980,45 @@ function startMatch(mode, opp, opts){
   }
   U.tab = 'stadium';
   renderMatchScreen();
-  U.match.timer = setInterval(matchTick, 520);
+  U.match.timer = setInterval(matchTick, TICK_MS);
 }
 function matchTick(){
-  const M = U.match; if(!M || M.over) return;
+  const M = U.match; if(!M || M.over || M.half) return;
   M.min += 5;
   if(M.min === 45){
-    pushEvent({type:'half', mm:"45'", text:'전반 종료. ' + scoreText(M) + '. ' + (M.me === M.op ? '균형을 이룬' : M.me > M.op ? '리드를 잡은' : '끌려가는') + ' 채 후반을 맞습니다.', cls:'half'});
-  } else if(M.min === 90){
-    finishMatch(); return;
-  } else {
-    simulateMinute(M);
+    pushEvent({type:'half', mm:"45'", text:'전반 종료. ' + scoreText(M) + '. ' + (M.me === M.op ? '균형을 이룬' : M.me > M.op ? '리드를 잡은' : '끌려가는') + ' 채 하프타임을 맞습니다.', cls:'half'});
+    startHalftime(M);
+    paintMatch();
+    return;
   }
+  if(M.min >= 90){ finishMatch(); return; }
+  simulateMinute(M);
   paintMatch();
+}
+function startHalftime(M){
+  M.half = true;
+  if(M.timer) clearInterval(M.timer);
+  M.timer = null;
+  paintMatch();
+  setTimeout(() => {
+    if(!U.match || U.match !== M || M.over) return;
+    M.half = false;
+    if(M.min < 45) M.min = 45;
+    pushEvent({type:'info', mm:"46'", text:'후반 시작. ' + scoreText(M) + '. ' + (M.me > M.op ? '한 골 더 달아나는 쪽이 유리합니다.' : M.me === M.op ? '한 골이 승부를 가를 수 있습니다.' : '뒤집을 시간은 아직 남아 있습니다.'), cls:'big'});
+    M.timer = setInterval(matchTick, TICK_MS);
+    paintMatch();
+  }, HALF_MS);
 }
 function scoreText(M){ return '임대 XI ' + M.me + ' - ' + M.op + ' ' + M.opp.club; }
 function attackerName(M, side){
   if(side === 'me'){
     const e = squadEntries();
-    const pool = e.flatMap(x => x.role==='FW'?[x,x,x,x,x]:grp(x.role)==='MF'?[x,x,x]:grp(x.role)==='DF'?[x]:[]);
+    const pool = [];
+    e.forEach(x => {
+      const base = x.role === 'FW' ? 5 : grp(x.role) === 'MF' ? 3 : grp(x.role) === 'DF' ? 1 : 0;
+      const n = Math.max(0, base + (x.c || 0));
+      for(let k=0;k<n;k++) pool.push(x);
+    });
     const c = pool.length ? pick(pool) : e[0];
     return P[c.inst.i][0];
   }
@@ -987,11 +1034,12 @@ function mateName(M, side, scorer){
   return xi.length ? pick(xi)[0] : '';
 }
 function simulateMinute(M){
-  const pMe = clamp(0.5 + (M.t.mid - M.opp.mid) * 0.016, 0.26, 0.74);
+  const myC = (M.t.cond || 0) * 2.2, oppC = (M.opp.cond || 0) * 2.2;
+  const pMe = clamp(0.5 + ((M.t.mid + myC) - (M.opp.mid + oppC)) * 0.016, 0.26, 0.74);
   M.poss = Math.round(M.poss * 0.82 + pMe * 100 * 0.18);
   const side = Math.random() < pMe ? 'me' : 'op';
-  const atk = side === 'me' ? M.t.att : M.opp.att;
-  const dfn = side === 'me' ? M.opp.def : M.t.def;
+  const atk = side === 'me' ? M.t.att + myC : M.opp.att + oppC;
+  const dfn = side === 'me' ? M.opp.def + oppC : M.t.def + myC;
   const diff = clamp(atk - dfn, -14, 14);
   const gp = clamp(0.185 + diff * 0.011, 0.06, 0.38);
   const team = side === 'me' ? '임대 XI' : M.opp.club;
@@ -1224,6 +1272,7 @@ function optionHTML(opt, role, k){
       <div class="bars">${bars}</div>
     </div>
     <div class="rt">
+      <span class="cond" style="color:${condOf(opt.c).col};font-size:11.5px">${condOf(opt.c).s}</span>
       <span class="tag ${off?'amber':''}" style="height:17px;font-size:8.5px">${off?'임시 ':''}${sp}</span>
       <span class="go">→</span>
     </div>
@@ -1236,9 +1285,9 @@ function squadHTML(){
   const f = S.formation;
   const dots = FORMS[f].map((s,k)=>{
     const inst = S.squad[k]; if(!inst) return '';
-    const nm = P[inst.i][0], o = t.entries[k].ovr, fit = t.entries[k].fit;
+    const nm = P[inst.i][0], o = t.entries[k].ovr, fit = t.entries[k].fit, cd = condOf(t.entries[k].c);
     return `<div class="pdot ${fit?'':'off'}" style="left:${s[1]}%;top:${s[2]}%" data-act="player" data-k="${k}">
-      <div class="bead">${o}</div><div class="pn">${esc(shortNm(nm))}</div><div class="pp">${s[0]}</div></div>`;
+      <div class="bead">${o}</div><div class="pn">${esc(shortNm(nm))}</div><div class="pp">${s[0]} <b style="color:${cd.col}">${cd.s}</b></div></div>`;
   }).join('');
   const rec = S.record;
   return `
@@ -1246,7 +1295,7 @@ function squadHTML(){
     <div>
       <div class="eyebrow">RENTAL XI · ${f}</div>
       <div class="nm" style="margin-top:3px">임대 스쿼드 <span class="tag lime" style="margin-left:4px">${S.squad.length}명</span></div>
-      <div class="tiny" style="margin-top:3px">전적 <b style="color:var(--ink)">${rec.w}승 ${rec.d}무 ${rec.l}패</b> · 총 버프 Lv ${fmt(totalBuf())}</div>
+      <div class="tiny" style="margin-top:3px">전적 <b style="color:var(--ink)">${rec.w}승 ${rec.d}무 ${rec.l}패</b> · 총 버프 Lv ${fmt(totalBuf())} · 컨디션 ${condSummary(t.entries)}</div>
     </div>
     <div class="ovr"><b>${t.ovr}</b><small>TEAM OVR</small></div>
   </div>
@@ -1275,7 +1324,7 @@ function squadHTML(){
 function openPlayer(k){
   const inst = S.squad[k], e = squadEntries()[k];
   const nm = P[inst.i][0], club = P[inst.i][1], lg = P[inst.i][2], sp = posOf(inst.i);
-  const st = statsOf(inst), o = ovrOf(inst), bl = bufLvOf(inst), g = grp(sp);
+  const st = statsOf(inst), o = ovrOf(inst), bl = bufLvOf(inst), g = grp(sp), cd = condOf(inst.c);
   const labels = labelsOf(sp);
   const rows = labels.map((a,i)=>`<div class="row" style="justify-content:space-between;padding:5px 0">
     <span class="tiny" style="width:44px">${a}</span>
@@ -1293,6 +1342,7 @@ function openPlayer(k){
       <div class="tiny">기본 ${baseOf(inst)}${bl>0?` <b style="color:var(--lime)">+${bl}</b>`:''}</div></div>
     </div>
     <div style="margin-top:12px">${rows}</div>
+    <div class="card" style="padding:9px 11px;margin-top:10px;display:flex;justify-content:space-between;align-items:center"><span class="tiny">컨디션</span><span style="font-size:12px;font-weight:900;color:${cd.col}">${cd.s} ${cd.n}</span></div>
     ${e && !e.fit ? `<div class="tag amber" style="margin-top:9px">임시 배치 · 팀 전력 −3</div>`:''}
     <div class="rental" style="margin-top:10px"><span class="ic">⚡</span><span class="tx"><b>${g} 버프 Lv.${bl}</b>이 전 스탯에 더해진 값입니다. 버프는 선수 개인이 아니라 이번 드래프트의 ${g} 전원에게 적용됩니다.</span></div>
     <div class="stack" style="margin-top:12px">
@@ -1300,6 +1350,42 @@ function openPlayer(k){
       <button class="btn dark wide" data-act="close-sheet">닫기</button>
     </div>`;
   $('#sheetHost').classList.add('on');
+}
+function condSummary(entries){
+  const cnt = {"2":0,"1":0,"0":0,"-1":0,"-2":0};
+  entries.forEach(x => { const v = String(typeof x.c === 'number' ? x.c : 0); cnt[v] = (cnt[v] || 0) + 1; });
+  return COND.map(c => `<b style="color:${c.col};font-family:var(--mono)">${c.s}${cnt[String(c.v)] || 0}</b>`).join(' ');
+}
+function openCareSheet(){
+  if(!S.squad){ toast('임대 스쿼드가 없습니다'); return; }
+  const e = squadEntries();
+  const bad = e.filter(x => (x.c || 0) <= -1).length;
+  const rows = [['lift','컨디션 회복','11명 컨디션을 한 단계씩 끌어올립니다'],['max','최상 케어','11명 전원을 최상(↑↑)으로 만듭니다']];
+  $('#sheet').innerHTML = `<div class="grab"></div>
+    <div class="between"><div><div class="eyebrow">CONDITION CARE</div>
+      <div style="font-size:16px;font-weight:900;letter-spacing:-.03em;margin-top:3px">컨디션 케어</div></div>
+      <span class="tag ${bad ? 'amber' : 'lime'}">↓ 이하 ${bad}명</span></div>
+    <div class="muted" style="margin-top:7px">이번 한 경기에만 적용됩니다. 컨디션이 좋으면 득점·패스·수비·선방 확률이 올라가고, 나쁘면 내려갑니다.</div>
+    <div class="card" style="padding:9px 11px;margin-top:10px;display:flex;justify-content:space-between"><span class="tiny">팀 컨디션</span><span>${condSummary(e)}</span></div>
+    <div class="stack" style="margin-top:12px">
+      ${rows.map(([k,n,d]) => {
+        const c = CARE[k];
+        return `<button class="btn ${S.coins >= c.cost ? 'primary' : 'dark'} wide" data-act="care-do" data-k="${k}" ${S.coins >= c.cost ? '' : 'disabled'}>${n} · ${fmt(c.cost)}코인<br><span style="font-size:10px;font-weight:800;opacity:.75">${d}</span></button>`;
+      }).join('')}
+      <button class="btn dark wide" data-act="close-sheet">취소</button>
+    </div>`;
+  $('#sheetHost').classList.add('on');
+}
+function applyCare(kind){
+  if(!S.squad) return;
+  const c = CARE[kind]; if(!c) return;
+  if(S.coins < c.cost){ toast('코인이 부족합니다'); return; }
+  S.coins -= c.cost;
+  S.squad.forEach(x => { x.c = kind === 'max' ? 2 : clamp((typeof x.c === 'number' ? x.c : 0) + 1, -2, 2); });
+  save(); paintHud();
+  $('#sheetHost').classList.remove('on');
+  toast(c.name + ' 적용 · 이번 경기 컨디션 상승');
+  render();
 }
 function openConfirm(title, desc, okLabel, act){
   $('#sheet').innerHTML = `<div class="grab"></div>
@@ -1367,6 +1453,11 @@ function stadiumHTML(){
       <button class="chip" data-act="go-squad">스쿼드 보기</button>
     </div>
     <div class="rental" style="margin-top:8px"><span class="ic">⏳</span><span class="tx">모드를 골라 <b>1경기</b>를 뛰면 이 11명은 반납됩니다. 결과 화면에서 바로 새 드래프트로 이어집니다.</span></div>
+    <div class="card" style="padding:10px 12px;margin-top:8px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1 1 auto;min-width:0"><div style="font-size:11.5px;font-weight:900;letter-spacing:-.02em">팀 컨디션</div>
+      <div class="tiny" style="margin-top:3px">${condSummary(t.entries)}</div></div>
+      <button class="chip" data-act="care">⚡ 케어</button>
+    </div>
     ${U.invite ? `<div class="inv" style="margin-top:8px">
       <div class="ic">⚔️</div>
       <div class="tx"><b>초대 대결 도착 · #${esc(U.invite.code)}</b><span>${U.invite.f} · 상대 팀 OVR ${opponentFromInvite(U.invite).base}</span></div>
@@ -1406,7 +1497,8 @@ function renderMatchScreen(){
         <div class="sc"><b id="mMe">0</b><i>:</i><b id="mOp">0</b></div>
         <div class="side r"><div class="n">${esc(M.opp.club)}</div><div class="o">OVR ${Math.round(M.opp.base)}</div></div>
       </div>
-      <div class="clock"><span class="live">LIVE</span><span class="m" id="mMin">0'</span><span class="tiny" id="mHalf">전반</span></div>
+      <div class="clock"><span class="live">LIVE</span><span class="m" id="mMin">0'</span><span class="tiny" id="mHalf">전반</span><span class="tiny" id="mCond">컨디션 →</span></div>
+      <div class="halfbox" id="mHalfBox" style="display:none"></div>
       <div class="mbar"><i id="mBar" style="width:0%"></i></div>
       ${M.drain ? `<div class="tiny" style="text-align:center;margin-top:7px;color:var(--amber)">전력 흡수 · 내 OVR +${M.drain} / 상대 OVR −${M.drain}</div>` : ''}
       <div class="stats3">
@@ -1433,8 +1525,16 @@ function addTick(ev, silent){
 function paintMatch(){
   const M = U.match; if(!M) return;
   const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
-  set('mMe', M.me); set('mOp', M.op); set('mMin', M.min + "'");
-  set('mHalf', M.min <= 45 ? '전반' : '후반');
+  set('mMe', M.me); set('mOp', M.op);
+  if(M.half){ set('mMin', 'HT'); set('mHalf', '하프타임'); }
+  else { set('mMin', M.min + "'"); set('mHalf', M.min <= 45 ? '전반' : '후반'); }
+  const c = condOf(M.t.cond || 0);
+  set('mCond', '컨디션 ' + c.n + ' ' + c.s);
+  const hb = document.getElementById('mHalfBox');
+  if(hb){
+    hb.style.display = M.half ? 'block' : 'none';
+    if(M.half) hb.textContent = '하프타임 · ' + M.me + ' : ' + M.op + ' · 슈팅 ' + M.shotsMe + '-' + M.shotsOp + ' · 잠시 후 후반 시작';
+  }
   set('sPoss', M.poss + '%'); set('sShots', M.shotsMe + ' - ' + M.shotsOp);
   const mom = M.t.att - M.opp.def > 2 ? '압도' : M.t.att - M.opp.def > -2 ? '팽팽' : '열세';
   set('sMom', mom); set('mCount', M.ev.length + '개');
@@ -1674,6 +1774,8 @@ document.addEventListener('click', ev => {
   else if(act === 'cancel-invite'){ U.invite = null; try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){} render(); }
   else if(act === 'qclaim'){ claimQuest(el.dataset.sc, el.dataset.id); }
   else if(act === 'qatt'){ claimAtt(); }
+  else if(act === 'care'){ openCareSheet(); }
+  else if(act === 'care-do'){ applyCare(el.dataset.k); }
   else if(act === 'fleague'){ U.friendly.league = el.dataset.l; render(); }
   else if(act === 'fdiff'){ U.friendly.diff = +el.dataset.v; render(); }
   else if(act === 'close-friendly'){ U.friendly.open = false; render(); }
@@ -1683,13 +1785,14 @@ document.addEventListener('click', ev => {
     startMatch('friendly', o);
   }
   else if(act === 'skip'){
-    const M = U.match; if(!M || M.over) return;
-    clearInterval(M.timer); M.timer = null;
-    while(M.min < 90 && !M.over){
-      M.min += 5;
-      if(M.min === 90){ finishMatch(); break; }
-      if(M.min === 45){ pushEvent({type:'half', mm:"45'", text:'전반 종료. ' + scoreText(M) + '.', cls:'half'}); continue; }
-      simulateMinute(M);
+    const m = U.match; if(!m || m.over) return;
+    clearInterval(m.timer); m.timer = null;
+    m.half = false;
+    while(m.min < 90 && !m.over){
+      m.min += 5;
+      if(m.min >= 90){ finishMatch(); break; }
+      if(m.min === 45){ pushEvent({type:'half', mm:"45'", text:'전반 종료. ' + scoreText(m) + '.', cls:'half'}); continue; }
+      simulateMinute(m);
     }
     paintMatch();
   }
