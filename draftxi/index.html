@@ -319,7 +319,7 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .prog i.on{background:var(--lime)}
 .prog i.now{background:var(--amber)}
 
-.mini{position:relative;border-radius:14px;overflow:hidden;border:1px solid #1b4531;height:142px;
+.mini{position:relative;border-radius:14px;overflow:hidden;border:1px solid #1b4531;height:136px;
   background:repeating-linear-gradient(0deg,#113326 0 19px,#0e2c21 19px 38px)}
 .mini .line{position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,255,255,.13)}
 .mini .circ{position:absolute;left:50%;top:50%;width:54px;height:54px;border:1px solid rgba(255,255,255,.13);border-radius:50%;transform:translate(-50%,-50%)}
@@ -331,7 +331,7 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .mini .mdot.n{border-color:var(--amber);color:var(--amber);box-shadow:0 0 0 3px rgba(255,180,58,.16);animation:pulse 1.4s infinite}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 2px rgba(255,180,58,.18)}50%{box-shadow:0 0 0 6px rgba(255,180,58,.05)}}
 
-.picks{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.picks{display:flex;flex-direction:column;gap:6px;margin-top:9px}
 .pick{position:relative;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 11px;border-radius:13px;text-align:left;
   border:1px solid var(--line);background:linear-gradient(100deg,#12201a,#0d1814);transition:transform .09s,border-color .15s}
 .pick:active{transform:scale(.985);border-color:var(--lime)}
@@ -642,6 +642,52 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 }
 @media (max-width:360px){.hero h2{font-size:22px}.pick .ovr b{font-size:22px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- 버프 서브탭 · 팀컬러 · 선수별 · 팀 케미 ---------- */
+.segwrap{position:sticky;top:-12px;z-index:7;margin:-2px -12px 11px;padding:10px 12px 9px;
+  background:linear-gradient(180deg,var(--bg) 76%,rgba(7,13,11,.9))}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:12px;background:#0b1512;border:1px solid var(--line)}
+.seg button{height:33px;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--sub);
+  font-size:11.5px;font-weight:900;letter-spacing:-.02em;display:flex;align-items:center;justify-content:center;gap:4px}
+.seg button small{font-family:var(--mono);font-size:9.5px;font-weight:800;color:var(--dim)}
+.seg button.on{background:rgba(205,249,95,.14);border-color:rgba(205,249,95,.45);color:var(--lime)}
+.seg button.on small{color:var(--lime)}
+.srch{width:100%;height:39px;padding:0 12px;border-radius:11px;border:1px solid var(--line2);background:#0b1512;
+  color:var(--ink);font-family:var(--sans);font-size:16px;font-weight:700;letter-spacing:-.02em}
+.srch::placeholder{color:var(--dim);font-weight:700;font-size:12px}
+.slist{display:flex;flex-direction:column;gap:6px}
+.srow{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);
+  background:linear-gradient(110deg,#12201a,#0c1613)}
+.srow.on{border-color:#3d6a3a}
+.srow .nm{flex:1 1 auto;min-width:0}
+.srow .nm > b{display:block;font-size:12px;font-weight:900;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .nm span{display:block;font-size:9.5px;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .tr{height:3px;border-radius:2px;background:#1b2f24;overflow:hidden}
+.srow .tr s{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#7bbf35,var(--lime));text-decoration:none}
+.srow .lv{flex:0 0 auto;font-family:var(--mono);font-size:15px;font-weight:800;letter-spacing:-.05em;color:var(--lime)}
+.srow .lv.off{color:var(--dim)}
+.srow .lv small{font-size:8.5px;font-weight:800;color:var(--dim);letter-spacing:.04em;margin-left:1px}
+.srow .btns{flex:0 0 auto;display:flex;gap:4px}
+.srow .up{height:32px;width:54px;padding:0 4px;display:flex;flex-direction:column;gap:1px;line-height:1.05;font-size:10.5px}
+.srow .up small{font-size:8px;font-weight:800;color:var(--dim)}
+.srow .up:active{background:var(--lime);color:#0a120c}
+.chemi{display:flex;align-items:flex-start;gap:7px;padding:7px 10px;border-radius:11px;border:1px solid var(--line);
+  background:var(--card);margin-top:8px}
+.chemi.on{border-color:#3d6a3a;background:linear-gradient(110deg,rgba(205,249,95,.13),rgba(12,22,19,.92))}
+.chemi .ic{flex:0 0 auto;font-size:13.5px;line-height:1.35}
+.chemi .tx{flex:1 1 auto;min-width:0}
+.chemi .tx b{display:block;font-size:11px;font-weight:900;letter-spacing:-.02em}
+.chemi .tx span{display:block;font-size:9px;color:var(--sub);margin-top:1px;line-height:1.38}
+.pick .bf{display:flex;align-items:center;gap:5px;height:8px;margin-top:5px;font-size:9px;font-weight:900;letter-spacing:-.02em;white-space:nowrap;overflow:hidden}
+.pick .bf i{font-style:normal}
+.pick .bf .p{color:var(--lime)}
+.pick .bf .t{color:var(--sky)}
+.pick .bf .s{color:var(--gold)}
+.bfrow{display:flex;gap:6px;margin-top:9px}
+.bfrow span{flex:1 1 0;min-width:0;padding:6px 7px;border-radius:9px;background:var(--card3);border:1px solid var(--line);
+  font-size:9.5px;font-weight:800;color:var(--sub);text-align:center;white-space:nowrap;overflow:hidden}
+.rchem{display:inline-flex;align-items:center;gap:5px;margin-top:7px;padding:4px 8px;border-radius:8px;
+  background:rgba(205,249,95,.13);color:var(--lime);font-size:9.5px;font-weight:900;letter-spacing:-.01em}
 </style>
 </head>
 <body>
@@ -768,6 +814,19 @@ const BUF = [
 const BUF_KEYS = BUF.map(b => b.k);
 const bufCost = L => Math.round(30 + 14 * L + 0.6 * L * L);
 function bufCostN(L, n){ let c = 0; for(let k=0;k<n;k++) c += bufCost(L + k); return c; }
+/* 팀컬러 버프 — 클럽별 최대 +15 */
+const TBUF_MAX = 15;
+const tbufCost = L => Math.round(50 + 18 * L + 1.0 * L * L);
+function tbufCostN(L, n){
+  let c = 0; const lim = Math.min(n, TBUF_MAX - L);
+  for(let k=0;k<lim;k++) c += tbufCost(L + k);
+  return c;
+}
+/* 특정 선수 버프 — Lv 상한 없음 */
+const pbufCost = L => Math.round(90 + 24 * L + 0.9 * L * L);
+function pbufCostN(L, n){ let c = 0; for(let k=0;k<n;k++) c += pbufCost(L + k); return c; }
+/* 같은 클럽 경기 시너지 — 5명 +5 · 11명 +15 (그 경기 한정) */
+const SYNERGY_N = 5, SYNERGY_ADD = 5, ALLSTAR_ADD = 15;
 /* AI 랭킹전 1회성 전력 흡수 */
 const DRAIN_COST = 1500, DRAIN_MAX = 5, DRAIN_BOOST = 6;
 /* 컨디션 5단계 */
@@ -890,11 +949,12 @@ const eun = w => josa(w, '은', '는');
 const eul = w => josa(w, '을', '를');
 
 /* ---------- state ---------- */
-let U = {tab:'squad', sel:-1, match:null, friendly:{open:false, league:'EPL', diff:0}, busy:false};
+let U = {tab:'squad', sel:-1, match:null, friendly:{open:false, league:'EPL', diff:0}, busy:false,
+  bufSeg:'pos', bufQ:'', pbufQ:''};
 let S = load();
 
 function freshState(){
-  return {v:3, code:makeCode(), coins:STARTER_COINS, buf:{GK:0,DF:0,MF:0,FW:0},
+  return {v:3, code:makeCode(), coins:STARTER_COINS, buf:{GK:0,DF:0,MF:0,FW:0}, pbuf:{}, tbuf:{},
     squad:null, formation:null, draft:null, matches:0,
     record:{w:0,d:0,l:0}, rank:{r:1000,w:0,d:0,l:0},
     best:{ovr:0,name:''}, bestTeam:{ovr:0,f:''}, recent:[],
@@ -909,6 +969,24 @@ function sanitize(s){
   if(typeof s.matches !== 'number') s.matches = 0;
   s.buf = (s.buf && typeof s.buf === 'object') ? s.buf : {};
   BUF.forEach(b => { s.buf[b.k] = Math.max(0, Math.round(+s.buf[b.k] || 0)); });
+  /* 특정 선수 버프 — 선수 인덱스 키, Lv 상한 없음 */
+  const pb = {};
+  if(s.pbuf && typeof s.pbuf === 'object' && !Array.isArray(s.pbuf)){
+    Object.keys(s.pbuf).forEach(k => {
+      const i = Math.round(+k), v = Math.round(+s.pbuf[k] || 0);
+      if(i >= 0 && i < P.length && v > 0) pb[String(i)] = Math.min(999, v);
+    });
+  }
+  s.pbuf = pb;
+  /* 팀컬러 버프 — 클럽 이름 키, 최대 +15 */
+  const tb = {};
+  if(s.tbuf && typeof s.tbuf === 'object' && !Array.isArray(s.tbuf)){
+    Object.keys(s.tbuf).forEach(k => {
+      const v = Math.round(+s.tbuf[k] || 0);
+      if(v > 0 && String(k).length && String(k).length < 40) tb[String(k)] = Math.min(TBUF_MAX, v);
+    });
+  }
+  s.tbuf = tb;
   if(s.v !== 3){
     if(s.v !== 2){ s.squad = null; s.formation = null; s.draft = null; s.bestTeam = {ovr:0,f:''}; }
     s.v = 3;
@@ -964,15 +1042,34 @@ function baseStats(inst){
   return raw.map(v => Math.max(25, Math.round(v - delta)));
 }
 function bufLvOf(inst){ return (S.buf && S.buf[grp(posOf(inst.i))]) || 0; }
+function pbufOf(inst){ return Math.max(0, Math.round(+(((S.pbuf || {})[String(inst.i)])) || 0)); }
+function tbufOf(inst){
+  const c = P[inst.i] ? P[inst.i][1] : '';
+  const v = (c && S.tbuf) ? S.tbuf[c] : 0;
+  return Math.min(TBUF_MAX, Math.max(0, Math.round(+v || 0)));
+}
+function buffParts(inst){
+  return {pos:bufLvOf(inst), team:tbufOf(inst), player:pbufOf(inst), grow:(inst.lv || 0) * GROW_STEP};
+}
 function statsOf(inst){
-  const b = baseStats(inst), add = bufLvOf(inst) + (inst.lv || 0) * GROW_STEP;
+  const b = baseStats(inst), p = buffParts(inst);
+  const add = p.pos + p.grow + p.player + p.team;
   return b.map(v => v + add);
+}
+/* 1대1 키우기는 포지션 버프·강화만 — 팀컬러·선수 버프는 11대11 전용 */
+function statsGrow(inst){
+  const b = baseStats(inst), p = buffParts(inst);
+  return b.map(v => v + p.pos + p.grow);
 }
 function ovrExact(inst){
   const a = statsOf(inst), w = WEIGHTS[grp(posOf(inst.i))];
   return a.reduce((s,v,k) => s + v*w[k], 0);
 }
 function ovrOf(inst){ return Math.round(ovrExact(inst)); }
+function ovrGrow(inst){
+  const a = statsGrow(inst), w = WEIGHTS[grp(posOf(inst.i))];
+  return Math.round(a.reduce((s,v,k) => s + v*w[k], 0));
+}
 function bonusOf(inst){ return ovrOf(inst) - baseOf(inst); }
 function fitOf(inst, role){
   const sp = posOf(inst.i);
@@ -991,9 +1088,40 @@ function squadEntries(){
 function teamStats(){
   const e = squadEntries();
   if(e.length < 11) return null;
-  return aggregate(e);
+  const sy = synergyOf(S.squad);
+  return {...aggregate(e, sy.add), chemi:sy};
 }
-function aggregate(e){
+/* 같은 26/27 클럽 5명 → 팀 케미 +5, 11명 → 올스타 +15 (그 경기 한정) */
+function clubTally(sq){
+  const m = {};
+  (sq || []).forEach(x => { const c = (x && P[x.i]) ? P[x.i][1] : ''; if(c) m[c] = (m[c] || 0) + 1; });
+  return m;
+}
+function synergyOf(sq){
+  const m = clubTally(sq), total = (sq || []).length;
+  let club = '', n = 0;
+  Object.keys(m).forEach(c => { if(m[c] > n){ club = c; n = m[c]; } });
+  const add = n >= 11 ? ALLSTAR_ADD : n >= SYNERGY_N ? SYNERGY_ADD : 0;
+  return {club, n, total, add,
+    label: add >= ALLSTAR_ADD ? '올스타' : add ? '팀 케미' : '',
+    need: add ? 0 : Math.max(0, SYNERGY_N - n)};
+}
+function chemiChip(sy){
+  if(!sy || !sy.add) return '';
+  return '<span class="tag ' + (sy.add >= ALLSTAR_ADD ? 'amber' : 'lime') + '">' + sy.label + ' +' + sy.add + '</span>';
+}
+function chemiBox(sy, id){
+  if(!sy) return '';
+  if(!sy.add){
+    if(!sy.n) return '';
+    return `<div class="chemi"${id ? ' id="' + id + '"' : ''}><div class="ic">👥</div><div class="tx">
+      <b>${esc(sy.club)} ${sy.n}/${SYNERGY_N}명</b><span>같은 클럽 ${sy.need}명 더 모으면 이번 경기 전체 +${SYNERGY_ADD}</span></div></div>`;
+  }
+  return `<div class="chemi on"${id ? ' id="' + id + '"' : ''}><div class="ic">${sy.add >= ALLSTAR_ADD ? '👑' : '🔥'}</div><div class="tx">
+    <b>${esc(sy.club)} ${sy.n}명 · ${sy.label} +${sy.add}</b><span>이번 경기 임대 XI 전체 +${sy.add} · 경기가 끝나면 사라집니다</span></div></div>`;
+}
+function aggregate(e, syn){
+  const add = Math.max(0, Math.round(+syn || 0));
   const gk = e.filter(x => x.role === 'GK').map(x => x.ovr);
   const df = e.filter(x => grp(x.role) === 'DF').map(x => x.ovr);
   const mf = e.filter(x => grp(x.role) === 'MF').map(x => x.ovr);
@@ -1001,7 +1129,8 @@ function aggregate(e){
   const avg = a => a.length ? a.reduce((s,v)=>s+v,0)/a.length : 60;
   const def = avg(df)*0.78 + (gk.length ? gk[0]*0.22 : 60*0.22);
   const cond = e.length ? e.reduce((s,x) => s + (typeof x.c === 'number' ? x.c : 0), 0) / e.length : 0;
-  return {ovr: Math.round(e.reduce((s,x)=>s+x.ovr,0)/11), att: avg(fw), mid: avg(mf), def, gk: gk[0] || 60, cond, entries:e};
+  return {ovr: Math.round(e.reduce((s,x)=>s+x.ovr,0)/11) + add, att: avg(fw) + add, mid: avg(mf) + add,
+    def: def + add, gk: gk[0] || 60, cond, entries:e, syn: add};
 }
 function updateBest(inst){
   const o = ovrOf(inst), nm = P[inst.i][0];
@@ -1039,7 +1168,9 @@ function sampleOptions(f, slotIdx, taken){
   pickBiased(exact, DRAFT_OPTS - chosen.length, chosen);
   if(chosen.length < DRAFT_OPTS) pickBiased(near, DRAFT_OPTS - chosen.length, chosen);
   if(chosen.length < DRAFT_OPTS) pickBiased(group, DRAFT_OPTS - chosen.length, chosen);
-  return chosen.slice(0, DRAFT_OPTS).map(i => ({i, b: rollBase(i), c: rollCond()}));
+  /* 최종 적용 OVR(기본+포지션+팀컬러+선수 버프) 높은 순으로 정렬 */
+  return chosen.slice(0, DRAFT_OPTS).map(i => ({i, b: rollBase(i), c: rollCond()}))
+    .sort((a, b) => ovrOf(b) - ovrOf(a) || b.b - a.b);
 }
 function pickBiased(list, k, out){
   const pool = list.filter(i => !out.includes(i));
@@ -1147,7 +1278,7 @@ function aceInviteURL(){
   const cur = growCur();
   if(!cur) return '';
   const inst = {i:cur.i, b:baseOvrOf(cur.i), lv:growLv(), c:0};
-  const payload = {v:1, k:'grow1v1', c:S.code, i:cur.i, lv:growLv(), o:Math.round(ovrOf(inst))};
+  const payload = {v:1, k:'grow1v1', c:S.code, i:cur.i, lv:growLv(), o:Math.round(ovrGrow(inst))};
   return location.origin + location.pathname + '#ace=' + b64e(JSON.stringify(payload));
 }
 function parseAceInvite(hash){
@@ -1356,6 +1487,11 @@ function startMatch(mode, opp, opts){
   if(mode === 'friendly'){
     const d = U.friendly.diff;
     U.match.opp.att += d; U.match.opp.mid += d; U.match.opp.def += d;
+  }
+  U.match.chemi = synergyOf(S.squad);
+  if(U.match.chemi.add){
+    pushEvent({type:'chemi', mm:"0'", cls:'big',
+      text:'같은 클럽 ' + U.match.chemi.n + '명 · ' + U.match.chemi.label + ' 발동! 이번 경기 임대 XI 전체 OVR +' + U.match.chemi.add});
   }
   U.tab = 'stadium';
   renderMatchScreen();
@@ -1652,7 +1788,7 @@ function startDuel(kind){
   const cur = growCur();
   if(!cur){ toast('먼저 키울 선수를 뽑으세요'); return; }
   if(kind === 'invite' && !U.ace){ toast('받은 1대1 초대가 없습니다'); return; }
-  const a = {i:cur.i, name:P[cur.i][0], role:posOf(cur.i), lv:growLv(), ovr:Math.round(ovrOf(aceInst())), cond:0};
+  const a = {i:cur.i, name:P[cur.i][0], role:posOf(cur.i), lv:growLv(), ovr:Math.round(ovrGrow(aceInst())), cond:0};
   let b;
   if(kind === 'invite') b = {...U.ace};
   else {
@@ -2096,7 +2232,9 @@ function introHTML(){
   const cards = [
     ['🎲','매 경기 새 임대 스쿼드','포메이션은 무작위. 11개 슬롯마다 26/27 유럽 5대 리그 현역 5명 중 한 명을 고릅니다.'],
     ['⏳','1경기만 뛴다','임대 계약은 한 경기. 경기가 끝나면 11명은 반납되고, 다음 경기는 새 드래프트로 시작합니다.'],
-    ['⚡','포지션별 무제한 버프','GK·DF·MF·FW 버프 Lv를 코인으로 계속 올립니다. 상한이 없어서 다음 드래프트부터 그 포지션 전원이 강해집니다.']
+    ['⚡','포지션별 무제한 버프','GK·DF·MF·FW 버프 Lv를 코인으로 계속 올립니다. 상한이 없어서 다음 드래프트부터 그 포지션 전원이 강해집니다.'],
+    ['🎽','팀컬러 · 선수별 버프','클럽 팀컬러는 최대 +15, 특정 선수는 상한 없이. 드래프트에 그 클럽·그 선수가 나오면 OVR이 더해집니다.'],
+    ['👥','같은 클럽 5명이면 팀 케미','버프와 별개로 자동 발동. 5명이면 그 경기 전원 +5, 11명을 한 클럽으로 채우면 올스타 +15.']
   ];
   return `
   ${U.invite ? `<div class="inv" style="margin-bottom:11px">
@@ -2107,12 +2245,12 @@ function introHTML(){
   <section class="hero">
     <div class="eyebrow">EUROPE TOP 5 · 2026/27</div>
     <h2>매 경기 새로 뽑는<br><em>임대 11명</em></h2>
-    <p>선수 구매 없음. 이적시장 없음. 한 경기씩 임대해 쓰고, 코인은 포지션 버프에 쌓습니다.</p>
+    <p>선수 구매 없음. 이적시장 없음. 한 경기씩 임대해 쓰고, 코인은 포지션·팀컬러·선수 버프에 쌓습니다.</p>
     <div class="facts"><span class="fact">선수 <b>${P.length}명</b></span><span class="fact">클럽 <b>${Object.keys(OPP).length}팀</b></span><span class="fact">포메이션 <b>${FORM_KEYS.length}종</b></span></div>
   </section>
   <div class="sect stack">
     <button class="btn primary wide" data-act="start-draft">새 임대 드래프트 시작 <span style="font-size:16px">→</span></button>
-    <div class="tiny" style="text-align:center">드래프트 무료 · 코인은 포지션 버프에만 씁니다</div>
+    <div class="tiny" style="text-align:center">드래프트 무료 · 코인은 버프에만 씁니다</div>
   </div>
   <div class="sect">
     <div class="grid2">
@@ -2131,7 +2269,7 @@ function introHTML(){
   <div class="sect">
     <div class="sect-h"><div class="eyebrow g">HOW IT WORKS</div></div>
     <div class="card" style="padding:13px">
-      <div class="muted">한 판의 틀은 늘 같습니다. 드래프트로 11명을 임대하고, 한 경기를 뛰고, 결과 화면에서 바로 다음 드래프트로 넘어갑니다. 번 코인은 버프 탭에서 GK·DF·MF·FW Lv로 바꿉니다. 버프는 스쿼드가 바뀌어도 남아서 드래프트 카드와 경기 시뮬레이션에 그대로 더해집니다.</div>
+      <div class="muted">한 판의 틀은 늘 같습니다. 드래프트로 11명을 임대하고, 한 경기를 뛰고, 결과 화면에서 바로 다음 드래프트로 넘어갑니다. 번 코인은 버프 탭에서 포지션 Lv, 클럽 팀컬러(최대 +15), 특정 선수 Lv로 바꿉니다. 버프는 스쿼드가 바뀌어도 남아서 드래프트 카드와 경기 시뮬레이션에 더해지고, 같은 클럽 5명이 모이면 버프와 별개로 팀 케미가 붙습니다.</div>
     </div>
   </div>`;
 }
@@ -2148,7 +2286,12 @@ function draftHTML(){
   }).join('');
   const cards = d.opts.map((o, k) => optionHTML(o, role, k)).join('');
   const g = grp(role), bl = S.buf[g] || 0;
+  const sy = synergyOf(picks);
   const teamOvr = picks.length ? Math.round(picks.reduce((s,p)=>s+ovrOf(p),0)/picks.length) : 0;
+  const chemi = !picks.length
+    ? `<div class="chemi"><div class="ic">👥</div><div class="tx"><b>같은 클럽 5명이면 팀 케미 +${SYNERGY_ADD}</b>
+        <span>11명을 한 클럽으로 채우면 올스타 +${ALLSTAR_ADD} · 버프와 별개로 자동 발동, 이번 경기 한정</span></div></div>`
+    : chemiBox(sy);
   return `
   <div class="dhead">
     <div>
@@ -2162,20 +2305,21 @@ function draftHTML(){
     ${dots}
   </div>
   <div class="between" style="margin-top:12px">
-    <div class="tiny">${picks.length}/11 선택 완료${picks.length?` · 평균 OVR <b style="color:var(--lime)">${teamOvr}</b>`:''}</div>
+    <div class="tiny">${picks.length}/11 선택 완료${picks.length?` · 평균 OVR <b style="color:var(--lime)">${teamOvr}</b>`:''}${sy.add?` · ${sy.label} <b style="color:var(--amber)">+${sy.add}</b>`:''}</div>
     <div class="row" style="gap:6px">
       <span class="tag ${(d.low||0)>0?'sky':''}">최저픽 ${d.low||0}/11</span>
       <button class="chip" data-act="reroll">🔄 리롤 <span class="mono" style="color:var(--lime)">80</span></button>
     </div>
   </div>
+  ${chemi}
   <div class="picks">${cards}</div>
-  <div class="tiny" style="margin-top:12px;line-height:1.6">카드 OVR = 이번 판 기본 능력치(70·80·90대 랜덤) + 포지션 버프 Lv. 이미 뽑힌 선수는 다시 나오지 않고, 포지션이 다르면 임시 배치(−3 OVR)로 들어갑니다.</div>
-  <div class="rental" style="margin-top:9px"><span class="ic">⏳</span><span class="tx">완성한 11명은 <b>한 경기만</b> 뛰는 임대 스쿼드입니다. 경기가 끝나면 반납되고 다음 드래프트로 넘어갑니다.</span></div>`;
+  <div class="tiny" style="margin-top:12px;line-height:1.6">카드 OVR = 기본 + 포지션 + 팀컬러 + 선수 버프. 후보는 최종 OVR 높은 순으로 놓입니다.</div>
+`;
 }
 function optionHTML(opt, role, k){
   const i = opt.i, inst = {i, b: opt.b};
   const sp = posOf(i), base = baseOf(inst);
-  const bl = bufLvOf(inst), o = ovrOf(inst), st = statsOf(inst);
+  const bl = bufLvOf(inst), o = ovrOf(inst), st = statsOf(inst), pa = buffParts(inst);
   const nm = P[i][0], club = P[i][1], lg = P[i][2];
   const off = !(sp === role || (role==='ST'&&sp==='SS'));
   const bars = [0,1,2,3].map(k2 => `<i><s style="width:${clamp((st[k2]-40)*1.5,6,100)}%"></s></i>`).join('');
@@ -2184,8 +2328,10 @@ function optionHTML(opt, role, k){
     <div class="ovr"><b>${o}</b><small>OVR</small></div>
     <div class="who">
       <div class="nm">${esc(nm)}<span class="cond" style="color:${cd.col}">${cd.s}</span></div>
-      <div class="cl">기본 ${base}${bl?` <b style="color:var(--lime)">+${bl}</b>`:''} · ${esc(club)} · ${esc(LG[lg] || lg)}</div>
-      <div class="bars">${bars}</div>
+      <div class="cl">기본 ${base} · ${esc(club)} · ${esc(LG[lg] || lg)}</div>
+      ${(bl || pa.team || pa.player)
+        ? `<div class="bf">${bl?`<i class="p">포지션 +${bl}</i>`:''}${pa.team?`<i class="t">팀컬러 +${pa.team}</i>`:''}${pa.player?`<i class="s">선수 +${pa.player}</i>`:''}</div>`
+        : `<div class="bars">${bars}</div>`}
     </div>
     <div class="rt">
       <span class="tag ${off?'amber':''}" style="height:17px;font-size:8.5px">${off?'임시 ':''}${sp}</span>
@@ -2209,9 +2355,12 @@ function squadHTML(){
   <div class="teamhead">
     <div>
       <div class="eyebrow">RENTAL XI · ${f}</div>
-      <div class="nm" style="margin-top:3px">임대 스쿼드 <span class="tag lime" style="margin-left:4px">${S.squad.length}명</span>${S.squadInfo && S.squadInfo.low >= 11 ? '<span class="tag amber" style="margin-left:4px">최저픽 11/11</span>' : ''}${S.squadInfo && S.squadInfo.band ? '<span class="tag sky" style="margin-left:4px">전원 ' + S.squadInfo.band + '대</span>' : ''}</div>
+      <div class="nm" style="margin-top:3px">임대 스쿼드 <span class="tag lime" style="margin-left:4px">${S.squad.length}명</span>${S.squadInfo && S.squadInfo.low >= 11 ? '<span class="tag amber" style="margin-left:4px">최저픽 11/11</span>' : ''}${S.squadInfo && S.squadInfo.band ? '<span class="tag sky" style="margin-left:4px">전원 ' + S.squadInfo.band + '대</span>' : ''}${t.chemi && t.chemi.add ? '<span class="tag lime" style="margin-left:4px">' + t.chemi.label + ' +' + t.chemi.add + '</span>' : ''}</div>
       <div class="tiny" style="margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">전적 <b style="color:var(--ink)">${rec.w}승 ${rec.d}무 ${rec.l}패</b> · 총 버프 Lv ${fmt(totalBuf())}</div>
       <div class="tiny" style="margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">컨디션 ${condSummary(t.entries)}</div>
+      <div class="tiny" style="margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.chemi.add
+        ? '팀 케미 · ' + esc(t.chemi.club) + ' ' + t.chemi.n + '명 · 팀 OVR에 +' + t.chemi.add + ' 반영'
+        : '최다 클럽 ' + esc(t.chemi.club) + ' ' + t.chemi.n + '/' + SYNERGY_N + '명'}</div>
     </div>
     <div class="ovr"><b>${t.ovr}</b><small>TEAM OVR</small></div>
   </div>
@@ -2232,7 +2381,7 @@ function squadHTML(){
     </div>
     <button class="btn dark wide" data-act="copy-invite">🔗 친구 대결 초대 링크 복사</button>
     <div class="rental"><span class="ic">⏳</span><span class="tx">이 11명은 <b>1경기용 임대</b>입니다. 경기가 끝나면 반납되고, 버프 Lv은 그대로 남습니다.</span></div>
-    <div class="tiny" style="text-align:center">${bufLine()} · 선수 구매·이적 없음</div>
+    <div class="tiny" style="text-align:center">${bufLine()} · 팀컬러 ${fmt(tbufTotal())} · 선수별 ${fmt(pbufTotal())} · 선수 구매·이적 없음</div>
   </div>`;
 }
 
@@ -2241,6 +2390,7 @@ function openPlayer(k){
   const inst = S.squad[k], e = squadEntries()[k];
   const nm = P[inst.i][0], club = P[inst.i][1], lg = P[inst.i][2], sp = posOf(inst.i);
   const st = statsOf(inst), o = ovrOf(inst), bl = bufLvOf(inst), g = grp(sp), cd = condOf(inst.c);
+  const pa = buffParts(inst), pnext = pbufCost(pa.player);
   const labels = labelsOf(sp);
   const rows = labels.map((a,i)=>`<div class="row" style="justify-content:space-between;padding:5px 0">
     <span class="tiny" style="width:44px">${a}</span>
@@ -2255,14 +2405,20 @@ function openPlayer(k){
         <div class="tiny">${esc(club)} · ${P[inst.i][5] ? P[inst.i][5]+'세' : ''}</div>
       </div>
       <div style="text-align:right"><div class="mono" style="font-size:32px;font-weight:800;letter-spacing:-.07em;line-height:1">${o}</div>
-      <div class="tiny">기본 ${baseOf(inst)}${bl>0?` <b style="color:var(--lime)">+${bl}</b>`:''}</div></div>
+      <div class="tiny">기본 ${baseOf(inst)} · 합산 +${o - baseOf(inst)}</div></div>
     </div>
     <div style="margin-top:12px">${rows}</div>
     <div class="card" style="padding:9px 11px;margin-top:10px;display:flex;justify-content:space-between;align-items:center"><span class="tiny">컨디션</span><span style="font-size:12px;font-weight:900;color:${cd.col}">${cd.s} ${cd.n}</span></div>
+    <div class="bfrow">
+      <span>포지션 <b style="color:var(--lime)">+${bl}</b></span>
+      <span>팀컬러 <b style="color:var(--sky)">+${pa.team}</b></span>
+      <span>선수 <b style="color:var(--gold)">+${pa.player}</b></span>
+    </div>
     ${e && !e.fit ? `<div class="tag amber" style="margin-top:9px">임시 배치 · 팀 전력 −3</div>`:''}
-    <div class="rental" style="margin-top:10px"><span class="ic">⚡</span><span class="tx"><b>${g} 버프 Lv.${bl}</b>이 전 스탯에 더해진 값입니다. 버프는 선수 개인이 아니라 이번 드래프트의 ${g} 전원에게 적용됩니다.</span></div>
+    <div class="rental" style="margin-top:10px"><span class="ic">⚡</span><span class="tx">포지션 버프 <b>+${bl}</b>에 ${esc(club)} 팀컬러 <b>+${pa.team}</b>, 이 선수 전용 버프 <b>+${pa.player}</b>까지 더해진 값입니다.</span></div>
     <div class="stack" style="margin-top:12px">
-      <button class="btn primary wide" data-act="sheet-buff">⚡ ${g} 버프 강화하기</button>
+      <button class="btn primary wide" data-act="player-buff" data-i="${inst.i}">★ ${esc(shortNm(nm))} 선수 버프 +1 · ${fmt(pnext)}</button>
+      <button class="btn dark wide" data-act="sheet-buff">⚡ ${g} 버프 강화하기</button>
       <button class="btn dark wide" data-act="close-sheet">닫기</button>
     </div>`;
   $('#sheetHost').classList.add('on');
@@ -2444,7 +2600,7 @@ function openBackupSheet(){
   $('#sheet').innerHTML = `<div class="grab"></div>
     <div class="eyebrow">BACKUP · JSON</div>
     <div style="font-size:16px;font-weight:900;letter-spacing:-.03em;margin-top:3px">백업 · 불러오기</div>
-    <div class="muted" style="margin-top:6px">코인·식별코드·포지션 버프 Lv·키우기 선수·랭킹 전적·퀘스트 진행도까지 전부 담습니다.</div>
+    <div class="muted" style="margin-top:6px">코인·식별코드·포지션·팀컬러·선수 버프 Lv·키우기 선수·랭킹 전적·퀘스트 진행도까지 전부 담습니다.</div>
     <div class="stack" style="margin-top:12px">
       <button class="btn primary wide" data-act="backup-download">파일로 내려받기 (.json)</button>
       <button class="btn dark wide" data-act="backup-copy">클립보드에 복사</button>
@@ -2523,10 +2679,11 @@ function stadiumHTML(){
     <h2 class="title">경기장 <span class="mono" style="font-size:13px;color:var(--dim)">OVR ${t.ovr}</span></h2>
     <div class="card" style="padding:10px 12px;margin-top:10px;display:flex;align-items:center;gap:10px">
       <div style="flex:1 1 auto;min-width:0"><div style="font-size:11.5px;font-weight:900;letter-spacing:-.02em">임대 XI 준비 완료</div>
-      <div class="tiny" style="margin-top:2px">${S.formation} · ${t.ovr} OVR · 이번 경기 한 판${S.squadInfo && S.squadInfo.low >= 11 ? ' · 최저픽 11/11' : ''}${S.squadInfo && S.squadInfo.band ? ' · 전원 ' + S.squadInfo.band + '대' : ''}</div></div>
+      <div class="tiny" style="margin-top:2px">${S.formation} · ${t.ovr} OVR · 이번 경기 한 판${S.squadInfo && S.squadInfo.low >= 11 ? ' · 최저픽 11/11' : ''}${S.squadInfo && S.squadInfo.band ? ' · 전원 ' + S.squadInfo.band + '대' : ''}${t.chemi.add ? ' · ' + t.chemi.label + ' +' + t.chemi.add : ''}</div></div>
       <button class="chip" data-act="go-squad">스쿼드 보기</button>
     </div>
     <div class="rental" style="margin-top:8px"><span class="ic">⏳</span><span class="tx">모드를 골라 <b>1경기</b>를 뛰면 이 11명은 반납됩니다. 결과 화면에서 바로 새 드래프트로 이어집니다.</span></div>
+    ${t.chemi.add ? chemiBox(t.chemi) : ''}
     <div class="card" style="padding:10px 12px;margin-top:8px;display:flex;align-items:center;gap:10px">
       <div style="flex:1 1 auto;min-width:0"><div style="font-size:11.5px;font-weight:900;letter-spacing:-.02em">팀 컨디션</div>
       <div class="tiny" style="margin-top:3px">${condSummary(t.entries)}</div></div>
@@ -2553,8 +2710,8 @@ function stadiumHTML(){
     </div>` : ''}
     <div class="sect">
       <div class="card" style="padding:12px 13px">
-        <div class="between"><span class="eyebrow g">보상</span><span class="tiny">코인은 포지션 버프에만 쓰입니다</span></div>
-        <div class="muted" style="margin-top:6px">승리하면 골 차이만큼 코인이 더 붙습니다. 랭킹전은 레이팅까지 오르고, 상대가 강할수록 더 많이 오릅니다. 번 코인은 버프 탭에서 GK·DF·MF·FW Lv로 바꾸면 다음 드래프트부터 영구히 적용됩니다.</div>
+        <div class="between"><span class="eyebrow g">보상</span><span class="tiny">코인은 버프에 쓰입니다</span></div>
+        <div class="muted" style="margin-top:6px">승리하면 골 차이만큼 코인이 더 붙습니다. 랭킹전은 레이팅까지 오르고, 상대가 강할수록 더 많이 오릅니다. 번 코인은 버프 탭에서 포지션·팀컬러·선수 Lv로 바꾸면 다음 드래프트부터 영구히 적용됩니다.</div>
       </div>
     </div>`;
 }
@@ -2580,6 +2737,8 @@ function renderMatchScreen(){
       <div class="mbar"><i id="mBar" style="width:0%"></i></div>
       <div class="halfbox" id="mHalfBox" style="display:none"></div>
       ${M.drain ? `<div class="tiny" style="text-align:center;margin-top:7px;color:var(--amber)">전력 흡수 · 내 OVR +${M.drain} / 상대 OVR −${M.drain}</div>` : ''}
+      ${M.chemi && M.chemi.add ? `<div class="chemi on" style="margin-top:7px"><div class="ic">${M.chemi.add >= ALLSTAR_ADD ? '👑' : '🔥'}</div><div class="tx">
+        <b>${esc(M.chemi.club)} ${M.chemi.n}명 · ${M.chemi.label} +${M.chemi.add}</b><span>이번 경기 임대 XI 전체에 적용 중</span></div></div>` : ''}
       <div class="stats3">
         <div><span>점유</span><b id="sPoss">50%</b></div>
         <div><span>슈팅</span><b id="sShots">0 - 0</b></div>
@@ -2642,6 +2801,7 @@ function renderResult(){
         <div class="rbtop"><span class="tag ${cls}">${label}</span><h3>${title}</h3></div>
         <div class="fs">${M.me}<i>:</i>${M.op}</div>
         <div class="rteam"><b>임대 XI</b><span>vs</span><b>${esc(M.opp.club)}</b></div>
+        ${M.chemi && M.chemi.add ? `<div class="rchem">${M.chemi.label} +${M.chemi.add} · ${esc(M.chemi.club)} ${M.chemi.n}명</div>` : ''}
       </div>
       <div class="rewards">
         <div><span>획득 코인</span><b class="up">+${fmt(M.coins)}</b></div>
@@ -2662,7 +2822,7 @@ function renderResult(){
       ${reportCard(M)}
     </div>
     <div class="rfoot">보유 코인 ${fmt(S.coins)} · 랭킹전 ${S.rank.w}승 ${S.rank.d}무 ${S.rank.l}패 · ${esc(tacTag(M.tac))}</div>
-    <div class="rental" style="margin-top:8px"><span class="ic">⏳</span><span class="tx"><b>임대 계약 종료</b> · 11명을 반납했습니다. 버프 Lv ${fmt(totalBuf())}은 다음 드래프트에 그대로 적용됩니다.</span></div>`;
+    <div class="rental" style="margin-top:8px"><span class="ic">⏳</span><span class="tx"><b>임대 계약 종료</b> · 11명을 반납했습니다. 버프는 다음 드래프트에 그대로 남고, 팀 케미는 이 경기로 끝납니다.</span></div>`;
 }
 
 function goalsCard(M){
@@ -2700,10 +2860,56 @@ function mvpCard(M){
   </div>`;
 }
 
-function buffHTML(){
-  const t = teamStats();
+/* ---------- 버프: 포지션 · 팀컬러 · 선수별 ---------- */
+const BUF_SEGS = [{k:'pos', n:'포지션'}, {k:'team', n:'팀컬러'}, {k:'player', n:'선수별'}];
+function pbufLv(i){ return Math.max(0, Math.round(+(((S.pbuf || {})[String(i)])) || 0)); }
+function tbufLv(club){ return Math.min(TBUF_MAX, Math.max(0, Math.round(+(((S.tbuf || {})[club])) || 0))); }
+function pbufTotal(){ const m = S.pbuf || {}; return Object.keys(m).reduce((s,k) => s + Math.max(0, Math.round(+m[k] || 0)), 0); }
+function tbufTotal(){ const m = S.tbuf || {}; return Object.keys(m).reduce((s,k) => s + Math.max(0, Math.round(+m[k] || 0)), 0); }
+function clubPool(){
+  const m = {};
+  P.forEach(p => {
+    const c = p[1]; if(!c) return;
+    if(!m[c]) m[c] = {club:c, league:p[2], n:0, best:0};
+    m[c].n++; m[c].best = Math.max(m[c].best, p[4]);
+  });
+  return Object.keys(m).map(c => m[c]).sort((a,b) => b.n - a.n || b.best - a.best || a.club.localeCompare(b.club));
+}
+function buyTeamBuf(club, n){
+  if(!club || !clubPool().some(c => c.club === club)) return;
+  const L = tbufLv(club);
+  if(L >= TBUF_MAX){ toast(club + ' 팀컬러는 최대 +' + TBUF_MAX + '입니다'); return; }
+  const step = Math.min(Math.max(1, Math.round(n || 1)), TBUF_MAX - L);
+  const price = tbufCostN(L, step);
+  if(S.coins < price){ toast('코인이 ' + fmt(price - S.coins) + ' 부족합니다'); return; }
+  S.coins -= price;
+  S.tbuf = S.tbuf || {}; S.tbuf[club] = L + step;
+  ensureQuests(); questAdd('buff', step);
+  save(); paintHud(); refreshBuff();
+  toast(club + ' 팀컬러 +' + S.tbuf[club] + ' · 이 클럽 선수 전원 OVR +' + S.tbuf[club]);
+  popFx('팀컬러 +' + S.tbuf[club]);
+}
+function buyPlayerBuf(i, n){
+  if(!(i >= 0 && i < P.length)) return;
+  const L = pbufLv(i), step = Math.max(1, Math.round(n || 1));
+  const price = pbufCostN(L, step);
+  if(S.coins < price){ toast('코인이 ' + fmt(price - S.coins) + ' 부족합니다'); return; }
+  S.coins -= price;
+  S.pbuf = S.pbuf || {}; S.pbuf[String(i)] = L + step;
+  ensureQuests(); questAdd('buff', step);
+  save(); paintHud(); refreshBuff();
+  toast(P[i][0] + ' +' + S.pbuf[String(i)] + ' · 드래프트에 나오면 OVR +' + S.pbuf[String(i)]);
+  popFx('선수 +' + S.pbuf[String(i)]);
+}
+function segHTML(){
+  const seg = U.bufSeg || 'pos';
+  const cnt = {pos:totalBuf(), team:tbufTotal(), player:pbufTotal()};
+  return `<div class="segwrap"><div class="seg" id="bufSegBar">${BUF_SEGS.map(s =>
+    `<button class="${seg === s.k ? 'on' : ''}" data-act="buf-seg" data-k="${s.k}">${s.n} <small>${fmt(cnt[s.k])}</small></button>`).join('')}</div></div>`;
+}
+function posBuffHTML(){
   const tb = totalBuf();
-  const rows = BUF.map(b=>{
+  const rows = BUF.map(b => {
     const lv = S.buf[b.k] || 0;
     const p1 = bufCost(lv), p5 = bufCostN(lv, 5);
     const pct = lv > 0 && lv % 10 === 0 ? 100 : (lv % 10) * 10;
@@ -2723,28 +2929,119 @@ function buffHTML(){
       </div>
     </div>`;
   }).join('');
-  return `<div class="eyebrow">BUFF · NO LIMIT</div>
-    <div class="between"><h2 class="title">버프 강화</h2><span class="pill" style="height:27px"><span class="dot"></span><b>${fmt(S.coins)}</b></span></div>
-    <div class="up-head" style="margin-top:11px">
-      <div>
-        <div class="eyebrow">POSITION BUFF</div>
-        <div class="nm">총 버프 Lv</div>
-        <div class="cl">${bufLine()}</div>
-      </div>
+  return `<div class="up-head">
+      <div><div class="eyebrow">POSITION BUFF</div><div class="nm">포지션 버프 Lv</div><div class="cl">${bufLine()}</div></div>
       <div style="text-align:right"><div class="big ${tb>0?'up':''}">${fmt(tb)}</div><div class="tiny">드래프트에 그대로 합산</div></div>
     </div>
     <div class="stack" style="margin-top:10px">${rows}</div>
-    <div class="rental" style="margin-top:10px"><span class="ic">⚡</span><span class="tx">버프는 선수 개인이 아니라 <b>포지션 전체</b>에 걸립니다. 드래프트 5택 카드, 피치, 경기 시뮬레이션 모두 버프가 더해진 능력치로 돌아갑니다.</span></div>
-    <div class="stack" style="margin-top:11px">
-      <button class="btn dark wide" data-act="go-stadium">경기장으로 → 코인 벌기</button>
-      <div class="tiny" style="text-align:center">Lv 상한 없음 · 코인이 닿는 만큼 계속 올라갑니다</div>
-    </div>
-    <div class="card" style="padding:12px 13px;margin-top:12px">
-      <div class="between"><span class="eyebrow g">TEAM</span><span class="tiny">${t ? S.formation + ' · 팀 OVR <b style="color:var(--ink)">' + t.ovr + '</b>' : '임대 스쿼드 없음'}</span></div>
-      <div class="muted" style="margin-top:6px">${t
-        ? '지금 임대 스쿼드는 버프가 더해진 OVR ' + t.ovr + '입니다. 버프를 더 올리면 다음 드래프트부터 바로 반영됩니다.'
-        : '아직 임대 스쿼드가 없습니다. 드래프트하면 위 버프가 포지션별로 합산되어 카드와 경기에 적용됩니다.'}</div>
+    <div class="rental" style="margin-top:10px"><span class="ic">⚡</span><span class="tx">포지션 버프는 그 포지션 <b>전원</b>에게 걸립니다. 드래프트 후보 카드, 피치, 경기 시뮬레이션 모두 버프가 더해진 능력치로 돌아갑니다.</span></div>`;
+}
+function teamRowsHTML(){
+  const q = String(U.bufQ || '').trim().toLowerCase();
+  const list = clubPool().filter(c => !q || c.club.toLowerCase().indexOf(q) >= 0
+    || String(LG[c.league] || c.league).toLowerCase().indexOf(q) >= 0);
+  if(!list.length) return `<div class="tiny" style="padding:16px 2px;text-align:center">검색 결과가 없습니다</div>`;
+  return list.map(c => {
+    const lv = tbufLv(c.club), max = lv >= TBUF_MAX;
+    const p1 = max ? 0 : tbufCost(lv), n5 = max ? 0 : Math.min(5, TBUF_MAX - lv), p5 = max ? 0 : tbufCostN(lv, 5);
+    return `<div class="srow ${lv ? 'on' : ''}">
+      <div class="nm"><b>${esc(c.club)}</b>
+        <span>${esc(LG[c.league] || c.league)} · 26/27 ${c.n}명${lv ? ` · <b style="color:var(--lime)">전원 +${lv}</b>` : ''}</span>
+        <div class="tr" style="margin-top:5px"><s style="width:${Math.round(lv / TBUF_MAX * 100)}%"></s></div>
+      </div>
+      <div class="lv ${lv ? '' : 'off'}">${lv}<small>/${TBUF_MAX}</small></div>
+      <div class="btns">
+        <button class="up ${max || S.coins < p1 ? 'poor' : ''}" data-act="tbuf" data-c="${esc(c.club)}" data-n="1" ${max ? 'disabled' : ''}>+1<small>${max ? 'MAX' : fmt(p1)}</small></button>
+        <button class="up ${max || S.coins < p5 ? 'poor' : ''}" data-act="tbuf" data-c="${esc(c.club)}" data-n="${n5 || 5}" ${max ? 'disabled' : ''}>+${n5 || 5}<small>${max ? 'MAX' : fmt(p5)}</small></button>
+      </div>
     </div>`;
+  }).join('');
+}
+function playerRowsHTML(){
+  const q = String(U.pbufQ || '').trim().toLowerCase();
+  const buffed = Object.keys(S.pbuf || {}).map(k => Math.round(+k))
+    .filter(i => i >= 0 && i < P.length && pbufLv(i) > 0)
+    .sort((a,b) => pbufLv(b) - pbufLv(a));
+  let ids;
+  if(q){
+    ids = P.map((p,i) => i).filter(i => {
+      const p = P[i];
+      return (p[0] + ' ' + p[1] + ' ' + p[3] + ' ' + (LG[p[2]] || p[2])).toLowerCase().indexOf(q) >= 0;
+    }).slice(0, 40);
+  } else {
+    ids = buffed.slice();
+    (S.squad || []).forEach(x => { if(ids.indexOf(x.i) < 0) ids.push(x.i); });
+    const byBase = P.map((p,i) => i).sort((a,b) => P[b][4] - P[a][4]);
+    for(let k=0; k<byBase.length && ids.length < 60; k++) if(ids.indexOf(byBase[k]) < 0) ids.push(byBase[k]);
+  }
+  if(!ids.length) return `<div class="tiny" style="padding:16px 2px;text-align:center">검색 결과가 없습니다</div>`;
+  return ids.map(i => {
+    const lv = pbufLv(i), p = P[i], p1 = pbufCost(lv), tl = tbufLv(p[1]);
+    return `<div class="srow ${lv ? 'on' : ''}">
+      <div class="nm"><b>${esc(p[0])}</b>
+        <span>${p[3]} · ${esc(p[1])} · 기본 ${p[4]}${tl ? ` · <b style="color:var(--sky)">팀 +${tl}</b>` : ''}</span>
+      </div>
+      <div class="lv ${lv ? '' : 'off'}">+${lv}</div>
+      <div class="btns"><button class="up ${S.coins < p1 ? 'poor' : ''}" data-act="pbuf" data-i="${i}" data-n="1">+1<small>${fmt(p1)}</small></button></div>
+    </div>`;
+  }).join('');
+}
+function bufListRows(){
+  const seg = U.bufSeg || 'pos';
+  if(seg === 'team') return teamRowsHTML();
+  if(seg === 'player') return playerRowsHTML();
+  return '';
+}
+function teamCardHTML(t){
+  const chemi = t && t.chemi ? t.chemi : null;
+  return `<div class="between"><span class="eyebrow g">TEAM</span><span class="tiny">${t ? esc(S.formation) + ' · 팀 OVR <b style="color:var(--ink)">' + t.ovr + '</b>' : '임대 스쿼드 없음'}</span></div>
+    <div class="muted" style="margin-top:6px">${t
+      ? '지금 임대 스쿼드 OVR ' + t.ovr + (chemi && chemi.add ? ' (팀 케미 +' + chemi.add + ' 포함)' : '') + '. 버프를 더 올리면 다음 드래프트부터 바로 반영됩니다.'
+      : '아직 임대 스쿼드가 없습니다. 드래프트하면 포지션·팀컬러·선수 버프가 모두 합산되어 카드와 경기에 적용됩니다.'}</div>
+    <div class="tiny" style="margin-top:6px">포지션 ${fmt(totalBuf())} · 팀컬러 ${fmt(tbufTotal())} · 선수별 ${fmt(pbufTotal())}</div>`;
+}
+function buffHTML(){
+  const seg = U.bufSeg || 'pos';
+  const t = teamStats();
+  const head = `<div class="eyebrow">BUFF · Lv 상한 없음</div>
+    <div class="between"><h2 class="title">버프 강화</h2><span class="pill" style="height:27px" id="bufCoins"><span class="dot"></span><b>${fmt(S.coins)}</b></span></div>
+    <div style="margin-top:11px">${segHTML()}
+      <div class="sect" style="margin-top:0">`;
+  let body;
+  if(seg === 'team'){
+    body = `<div class="stack" style="margin-top:0">
+      <input id="bufQ" class="srch" data-srch="team" type="search" autocomplete="off" placeholder="클럽 검색 (예: 리버풀)" value="${esc(U.bufQ || '')}">
+      <div class="tiny" style="line-height:1.55">팀컬러는 클럽별 최대 <b style="color:var(--lime)">+${TBUF_MAX}</b>. 그 클럽 26/27 선수가 드래프트에 나오면 OVR이 그만큼 더해집니다.</div>
+      <div class="slist" id="bufList">${teamRowsHTML()}</div>
+    </div>`;
+  } else if(seg === 'player'){
+    body = `<div class="stack" style="margin-top:0">
+      <input id="pbufQ" class="srch" data-srch="player" type="search" autocomplete="off" placeholder="선수·클럽·포지션 검색" value="${esc(U.pbufQ || '')}">
+      <div class="tiny" style="line-height:1.55">원하는 선수만 골라 Lv 상한 없이 강화합니다. 드래프트에 그 선수가 나오면 OVR이 그만큼 더해집니다.</div>
+      <div class="slist" id="bufList">${playerRowsHTML()}</div>
+    </div>`;
+  } else {
+    body = posBuffHTML();
+  }
+  return head + body + `</div>
+      <div class="stack" style="margin-top:14px">
+        <button class="btn dark wide" data-act="go-stadium">경기장으로 → 코인 벌기</button>
+      </div>
+      <div class="card" id="bufTeam" style="padding:12px 13px;margin-top:12px">${teamCardHTML(t)}</div>
+    </div>`;
+}
+function refreshBuff(){
+  const pill = document.querySelector('#bufCoins b');
+  if(pill) pill.textContent = fmt(S.coins);
+  const host = document.getElementById('bufList');
+  if(host) host.innerHTML = bufListRows();
+  const cnt = {pos:totalBuf(), team:tbufTotal(), player:pbufTotal()};
+  document.querySelectorAll('#bufSegBar button').forEach(b => {
+    const s = b.querySelector('small');
+    if(s && cnt[b.dataset.k] != null) s.textContent = fmt(cnt[b.dataset.k]);
+  });
+  const tc = document.getElementById('bufTeam');
+  if(tc) tc.innerHTML = teamCardHTML(teamStats());
 }
 function renderBuff(keepScroll){
   const m = $('#main');
@@ -2810,12 +3107,12 @@ function growHTML(){
   if(!picked){
     return `${head}
     <div class="sect"><div class="empty"><div class="ic">🔨</div><b>키울 선수를 뽑아주세요</b>
-      <div class="muted">465명 중 원하는 만큼 데려와 보관함(${GROW_SLOTS}명)에 두고, 탭해서 전환하며 0강부터 +15강까지 키웁니다. 지금 고른 선수 1명이 1대1 대결에 그대로 출전합니다.</div>
+      <div class="muted">${P.length}명 중 원하는 만큼 데려와 보관함(${GROW_SLOTS}명)에 두고, 탭해서 전환하며 0강부터 +15강까지 키웁니다. 지금 고른 선수 1명이 1대1 대결에 그대로 출전합니다.</div>
       <button class="btn primary" style="margin:14px auto 0;width:200px" data-act="grow-pick">선수 뽑기</button></div></div>`;
   }
   const lv = growLv(), sp = posOf(g.i), base = baseOvrOf(g.i), bl = S.buf[grp(sp)] || 0;
   const inst = {i:g.i, b:base, lv, c:0};
-  const ovr = ovrOf(inst), st = statsOf(inst);
+  const ovr = ovrGrow(inst), st = statsGrow(inst);
   const nm = P[g.i][0], club = P[g.i][1], lg = P[g.i][2];
   const step = growStep(Math.min(lv, GROW_MAX - 1));
   const prot = !!g.prot, done = lv >= GROW_MAX;
@@ -3063,6 +3360,13 @@ document.addEventListener('click', ev => {
   }
   else if(act === 'quit-result'){ U.match = null; U.tab='stadium'; render(); }
   else if(act === 'buf'){ buyBuf(el.dataset.k, +el.dataset.n); }
+  else if(act === 'buf-seg'){ const k = el.dataset.k; if(k !== (U.bufSeg || 'pos')){ U.bufSeg = k; render(); } }
+  else if(act === 'tbuf'){ buyTeamBuf(el.dataset.c, +el.dataset.n); }
+  else if(act === 'pbuf'){ buyPlayerBuf(+el.dataset.i, +el.dataset.n); }
+  else if(act === 'player-buff'){
+    buyPlayerBuf(+el.dataset.i, 1);
+    $('#sheetHost').classList.remove('on'); U.match = null; U.tab = 'squad'; render();
+  }
   else if(act === 'resume-draft'){ U.tab='squad'; render(); }
   else if(act === 'go-squad'){ U.tab='squad'; render(); }
   else if(act === 'go-ranking'){ if(U.match && U.match.timer) clearInterval(U.match.timer); U.match = null; U.tab='ranking'; render(); }
@@ -3082,6 +3386,14 @@ document.addEventListener('change', ev => {
     r.onload = () => importJSON(r.result);
     try{ r.readAsText(t.files[0]); }catch(e){ toast('파일을 읽을 수 없습니다'); }
   }
+});
+document.addEventListener('input', ev => {
+  const t = ev.target;
+  if(!t || !t.dataset || !t.dataset.srch) return;
+  if(t.dataset.srch === 'team') U.bufQ = t.value;
+  else U.pbufQ = t.value;
+  const host = document.getElementById('bufList');
+  if(host) host.innerHTML = bufListRows();
 });
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {  if(U.match && !U.match.over){ toast('경기 중에는 이동할 수 없습니다'); return; }
   U.match = null;
