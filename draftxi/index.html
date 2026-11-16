@@ -139,7 +139,7 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 2px rgba(255,180,58,.18)}50%{box-shadow:0 0 0 6px rgba(255,180,58,.05)}}
 
 .picks{display:flex;flex-direction:column;gap:9px;margin-top:11px}
-.pick{position:relative;display:flex;align-items:center;gap:11px;padding:11px 11px 11px 12px;border-radius:14px;
+.pick{position:relative;display:flex;align-items:center;gap:11px;padding:11px 11px 11px 12px;border-radius:14px;text-align:left;
   border:1px solid var(--line);background:linear-gradient(100deg,#12201a,#0d1814);transition:transform .09s,border-color .15s}
 .pick:active{transform:scale(.985);border-color:var(--lime)}
 .pick .ovr{flex:0 0 auto;width:46px;text-align:center}
@@ -151,7 +151,8 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .pick .bars{display:flex;gap:3px;margin-top:7px}
 .pick .bars i{display:block;height:3px;flex:1;border-radius:2px;background:#20362b;overflow:hidden}
 .pick .bars i s{display:block;height:100%;background:var(--lime);text-decoration:none}
-.pick .go{flex:0 0 auto;width:26px;height:26px;border-radius:8px;background:var(--card3);display:grid;place-items:center;color:var(--lime);font-size:13px;font-weight:900}
+.pick .rt{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.pick .go{width:26px;height:26px;border-radius:8px;background:var(--card3);display:grid;place-items:center;color:var(--lime);font-size:13px;font-weight:900}
 .pick .pos{position:absolute;top:-1px;right:56px;font-size:8.5px;font-weight:900;letter-spacing:.06em;color:var(--dim)}
 .pick.off .ovr b{color:var(--amber)}
 
@@ -415,6 +416,16 @@ const pick = a => a[Math.floor(Math.random() * a.length)];
 const grp = sp => ROLE_GROUP[sp] || 'MF';
 const posOf = i => P[i][3];
 const baseOvrOf = i => P[i][4];
+function josa(word, a, b){
+  const s = String(word || '').trim();
+  if(!s) return a;
+  const c = s.charCodeAt(s.length - 1);
+  if(c < 0xac00 || c > 0xd7a3) return a;
+  return ((c - 0xac00) % 28) ? a : b;
+}
+const ga = w => josa(w, '이', '가');
+const eun = w => josa(w, '은', '는');
+const eul = w => josa(w, '을', '를');
 
 /* ---------- state ---------- */
 let U = {tab:'squad', sel:0, match:null, friendly:{open:false, league:'EPL', diff:0}, busy:false};
@@ -422,7 +433,7 @@ let S = load();
 
 function freshState(){
   return {v:1, code:makeCode(), coins:STARTER_COINS, squad:null, formation:null, draft:null,
-    record:{w:0,d:0,l:0}, rank:{r:1000,w:0,d:0,l:0}, best:{ovr:0,name:'',bonus:0}, ups:0};
+    record:{w:0,d:0,l:0}, rank:{r:1000,w:0,d:0,l:0}, best:{ovr:0,name:'',bonus:0}, ups:0, recent:[]};
 }
 function load(){
   try{
@@ -431,7 +442,7 @@ function load(){
     const s = JSON.parse(raw);
     if(!s || typeof s !== 'object' || !s.code) return freshState();
     s.record ||= {w:0,d:0,l:0}; s.rank ||= {r:1000,w:0,d:0,l:0};
-    s.best ||= {ovr:0,name:'',bonus:0}; s.ups ||= 0; s.coins ||= STARTER_COINS;
+    s.best ||= {ovr:0,name:'',bonus:0}; s.ups ||= 0; s.coins ||= STARTER_COINS; s.recent ||= [];
     return s;
   }catch(e){ return freshState(); }
 }
@@ -649,7 +660,7 @@ function matchTick(){
   const M = U.match; if(!M || M.over) return;
   M.min += 5;
   if(M.min === 45){
-    pushEvent({type:'half', text:'전반 종료. ' + scoreText(M) + '로 균형을 이룬 채 후반을 맞습니다.', cls:'half'});
+    pushEvent({type:'half', mm:"45'", text:'전반 종료. ' + scoreText(M) + '. ' + (M.me === M.op ? '균형' : M.me > M.op ? '한 골 앞선' : '끌려가는') + ' 채 후반을 맞습니다.', cls:'half'});
   } else if(M.min === 90){
     finishMatch(); return;
   } else {
@@ -708,7 +719,7 @@ function simulateMinute(M){
       p + '의 중거리포, 골키퍼가 몸을 날려 쳐냅니다.',
       p + '의 감아차기, 골키퍼 정면으로 향합니다.',
       p + '의 슛이 수비수 발에 굴절되어 골키퍼가 잡습니다.',
-      p + '가 수비 뒤 공간으로 침투했지만 슈팅이 막힙니다.'
+      ga(p) + ' 수비 뒤 공간으로 침투했지만 슈팅이 막힙니다.'
     ])});
   } else if(r < 0.53){
     if(side === 'me') M.shotsMe++; else M.shotsOp++;
@@ -722,19 +733,19 @@ function simulateMinute(M){
     pushEvent({type:'corner', side, mm, text: pick([
       team + ' 코너킥. 문전으로 날카로운 공이 올라옵니다.',
       team + ' 프리킥 기회, 벽을 넘기지 못합니다.',
-      '수비수 몸에 맞고 코너킥. ' + team + '이(가) 압박을 이어갑니다.'
+      '수비수 몸에 맞고 코너킥. ' + ga(team) + ' 압박을 이어갑니다.'
     ])});
   } else if(r < 0.84){
     pushEvent({type:'info', side, mm, text: pick([
-      team + '가 후방에서 볼을 돌리며 상대를 흔듭니다.',
-      '중원 싸움이 치열합니다. ' + team + '이(가) 압박 강도를 높입니다.',
+      ga(team) + ' 후방에서 볼을 돌리며 상대를 흔듭니다.',
+      '중원 싸움이 치열합니다. ' + ga(team) + ' 압박 강도를 높입니다.',
       team + ' 벤치가 몸을 일으킵니다. 흐름을 바꿀 교체 카드.',
       '주심이 파울을 선언합니다. 경기가 잠시 끊깁니다.',
       team + '의 측면 돌파가 이어집니다. 크로스가 수비에 막힙니다.'
     ])});
   } else {
     pushEvent({type:'info', side, mm, text: pick([
-      p + '가 드리블로 공간을 만듭니다. 수비가 따라붙습니다.',
+      ga(p) + ' 드리블로 공간을 만듭니다. 수비가 따라붙습니다.',
       '경고 카드가 나옵니다. 거친 태클이었습니다.',
       team + '의 오프사이드. 아쉽게 무산됩니다.',
       'VAR 체크. 득점 여부를 확인하지만 그대로 진행됩니다.'
@@ -766,6 +777,7 @@ function finishMatch(){
   }
   M.coins = coins;
   S.record[res] = (S.record[res] || 0) + 1;
+  S.recent = [{m:M.mode, o:M.opp.club, me:M.me, op:M.op, res}].concat(S.recent || []).slice(0,4);
   S.coins += coins;
   save(); paintHud();
   renderResult();
@@ -873,10 +885,13 @@ function optionHTML(i, role){
     <div class="ovr"><b>${o}</b><small>OVR</small></div>
     <div class="who">
       <div class="nm">${esc(nm)}</div>
-      <div class="cl">${esc(club)} · ${esc(LG[lg] || lg)} ${off?`<span class="tag amber" style="height:15px;font-size:8px">임시 ${sp}</span>`:`<span class="tag" style="height:15px;font-size:8px">${sp}</span>`}</div>
+      <div class="cl">${esc(club)} · ${esc(LG[lg] || lg)}</div>
       <div class="bars">${bars}</div>
     </div>
-    <div class="go">→</div>
+    <div class="rt">
+      <span class="tag ${off?'amber':''}" style="height:17px;font-size:8.5px">${off?'임시 ':''}${sp}</span>
+      <span class="go">→</span>
+    </div>
   </button>`;
 }
 
@@ -961,7 +976,7 @@ function openConfirm(title, desc, okLabel, act){
 
 /* ---------- stadium ---------- */
 function stadiumHTML(){
-  const t = S.teamStats ? null : teamStats();
+  const t = teamStats();
   if(!S.squad || !t){
     return `<div class="eyebrow">STADIUM</div><h2 class="title">경기장</h2>
       <div class="sect"><div class="empty"><div class="ic">⚽</div><b>아직 팀이 없습니다</b>
@@ -971,7 +986,8 @@ function stadiumHTML(){
   const modeCard = (key) => {
     const m = MODES[key];
     const rec = key === 'ranked' ? S.rank : S.record;
-    const tag = key === 'ranked' ? tierOf(S.rank.r).name : '상대 무작위';
+    const tier = tierOf(S.rank.r);
+    const tag = key === 'ranked' ? tier.n : '상대 무작위';
     return `<button class="mode ${key==='ranked'?'hot':''}" data-act="mode" data-mode="${key}">
       <div class="row">
         <div class="ic">${m.ic}</div>
@@ -1004,6 +1020,14 @@ function stadiumHTML(){
     <h2 class="title">경기장 <span class="mono" style="font-size:13px;color:var(--dim)">OVR ${t.ovr}</span></h2>
     <div class="sect stack">${modeCard('normal')}${modeCard('friendly')}${modeCard('ranked')}</div>
     ${body}
+    ${(S.recent && S.recent.length) ? `<div class="sect">
+      <div class="sect-h"><div class="eyebrow g">최근 경기</div><div class="tiny">${S.recent.length}건</div></div>
+      <div class="opps">${S.recent.map(r=>`<div class="opp">
+        <div class="cr" style="color:${r.res==='w'?'var(--lime)':r.res==='d'?'var(--sky)':'var(--red)'}">${r.res==='w'?'W':r.res==='d'?'D':'L'}</div>
+        <div class="nm">${esc(r.o)}<span class="tiny" style="margin-left:5px">${MODES[r.m].name}</span></div>
+        <div class="ov">${r.me} : ${r.op}</div>
+      </div>`).join('')}</div>
+    </div>` : ''}
     <div class="sect">
       <div class="card" style="padding:12px 13px">
         <div class="between"><span class="eyebrow g">보상</span><span class="tiny">코인은 강화에만 쓰입니다</span></div>
@@ -1084,8 +1108,9 @@ function renderResult(){
       </div>
       <div class="hr"></div>
       <div class="between"><span class="eyebrow g">MATCH REPORT</span><span class="tiny">점유 ${M.poss}% · 슈팅 ${M.shotsMe}-${M.shotsOp}</span></div>
-      <div class="ticker" style="margin-top:9px">${M.ev.filter(e=>e.type==='goal').slice(0,4).map(e=>`
-        <div class="tk goal"><div class="mm">${esc(e.mm)}</div><div class="tx">${esc(e.text)}</div></div>`).join('') || '<div class="tiny">득점 없이 끝났습니다.</div>'}</div>
+      <div class="ticker" style="margin-top:9px">${M.ev.filter(e=>e.type==='goal').slice(0,6).map(e=>`
+        <div class="tk goal"><div class="mm">${esc(e.mm)}</div><div class="tx"><b style="font-size:9px;letter-spacing:.06em;${
+          e.side==='me'?'color:var(--lime)':'color:#ff9c8c'}">${e.side==='me'?'MY XI':esc(M.opp.club)}</b> · ${esc(e.text)}</div></div>`).join('') || '<div class="tiny">득점 없이 경기가 끝났습니다.</div>'}</div>
       <div class="stack" style="margin-top:14px">
         <button class="btn primary wide" data-act="rematch">다시 붙기</button>
         <div class="row" style="gap:8px">
@@ -1222,8 +1247,8 @@ document.addEventListener('click', ev => {
     $('#sheetHost').classList.remove('on');
     S.squad = null; S.formation = null; S.draft = null; save(); startDraft();
   }
-  else if(act === 'go-stadium'){ U.tab='stadium'; render(); }
-  else if(act === 'go-upgrade'){ U.tab='upgrade'; render(); }
+  else if(act === 'go-stadium'){ if(U.match && U.match.timer) clearInterval(U.match.timer); U.match=null; U.tab='stadium'; render(); }
+  else if(act === 'go-upgrade'){ if(U.match && U.match.timer) clearInterval(U.match.timer); U.match=null; U.tab='upgrade'; render(); }
   else if(act === 'mode'){
     const m = el.dataset.mode;
     if(m === 'friendly'){ U.friendly.open = true; render(); }
@@ -1243,7 +1268,7 @@ document.addEventListener('click', ev => {
     while(M.min < 90 && !M.over){
       M.min += 5;
       if(M.min === 90){ finishMatch(); break; }
-      if(M.min === 45){ pushEvent({type:'half', mm:"45'", text:'전반 종료.', cls:'half'}); continue; }
+      if(M.min === 45){ pushEvent({type:'half', mm:"45'", text:'전반 종료. ' + scoreText(M) + '.', cls:'half'}); continue; }
       simulateMinute(M);
     }
     paintMatch();
