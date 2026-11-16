@@ -1163,7 +1163,7 @@ function upgradeHTML(){
   }).join('');
   const allCost = Math.round(ATTR.reduce((s,_,a)=>s+costOne(o),0)*0.86);
   return `<div class="eyebrow">TRAINING · NO LIMIT</div>
-    <h2 class="title">강화 <span class="mono" style="font-size:12px;color:var(--dim)">🪙 ${fmt(S.coins)}</span></h2>
+    <div class="between"><h2 class="title">강화</h2><span class="pill" style="height:27px"><span class="dot"></span><b>${fmt(S.coins)}</b></span></div>
     <div class="pscroll" style="margin-top:11px">${cards}</div>
     <div class="up-head" style="margin-top:9px">
       <div>
@@ -1180,7 +1180,9 @@ function upgradeHTML(){
     </div>
     <div class="card" style="padding:12px 13px;margin-top:12px">
       <div class="between"><span class="eyebrow g">TEAM</span><span class="tiny">${S.formation} · 팀 OVR <b style="color:var(--ink)">${teamStats()?teamStats().ovr:0}</b></span></div>
-      <div class="muted" style="margin-top:6px">이 선수를 ${o}에서 100으로 올리면 팀 OVR은 약 ${Math.round((teamStats()?teamStats().ovr:0) + (100-o)/11)}까지 오릅니다. 강화 수치는 다음 경기 시뮬레이션에 바로 반영됩니다.</div>
+      <div class="muted" style="margin-top:6px">${o >= 100
+        ? 'OVR 100 이상 구간입니다. 능력치에 상한이 없어 계속 올릴 수 있고, 강화 수치는 다음 경기 시뮬레이션에 바로 반영됩니다.'
+        : `이 선수를 ${o}에서 100으로 올리면 팀 OVR은 약 ${Math.round((teamStats()?teamStats().ovr:0) + (100-o)/11)}까지 오릅니다. 강화 수치는 다음 경기 시뮬레이션에 바로 반영됩니다.`}</div>
     </div>`;
 }
 
