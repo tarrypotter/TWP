@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>DRAFT XI 26/27 · 드래프트 축구 시뮬</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#070d0b">
+<meta name="description" content="랜덤 포메이션 · 포지션별 3택 드래프트 · 무제한 능력치 강화로 유럽 5대 리그 26/27 선수들과 붙는 축구 시뮬레이션.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#070d0b; --bg2:#0a120f; --card:#0f1a16; --card2:#14221c; --card3:#192a22;
+  --line:#1d3128; --line2:#2b4438;
+  --ink:#edf6f0; --sub:#8ba399; --dim:#5e7469;
+  --lime:#cdf95f; --lime2:#a9e12f; --amber:#ffb43a; --red:#ff5b45; --sky:#63d7ff; --gold:#f5c96a;
+  --navh:58px; --barh:54px;
+  --sans:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;padding:0;overflow:hidden;overscroll-behavior:none;background:#030605}
+body{font-family:var(--sans);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;touch-action:manipulation}
+h1,h2,h3,h4,p{margin:0}
+b,strong{font-weight:800}
+.app{position:relative;width:100%;max-width:520px;height:100dvh;margin:0 auto;display:flex;flex-direction:column;
+  background:radial-gradient(120% 60% at 50% 0%,#0f2019 0%,#070d0b 60%,#050a08 100%);overflow:hidden}
+
+/* ---------- top bar ---------- */
+.bar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:calc(env(safe-area-inset-top) + 9px) 14px 9px;border-bottom:1px solid var(--line);
+  background:rgba(7,13,11,.94);backdrop-filter:blur(12px);z-index:20}
+.brand{display:flex;align-items:center;gap:8px;min-width:0}
+.mark{width:27px;height:27px;border-radius:9px;background:var(--lime);color:#07120a;display:grid;place-items:center;
+  font-weight:900;font-size:14px;letter-spacing:-.04em;box-shadow:0 0 0 1px #eaffbd inset,0 3px 10px rgba(205,249,95,.18)}
+.bname{font-size:14px;font-weight:900;letter-spacing:-.02em;white-space:nowrap}
+.bname i{color:var(--lime);font-style:normal}
+.season{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--dim);border:1px solid var(--line2);
+  border-radius:5px;padding:2px 4px;margin-left:1px}
+.hud{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.pill{display:flex;align-items:center;gap:5px;height:29px;padding:0 9px;border-radius:9px;background:var(--card2);
+  border:1px solid var(--line2);font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 7px rgba(205,249,95,.7)}
+.pill.code{color:var(--sub);font-size:11px;background:transparent}
+.pill.code b{color:var(--ink);font-weight:700}
+
+/* ---------- main scroll area ---------- */
+main{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  padding:14px 14px 22px;scrollbar-width:none}
+main::-webkit-scrollbar{display:none}
+
+/* ---------- bottom tabs ---------- */
+.tabs{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:calc(var(--navh) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);border-top:1px solid var(--line);background:rgba(8,15,12,.97);
+  backdrop-filter:blur(12px);z-index:20}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--dim);font-size:10px;font-weight:800;letter-spacing:-.01em;transition:color .15s}
+.tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:var(--lime)}
+.tab.on:before{content:"";position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:26px;height:2px;
+  background:var(--lime);border-radius:0 0 3px 3px;box-shadow:0 0 10px rgba(205,249,95,.6)}
+.tab .badge{position:absolute;top:8px;right:calc(50% - 20px);min-width:15px;height:15px;padding:0 3px;border-radius:8px;
+  background:var(--lime);color:#0a120c;font-size:9px;font-weight:900;display:grid;place-items:center}
+
+/* ---------- generic ---------- */
+.eyebrow{font-size:9.5px;font-weight:800;letter-spacing:.16em;color:var(--lime);text-transform:uppercase}
+.eyebrow.g{color:var(--dim)}
+h2.title{font-size:22px;font-weight:900;letter-spacing:-.045em;line-height:1.22;margin:5px 0 0}
+h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
+.muted{color:var(--sub);font-size:11.5px;line-height:1.55;letter-spacing:-.005em}
+.tiny{font-size:10px;color:var(--dim);letter-spacing:.01em}
+.card{background:linear-gradient(180deg,#101c17,#0c1613);border:1px solid var(--line);border-radius:15px}
+.row{display:flex;align-items:center;gap:10px}
+.between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.stack{display:flex;flex-direction:column;gap:10px}
+.sect{margin-top:20px}
+.sect-h{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-bottom:9px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{height:31px;padding:0 11px;border-radius:9px;border:1px solid var(--line2);background:var(--card);
+  color:var(--sub);font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;gap:5px;letter-spacing:-.01em}
+.chip.on{background:var(--lime);border-color:var(--lime);color:#0a120c}
+.chip:active{transform:scale(.97)}
+.btn{height:47px;border-radius:13px;border:1px solid var(--line2);background:var(--card2);color:var(--ink);
+  font-size:13.5px;font-weight:900;letter-spacing:-.02em;display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:transform .08s,filter .15s}
+.btn:active{transform:scale(.985);filter:brightness(1.08)}
+.btn.primary{background:linear-gradient(180deg,#dcff7c,#b9ea3c);border-color:#e2ff9a;color:#0a1409;
+  box-shadow:0 6px 20px rgba(180,235,60,.16)}
+.btn.dark{background:var(--card);border-color:var(--line2)}
+.btn.sm{height:37px;border-radius:10px;font-size:12px;padding:0 12px}
+.btn:disabled{opacity:.4;filter:none}
+.btn.wide{width:100%}
+.hr{height:1px;background:var(--line);margin:14px 0}
+.tag{display:inline-flex;align-items:center;gap:4px;height:19px;padding:0 6px;border-radius:5px;background:var(--card3);
+  color:var(--sub);font-size:9.5px;font-weight:800;letter-spacing:.02em}
+.tag.lime{background:rgba(205,249,95,.13);color:var(--lime)}
+.tag.amber{background:rgba(255,180,58,.13);color:var(--amber)}
+.tag.red{background:rgba(255,91,69,.14);color:var(--red)}
+.tag.sky{background:rgba(99,215,255,.13);color:var(--sky)}
+
+/* ---------- hero / empty ---------- */
+.hero{position:relative;overflow:hidden;border-radius:18px;border:1px solid var(--line);
+  background:radial-gradient(140% 100% at 78% -10%,#1d3a2b 0%,#0d1915 55%,#0a1310 100%);padding:18px 16px 16px}
+.hero:after{content:"";position:absolute;right:-52px;top:-46px;width:170px;height:170px;border-radius:50%;
+  border:1px solid rgba(205,249,95,.16);box-shadow:0 0 0 24px rgba(205,249,95,.04),0 0 0 52px rgba(205,249,95,.025)}
+.hero h2{font-size:25px;line-height:1.16;letter-spacing:-.055em;margin:7px 0 0;font-weight:900}
+.hero h2 em{font-style:normal;color:var(--lime)}
+.hero p{font-size:11.5px;color:var(--sub);line-height:1.6;margin:8px 0 0;max-width:270px;letter-spacing:-.01em}
+.hero .facts{display:flex;gap:6px;margin-top:13px;flex-wrap:wrap;position:relative;z-index:1}
+.fact{border:1px solid var(--line2);background:rgba(6,12,10,.4);border-radius:8px;padding:5px 7px;font-size:9.5px;
+  color:var(--sub);font-weight:800;letter-spacing:.01em}
+.fact b{color:var(--ink)}
+
+.empty{border:1px dashed var(--line2);border-radius:16px;padding:22px 16px;text-align:center;background:rgba(12,22,18,.5)}
+.empty .ic{font-size:26px;line-height:1}
+.empty b{display:block;font-size:14px;margin:8px 0 3px;letter-spacing:-.02em}
+.empty .muted{max-width:240px;margin:0 auto}
+
+/* ---------- draft ---------- */
+.dhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.prog{display:flex;gap:3px}
+.prog i{display:block;width:9px;height:3px;border-radius:2px;background:#233a30}
+.prog i.on{background:var(--lime)}
+.prog i.now{background:var(--amber)}
+
+.mini{position:relative;border-radius:14px;overflow:hidden;border:1px solid #1b4531;height:158px;
+  background:repeating-linear-gradient(0deg,#113326 0 19px,#0e2c21 19px 38px)}
+.mini .line{position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,255,255,.13)}
+.mini .circ{position:absolute;left:50%;top:50%;width:54px;height:54px;border:1px solid rgba(255,255,255,.13);border-radius:50%;transform:translate(-50%,-50%)}
+.mini .box{position:absolute;left:50%;transform:translateX(-50%);width:64px;height:22px;border:1px solid rgba(255,255,255,.13)}
+.mini .box.t{top:0;border-top:0}.mini .box.b{bottom:0;border-bottom:0}
+.mini .mdot{position:absolute;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:#0b1712;
+  border:1.5px solid #2e5641;color:#7d9b8b;font-size:8px;font-weight:800;display:grid;place-items:center}
+.mini .mdot.f{border-color:var(--lime);color:var(--lime);background:#0f2419}
+.mini .mdot.n{border-color:var(--amber);color:var(--amber);box-shadow:0 0 0 3px rgba(255,180,58,.16);animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 2px rgba(255,180,58,.18)}50%{box-shadow:0 0 0 6px rgba(255,180,58,.05)}}
+
+.picks{display:flex;flex-direction:column;gap:9px;margin-top:11px}
+.pick{position:relative;display:flex;align-items:center;gap:11px;padding:11px 11px 11px 12px;border-radius:14px;
+  border:1px solid var(--line);background:linear-gradient(100deg,#12201a,#0d1814);transition:transform .09s,border-color .15s}
+.pick:active{transform:scale(.985);border-color:var(--lime)}
+.pick .ovr{flex:0 0 auto;width:46px;text-align:center}
+.pick .ovr b{display:block;font-family:var(--mono);font-size:25px;font-weight:800;line-height:1;letter-spacing:-.06em}
+.pick .ovr small{display:block;font-size:8px;letter-spacing:.12em;color:var(--dim);margin-top:2px;font-weight:800}
+.pick .who{flex:1 1 auto;min-width:0}
+.pick .nm{font-size:13.5px;font-weight:900;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick .cl{font-size:10px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick .bars{display:flex;gap:3px;margin-top:7px}
+.pick .bars i{display:block;height:3px;flex:1;border-radius:2px;background:#20362b;overflow:hidden}
+.pick .bars i s{display:block;height:100%;background:var(--lime);text-decoration:none}
+.pick .go{flex:0 0 auto;width:26px;height:26px;border-radius:8px;background:var(--card3);display:grid;place-items:center;color:var(--lime);font-size:13px;font-weight:900}
+.pick .pos{position:absolute;top:-1px;right:56px;font-size:8.5px;font-weight:900;letter-spacing:.06em;color:var(--dim)}
+.pick.off .ovr b{color:var(--amber)}
+
+/* ---------- squad ---------- */
+.teamhead{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:13px 14px;border-radius:15px;
+  background:linear-gradient(120deg,#16281f,#0d1713 70%);border:1px solid var(--line)}
+.teamhead .ovr{text-align:right}
+.teamhead .ovr b{font-family:var(--mono);font-size:30px;font-weight:800;letter-spacing:-.07em;line-height:1}
+.teamhead .ovr small{display:block;font-size:8.5px;letter-spacing:.13em;color:var(--dim);font-weight:800;margin-top:3px}
+.teamhead .nm{font-size:15px;font-weight:900;letter-spacing:-.03em}
+
+.pitch{position:relative;border-radius:16px;overflow:hidden;border:1px solid #1b4531;aspect-ratio:.74;
+  background:repeating-linear-gradient(0deg,#123527 0 26px,#0f2e22 26px 52px);box-shadow:inset 0 0 60px rgba(0,0,0,.35)}
+.pitch .pl-line{position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,255,255,.15)}
+.pitch .pl-circ{position:absolute;left:50%;top:50%;width:74px;height:74px;border:1px solid rgba(255,255,255,.15);border-radius:50%;transform:translate(-50%,-50%)}
+.pitch .pl-box{position:absolute;left:50%;transform:translateX(-50%);width:46%;height:12%;border:1px solid rgba(255,255,255,.15)}
+.pitch .pl-box.t{top:0;border-top:0}.pitch .pl-box.b{bottom:0;border-bottom:0}
+.pitch .pl-arc{position:absolute;left:50%;top:12%;width:60px;height:30px;border:1px solid rgba(255,255,255,.15);border-bottom:0;border-radius:30px 30px 0 0;transform:translateX(-50%)}
+.pdot{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;width:64px;gap:2px;z-index:2}
+.pdot .bead{width:32px;height:32px;border-radius:50%;background:#0a1611;border:1.5px solid var(--lime);color:var(--lime);
+  display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:800;
+  box-shadow:0 3px 10px rgba(0,0,0,.55),inset 0 0 0 1px rgba(205,249,95,.08)}
+.pdot.off .bead{border-color:var(--amber);color:var(--amber);border-style:dashed}
+.pdot.empty .bead{border-color:#38604a;color:#436a52;border-style:dashed;background:transparent}
+.pdot .pn{font-size:8.5px;font-weight:800;white-space:nowrap;max-width:64px;overflow:hidden;text-overflow:ellipsis;
+  color:#d7e9de;text-shadow:0 1px 3px #000;letter-spacing:-.02em}
+.pdot .pp{font-size:7.5px;color:#7fa590;font-weight:800;letter-spacing:.05em}
+.pdot:active .bead{transform:scale(.94)}
+
+.linesum{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.linesum div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 9px}
+.linesum span{display:block;font-size:8.5px;letter-spacing:.11em;color:var(--dim);font-weight:800}
+.linesum b{display:block;font-family:var(--mono);font-size:16px;font-weight:800;margin-top:1px}
+
+/* ---------- stadium ---------- */
+.mode{position:relative;display:block;width:100%;text-align:left;padding:13px 13px;border-radius:15px;border:1px solid var(--line);
+  background:linear-gradient(115deg,#12201a,#0c1613);overflow:hidden}
+.mode:active{transform:scale(.99)}
+.mode .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:17px;background:var(--card3);border:1px solid var(--line2)}
+.mode .ttl{font-size:14.5px;font-weight:900;letter-spacing:-.03em}
+.mode .dsc{font-size:10.5px;color:var(--sub);margin-top:2px;letter-spacing:-.01em;line-height:1.45}
+.mode .rw{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.mode.hot{border-color:#3d6a3a;background:linear-gradient(115deg,#1a2e1c,#0d1713)}
+.mode.hot:after{content:"";position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;
+  background:radial-gradient(circle,rgba(205,249,95,.14),transparent 70%)}
+
+.opps{display:flex;flex-direction:column;gap:7px}
+.opp{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:11px;border:1px solid var(--line);background:var(--card)}
+.opp .cr{width:30px;height:30px;border-radius:9px;background:var(--card3);display:grid;place-items:center;font-family:var(--mono);
+  font-size:11px;font-weight:800;color:var(--lime)}
+.opp .nm{flex:1 1 auto;min-width:0;font-size:12px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opp .ov{font-family:var(--mono);font-size:12px;color:var(--sub);font-weight:700}
+.opp .pl{width:52px;height:29px;border-radius:8px;background:var(--lime);color:#0a120c;font-size:11px;font-weight:900;display:grid;place-items:center}
+
+/* ---------- match ---------- */
+.board{padding:13px 13px 11px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(180deg,#15241c,#0b1512)}
+.board .tm{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.side{display:flex;flex-direction:column;gap:2px;flex:1 1 0;min-width:0}
+.side.r{align-items:flex-end;text-align:right}
+.side .n{font-size:12.5px;font-weight:900;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.side .o{font-size:9px;color:var(--dim);font-family:var(--mono);letter-spacing:.02em}
+.sc{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.sc b{font-family:var(--mono);font-size:31px;font-weight:800;letter-spacing:-.08em;line-height:1}
+.sc i{font-style:normal;color:#3d5a4b;font-size:15px;font-weight:800}
+.clock{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:9px}
+.clock .m{font-family:var(--mono);font-size:11px;font-weight:800;color:var(--lime);letter-spacing:.02em}
+.clock .live{display:inline-flex;align-items:center;gap:3px;font-size:8.5px;font-weight:900;letter-spacing:.13em;color:var(--red)}
+.clock .live:before{content:"";width:5px;height:5px;border-radius:50%;background:var(--red);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+.mbar{height:3px;border-radius:2px;background:#1c3126;margin-top:8px;overflow:hidden}
+.mbar i{display:block;height:100%;background:var(--lime);border-radius:2px;transition:width .4s linear}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.stats3 div{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:7px 8px;text-align:center}
+.stats3 span{display:block;font-size:8px;letter-spacing:.1em;color:var(--dim);font-weight:800}
+.stats3 b{display:block;font-family:var(--mono);font-size:13px;margin-top:1px}
+
+.ticker{margin-top:11px;display:flex;flex-direction:column;gap:6px}
+.tk{display:flex;gap:8px;align-items:flex-start;padding:8px 9px;border-radius:9px;background:rgba(18,32,26,.62);
+  border:1px solid #16281f;animation:tin .28s ease-out}
+@keyframes tin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.tk .mm{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;font-weight:800;color:var(--dim);padding-top:2px;width:24px}
+.tk .tx{font-size:11px;line-height:1.5;color:#c9dbd0;letter-spacing:-.01em}
+.tk.goal{background:linear-gradient(100deg,rgba(205,249,95,.16),rgba(18,32,26,.6));border-color:#3f6a34}
+.tk.goal .mm{color:var(--lime)}
+.tk.goal .tx{color:#eaffc4;font-weight:800}
+.tk.big .tx{font-weight:800;color:var(--ink)}
+.tk.half{background:#101d17}
+
+.result{padding:15px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(170deg,#15261c,#0b1512)}
+.result .rb{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 12px}
+.result .rb .tag{font-size:10px}
+.result .rb h3{font-size:26px;font-weight:900;letter-spacing:-.05em}
+.result .rb .fs{font-family:var(--mono);font-size:36px;font-weight:800;letter-spacing:-.07em;margin-top:2px}
+.rewards{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.rewards div{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:9px 10px}
+.rewards span{display:block;font-size:8.5px;letter-spacing:.11em;color:var(--dim);font-weight:800}
+.rewards b{display:block;font-family:var(--mono);font-size:16px;margin-top:1px}
+.rewards b.up{color:var(--lime)}.rewards b.dn{color:var(--red)}
+
+/* ---------- upgrade ---------- */
+.pscroll{display:flex;gap:7px;overflow-x:auto;padding:2px 1px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch }
+.pscroll::-webkit-scrollbar{display:none}
+.pcard{flex:0 0 auto;width:88px;padding:9px 7px;border-radius:12px;border:1px solid var(--line);background:var(--card);text-align:center}
+.pcard.on{border-color:var(--lime);background:linear-gradient(180deg,#1b2f22,#101c16)}
+.pcard .o{font-family:var(--mono);font-size:18px;font-weight:800;letter-spacing:-.05em;line-height:1}
+.pcard .n{font-size:9.5px;font-weight:800;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}
+.pcard .p{font-size:8px;color:var(--dim);font-weight:800;letter-spacing:.06em;margin-top:1px}
+.pcard .b{font-family:var(--mono);font-size:8.5px;color:var(--lime);margin-top:2px}
+
+.up-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:13px 14px;border-radius:15px;
+  background:linear-gradient(120deg,#17291f,#0c1613);border:1px solid var(--line)}
+.up-head .big{font-family:var(--mono);font-size:40px;font-weight:800;letter-spacing:-.08em;line-height:.95}
+.up-head .big.up{color:var(--lime)}
+.up-head .nm{font-size:14px;font-weight:900;letter-spacing:-.03em;margin-top:2px}
+.up-head .cl{font-size:10px;color:var(--sub);margin-top:1px}
+.stat{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid #17261f}
+.stat:last-child{border-bottom:0}
+.stat .lb{width:38px;font-size:10.5px;font-weight:800;color:var(--sub);letter-spacing:-.01em}
+.stat .vl{width:34px;text-align:right;font-family:var(--mono);font-size:14px;font-weight:800}
+.stat .tr{flex:1 1 auto;height:5px;border-radius:3px;background:#1b2f24;overflow:hidden}
+.stat .tr s{display:block;height:100%;background:linear-gradient(90deg,#7bbf35,var(--lime));text-decoration:none;border-radius:3px;transition:width .18s}
+.stat .btns{display:flex;gap:4px}
+.up{height:29px;min-width:42px;padding:0 7px;border-radius:8px;background:var(--card3);border:1px solid var(--line2);
+  font-family:var(--mono);font-size:11px;font-weight:800;color:var(--ink);display:grid;place-items:center;line-height:1}
+.up:active{background:var(--lime);color:#0a120c}
+.up.poor{opacity:.38}
+.pop{position:fixed;z-index:120;font-family:var(--mono);font-size:14px;font-weight:800;color:var(--lime);
+  pointer-events:none;animation:pop .8s ease-out forwards;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+@keyframes pop{0%{opacity:0;transform:translateY(4px) scale(.9)}30%{opacity:1;transform:translateY(-10px) scale(1.05)}100%{opacity:0;transform:translateY(-34px) scale(1)}}
+
+/* ---------- ranking ---------- */
+.tier{border-radius:16px;border:1px solid var(--line);padding:15px;position:relative;overflow:hidden;
+  background:linear-gradient(140deg,#17281f,#0b1512)}
+.tier:after{content:"";position:absolute;right:-40px;bottom:-60px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(205,249,95,.10),transparent 70%)}
+.tier .badge{display:inline-flex;align-items:center;gap:5px;height:23px;padding:0 9px;border-radius:7px;font-size:10px;font-weight:900;letter-spacing:.08em}
+.tier .rt{font-family:var(--mono);font-size:38px;font-weight:800;letter-spacing:-.08em;line-height:1;margin-top:9px}
+.tier .rt small{font-size:11px;color:var(--dim);letter-spacing:.08em;margin-left:4px}
+.tierp{height:5px;border-radius:3px;background:#1b2f24;margin-top:11px;overflow:hidden}
+.tierp i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#8ecf36,var(--lime));transition:width .3s}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.gcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 11px}
+.gcard span{display:block;font-size:8.5px;letter-spacing:.1em;color:var(--dim);font-weight:800}
+.gcard b{display:block;font-family:var(--mono);font-size:17px;font-weight:800;margin-top:2px;letter-spacing:-.04em}
+.gcard small{display:block;font-size:9.5px;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ladder{display:flex;flex-direction:column;gap:4px}
+.lad{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:9px;background:rgba(15,26,22,.6);border:1px solid transparent}
+.lad.on{background:#17291f;border-color:#31543c}
+.lad .d{width:8px;height:8px;border-radius:50%}
+.lad .n{flex:1 1 auto;font-size:11px;font-weight:800;letter-spacing:-.01em}
+.lad .r{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.lad.on .r{color:var(--lime)}
+.share{background:#0c1713;border:1px dashed var(--line2);border-radius:11px;padding:10px 11px;font-size:10.5px;line-height:1.7;
+  color:#b9cdc2;white-space:pre-wrap;word-break:break-all;user-select:text;-webkit-user-select:text}
+
+/* ---------- sheet / toast ---------- */
+.sheet-host{position:absolute;inset:0;z-index:60;display:none;align-items:flex-end;background:rgba(3,7,5,.66);backdrop-filter:blur(3px)}
+.sheet-host.on{display:flex;animation:fade .16s ease-out}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.sheet{width:100%;max-height:86%;overflow-y:auto;background:#0e1a15;border-top:1px solid var(--line2);border-radius:20px 20px 0 0;
+  padding:16px 16px calc(18px + env(safe-area-inset-bottom));animation:up .22s cubic-bezier(.2,.8,.3,1)}
+@keyframes up{from{transform:translateY(30px)}to{transform:none}}
+.sheet .grab{width:34px;height:3px;border-radius:2px;background:#2b4438;margin:0 auto 12px}
+.toast{position:absolute;left:50%;bottom:calc(var(--navh) + 22px + env(safe-area-inset-bottom));transform:translate(-50%,14px);
+  background:#1b2f22;border:1px solid #3a6045;color:var(--ink);font-size:11.5px;font-weight:800;padding:9px 14px;border-radius:10px;
+  opacity:0;pointer-events:none;transition:.22s;z-index:90;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+.flag{font-size:10px;color:var(--dim);letter-spacing:.02em}
+.spark{display:inline-block;width:6px;height:6px;border-radius:2px;background:var(--lime);margin-right:4px;vertical-align:1px}
+@media (max-width:360px){.hero h2{font-size:22px}.pick .ovr b{font-size:22px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="bar">
+    <div class="brand">
+      <div class="mark">D</div>
+      <div class="bname">DRAFT<i>XI</i></div>
+      <div class="season">26/27</div>
+    </div>
+    <div class="hud">
+      <div class="pill" id="coinPill"><span class="dot"></span><b id="coinVal">0</b></div>
+      <button class="pill code" id="codePill">#<b>000000</b></button>
+    </div>
+  </header>
+  <main id="main"></main>
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-tab="squad">
+      <svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+      <span>드래프트</span>
+    </button>
+    <button class="tab" data-tab="stadium">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4"/><circle cx="12" cy="12" r="2.4"/></svg>
+      <span>경기장</span>
+    </button>
+    <button class="tab" data-tab="upgrade">
+      <svg viewBox="0 0 24 24"><path d="M13 3L5 14h6l-1 7 9-12h-6l1-6z"/></svg>
+      <span>강화</span>
+    </button>
+    <button class="tab" data-tab="ranking">
+      <svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg>
+      <span>랭킹</span>
+    </button>
+  </nav>
+  <div class="sheet-host" id="sheetHost"><div class="sheet" id="sheet"></div></div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+const LG={"EPL": "EPL", "LALIGA": "라리가", "BUNDESLIGA": "분데스리가", "SERIEA": "세리에A", "LIGUE1": "리그1"};
+const P=[["Thibaut Courtois","레알 마드리드","LALIGA","GK",90,"34"],["Trent Alexander-Arnold","레알 마드리드","LALIGA","RB",88,"28"],["Jude Bellingham","레알 마드리드","LALIGA","AM",93,"23"],["Arda Güler","레알 마드리드","LALIGA","AM",87,"21"],["Vinicius Junior","레알 마드리드","LALIGA","LW",93,"26"],["Kylian Mbappé","레알 마드리드","LALIGA","ST",95,"27"],["Dean Huijsen","레알 마드리드","LALIGA","CB",86,"21"],["Marc Cucurella","레알 마드리드","LALIGA","LB",86,"28"],["Álvaro Carreras","레알 마드리드","LALIGA","LB",86,"23"],["Federico Valverde","레알 마드리드","LALIGA","CM",88,"28"],["Yan Diomande","레알 마드리드","LALIGA","RW",90,"20"],["Pau Cubarsí","바르셀로나","LALIGA","CB",90,"19"],["Jules Koundé","바르셀로나","LALIGA","RB",85,"28"],["Rodri","바르셀로나","LALIGA","DM",91,"30"],["Pedri","바르셀로나","LALIGA","CM",92,"23"],["Gavi","바르셀로나","LALIGA","CM",84,"22"],["Frenkie de Jong","바르셀로나","LALIGA","CM",86,"29"],["Fermín López","바르셀로나","LALIGA","AM",87,"23"],["Dani Olmo","바르셀로나","LALIGA","AM",85,"28"],["Lamine Yamal","바르셀로나","LALIGA","RW",95,"19"],["Karim Adeyemi","바르셀로나","LALIGA","RW",83,"24"],["Raphinha","바르셀로나","LALIGA","ST",90,"29"],["Gianluigi Donnarumma","맨체스터 시티","EPL","GK",90,"27"],["Marc Guéhi","맨체스터 시티","EPL","CB",85,"26"],["Rúben Dias","맨체스터 시티","EPL","CB",87,"29"],["Josko Gvardiol","맨체스터 시티","EPL","LB",86,"24"],["Rico Lewis","맨체스터 시티","EPL","RB",82,"21"],["Elliot Anderson","맨체스터 시티","EPL","DM",86,"24"],["Enzo Fernández","맨체스터 시티","EPL","CM",90,"25"],["Mateo Kovacic","맨체스터 시티","EPL","CM",82,"32"],["Rayan Cherki","맨체스터 시티","EPL","AM",86,"23"],["Phil Foden","맨체스터 시티","EPL","AM",89,"26"],["Jérémy Doku","맨체스터 시티","EPL","LW",85,"24"],["Antoine Semenyo","맨체스터 시티","EPL","RW",84,"26"],["Erling Haaland","맨체스터 시티","EPL","ST",94,"26"],["Alisson","리버풀","EPL","GK",88,"34"],["Ronald Araújo","리버풀","EPL","CB",86,"27"],["Virgil van Dijk","리버풀","EPL","CB",89,"35"],["Milos Kerkez","리버풀","EPL","LB",84,"23"],["Jeremie Frimpong","리버풀","EPL","RB",84,"25"],["Ryan Gravenberch","리버풀","EPL","DM",87,"24"],["Alexis Mac Allister","리버풀","EPL","CM",89,"27"],["Dominik Szoboszlai","리버풀","EPL","AM",88,"26"],["Florian Wirtz","리버풀","EPL","AM",91,"23"],["Cody Gakpo","리버풀","EPL","LW",86,"27"],["Alexander Isak","리버풀","EPL","ST",89,"27"],["Hugo Ekitiké","리버풀","EPL","ST",86,"24"],["William Saliba","아스널","EPL","CB",88,"25"],["Jurriën Timber","아스널","EPL","RB",85,"25"],["Martín Zubimendi","아스널","EPL","DM",87,"27"],["Declan Rice","아스널","EPL","CM",90,"27"],["Martin Ødegaard","아스널","EPL","AM",88,"27"],["Bukayo Saka","아스널","EPL","RW",89,"25"],["Viktor Gyökeres","아스널","EPL","ST",86,"28"],["David Raya","아스널","EPL","GK",83,"31"],["Gabriel","아스널","EPL","CB",88,"28"],["Riccardo Calafiori","아스널","EPL","LB",87,"24"],["Kai Havertz","아스널","EPL","ST",86,"27"],["Manuel Neuer","바이에른","BUNDESLIGA","GK",84,"40"],["Dayot Upamecano","바이에른","BUNDESLIGA","CB",85,"28"],["Jonathan Tah","바이에른","BUNDESLIGA","CB",85,"30"],["Joshua Kimmich","바이에른","BUNDESLIGA","DM",88,"31"],["Michael Olise","바이에른","BUNDESLIGA","RW",92,"24"],["Serge Gnabry","바이에른","BUNDESLIGA","SS",82,"31"],["Harry Kane","바이에른","BUNDESLIGA","ST",92,"33"],["Nathaniel Brown","바이에른","BUNDESLIGA","LB",86,"23"],["Alphonso Davies","바이에른","BUNDESLIGA","LB",85,"26"],["Aleksandar Pavlovic","바이에른","BUNDESLIGA","DM",88,"22"],["Jamal Musiala","바이에른","BUNDESLIGA","AM",88,"23"],["Achraf Hakimi","PSG","LIGUE1","RB",89,"28"],["Vitinha","PSG","LIGUE1","DM",91,"26"],["João Neves","PSG","LIGUE1","CM",91,"22"],["Désiré Doué","PSG","LIGUE1","RW",88,"21"],["Matvey Safonov","PSG","LIGUE1","GK",83,"27"],["Willian Pacho","PSG","LIGUE1","CB",88,"25"],["Nuno Mendes","PSG","LIGUE1","LB",88,"24"],["Ilya Zabarnyi","PSG","LIGUE1","CB",84,"24"],["Warren Zaïre-Emery","PSG","LIGUE1","CM",88,"20"],["Khvicha Kvaratskhelia","PSG","LIGUE1","LW",91,"25"],["Ousmane Dembélé","PSG","LIGUE1","ST",89,"29"],["Alessandro Bastoni","인터 밀란","SERIEA","CB",89,"27"],["Manuel Akanji","인터 밀란","SERIEA","CB",84,"31"],["Federico Dimarco","인터 밀란","SERIEA","LB",85,"29"],["Nicolò Barella","인터 밀란","SERIEA","CM",89,"29"],["Piotr Zieliński","인터 밀란","SERIEA","CM",82,"32"],["Lautaro Martínez","인터 밀란","SERIEA","ST",90,"29"],["Josep Martínez","인터 밀란","SERIEA","GK",78,"28"],["Yann Bisseck","인터 밀란","SERIEA","CB",86,"25"],["Petar Sučić","인터 밀란","SERIEA","CM",85,"23"],["Marcus Thuram","인터 밀란","SERIEA","ST",86,"29"],["Pio Esposito","인터 밀란","SERIEA","ST",86,"21"],["Moisés Caicedo","첼시","EPL","DM",88,"25"],["Cole Palmer","첼시","EPL","AM",90,"24"],["Morgan Rogers","첼시","EPL","LW",86,"24"],["Jamie Gittens","첼시","EPL","LW",82,"22"],["Estêvão","첼시","EPL","RW",85,"19"],["João Pedro","첼시","EPL","ST",84,"25"],["Maxence Lacroix","첼시","EPL","CB",86,"26"],["Reece James","첼시","EPL","RB",86,"26"],["Youri Tielemans","맨체스터 유나이티드","EPL","CM",82,"29"],["Bruno Fernandes","맨체스터 유나이티드","EPL","AM",87,"32"],["Mason Mount","맨체스터 유나이티드","EPL","AM",80,"27"],["Marcus Rashford","맨체스터 유나이티드","EPL","LW",84,"29"],["Matheus Cunha","맨체스터 유나이티드","EPL","ST",83,"27"],["Benjamin Šeško","맨체스터 유나이티드","EPL","ST",82,"23"],["Lisandro Martínez","맨체스터 유나이티드","EPL","CB",85,"28"],["Leny Yoro","맨체스터 유나이티드","EPL","CB",85,"21"],["Micky van de Ven","토트넘","EPL","CB",85,"25"],["Sandro Tonali","토트넘","EPL","DM",86,"26"],["Conor Gallagher","토트넘","EPL","CM",82,"26"],["Xavi Simons","토트넘","EPL","AM",85,"23"],["James Maddison","토트넘","EPL","AM",82,"29"],["Mohammed Kudus","토트넘","EPL","RW",84,"26"],["Dominic Solanke","토트넘","EPL","ST",82,"29"],["Jan Paul van Hecke","토트넘","EPL","CB",86,"26"],["Lukas Hornicek","뉴캐슬","EPL","GK",82,"24"],["Lewis Hall","뉴캐슬","EPL","LB",86,"22"],["Malick Thiaw","뉴캐슬","EPL","CB",86,"25"],["Tino Livramento","뉴캐슬","EPL","RB",85,"24"],["Nico González","뉴캐슬","EPL","DM",86,"24"],["Jacob Ramsey","뉴캐슬","EPL","CM",84,"25"],["Matias Fernandez-Pardo","뉴캐슬","EPL","ST",86,"21"],["Bazoumana Touré","뉴캐슬","EPL","LW",86,"20"],["Jan Oblak","아틀레티코","LALIGA","GK",88,"33"],["Cristian Romero","아틀레티코","LALIGA","CB",86,"28"],["Pablo Barrios","아틀레티코","LALIGA","CM",85,"23"],["Julián Álvarez","아틀레티코","LALIGA","ST",89,"26"],["Marc Pubill","아틀레티코","LALIGA","CB",86,"23"],["Dávid Hancko","아틀레티코","LALIGA","CB",84,"28"],["Morten Hjulmand","아틀레티코","LALIGA","DM",85,"27"],["Álex Baena","아틀레티코","LALIGA","LW",85,"25"],["Gregor Kobel","도르트문트","BUNDESLIGA","GK",87,"28"],["Nico Schlotterbeck","도르트문트","BUNDESLIGA","CB",85,"26"],["Serhou Guirassy","도르트문트","BUNDESLIGA","ST",85,"30"],["Joane Gadou","도르트문트","BUNDESLIGA","CB",83,"19"],["Julian Ryerson","도르트문트","BUNDESLIGA","RB",82,"28"],["Felix Nmecha","도르트문트","BUNDESLIGA","CM",87,"26"],["Jobe Bellingham","도르트문트","BUNDESLIGA","CM",84,"21"],["Maximilian Beier","도르트문트","BUNDESLIGA","ST",84,"24"],["Mark Flekken","레버쿠젠","BUNDESLIGA","GK",75,"33"],["Jarell Quansah","레버쿠젠","BUNDESLIGA","CB",86,"23"],["Edmond Tapsoba","레버쿠젠","BUNDESLIGA","CB",84,"27"],["Guéla Doué","레버쿠젠","BUNDESLIGA","RB",83,"24"],["Ibrahim Maza","레버쿠젠","BUNDESLIGA","AM",86,"20"],["Malik Tillman","레버쿠젠","BUNDESLIGA","AM",83,"24"],["Christian Kofane","레버쿠젠","BUNDESLIGA","ST",84,"20"],["Afonso Moreira","레버쿠젠","BUNDESLIGA","LW",83,"21"],["Weston McKennie","유벤투스","SERIEA","CM",82,"28"],["Pape Matar Sarr","유벤투스","SERIEA","CM",81,"24"],["Kenan Yıldız","유벤투스","SERIEA","LW",86,"21"],["Nick Woltemade","유벤투스","SERIEA","ST",84,"24"],["Randal Kolo Muani","유벤투스","SERIEA","ST",84,"27"],["Bremer","유벤투스","SERIEA","CB",84,"29"],["Pierre Kalulu","유벤투스","SERIEA","CB",83,"26"],["Lloyd Kelly","유벤투스","SERIEA","CB",82,"28"],["Mike Maignan","AC 밀란","SERIEA","GK",87,"31"],["Christian Pulisic","AC 밀란","SERIEA","RW",85,"28"],["Strahinja Pavlović","AC 밀란","SERIEA","CB",84,"25"],["Mario Gila","AC 밀란","SERIEA","CB",83,"26"],["Koni De Winter","AC 밀란","SERIEA","CB",82,"24"],["Ardon Jashari","AC 밀란","SERIEA","DM",81,"24"],["Alphadjo Cisse","AC 밀란","SERIEA","AM",81,"20"],["Gonçalo Ramos","AC 밀란","SERIEA","ST",86,"25"],["Alessandro Buongiorno","나폴리","SERIEA","CB",84,"27"],["Giovanni Di Lorenzo","나폴리","SERIEA","RB",84,"33"],["Stanislav Lobotka","나폴리","SERIEA","DM",84,"31"],["Scott McTominay","나폴리","SERIEA","CM",86,"29"],["Kevin De Bruyne","나폴리","SERIEA","AM",88,"35"],["Rasmus Højlund","나폴리","SERIEA","ST",85,"23"],["Sam Beukema","나폴리","SERIEA","CB",80,"27"],["Alisson Santos","나폴리","SERIEA","LW",83,"24"],["Leon Goretzka","아스톤 빌라","EPL","CM",82,"31"],["Emiliano Buendía","아스톤 빌라","EPL","AM",80,"29"],["Nicolas Jackson","아스톤 빌라","EPL","ST",82,"25"],["Zion Suzuki","아스톤 빌라","EPL","GK",83,"24"],["Ian Maatsen","아스톤 빌라","EPL","LB",84,"24"],["Bart Verbruggen","브라이턴","EPL","GK",84,"24"],["Luka Vuskovic","브라이턴","EPL","CB",87,"19"],["Yasin Ayari","브라이턴","EPL","CM",85,"23"],["Jack Hinshelwood","브라이턴","EPL","DM",84,"21"],["Yankuba Minteh","브라이턴","EPL","RW",86,"22"],["Dean Henderson","크리스털 팰리스","EPL","GK",83,"29"],["Honest Ahanor","크리스털 팰리스","EPL","CB",84,"18"],["Adam Wharton","크리스털 팰리스","EPL","DM",88,"22"],["Quinten Timber","크리스털 팰리스","EPL","CM",82,"25"],["Ismaïla Sarr","크리스털 팰리스","EPL","RW",85,"28"],["Morgan Gibbs-White","노팅엄 포리스트","EPL","AM",84,"26"],["John Victor","노팅엄 포리스트","EPL","GK",72,"30"],["Murillo","노팅엄 포리스트","EPL","CB",86,"24"],["James McAtee","노팅엄 포리스트","EPL","CM",81,"24"],["Liam Delap","노팅엄 포리스트","EPL","ST",84,"23"],["Jordan Pickford","에버턴","EPL","GK",79,"32"],["Jarrad Branthwaite","에버턴","EPL","CB",85,"24"],["James Garner","에버턴","EPL","DM",86,"25"],["Kiernan Dewsbury-Hall","에버턴","EPL","AM",84,"28"],["Thierno Barry","에버턴","EPL","ST",84,"24"],["Luiz Júnior","비야레알","LALIGA","GK",78,"25"],["Renato Veiga","비야레알","LALIGA","CB",83,"23"],["Pape Gueye","비야레알","LALIGA","CM",84,"27"],["Carlos Macià","비야레알","LALIGA","CM",80,"18"],["Alberto Moleiro","비야레알","LALIGA","LW",86,"23"],["Álvaro Valles","베티스","LALIGA","GK",78,"29"],["Natan","베티스","LALIGA","CB",83,"25"],["Facundo Bernal","베티스","LALIGA","DM",78,"23"],["Nelson Deossa","베티스","LALIGA","CM",77,"26"],["Abde Ezzalzouli","베티스","LALIGA","LW",84,"24"],["Álex Remiro","레알 소시에다드","LALIGA","GK",77,"31"],["Jon Martín","레알 소시에다드","LALIGA","CB",82,"20"],["Jon Gorrotxategi","레알 소시에다드","LALIGA","DM",82,"24"],["Luka Sucic","레알 소시에다드","LALIGA","AM",80,"24"],["Mikel Oyarzabal","레알 소시에다드","LALIGA","ST",82,"29"],["Unai Simón","아틀레틱","LALIGA","GK",81,"29"],["Dani Vivian","아틀레틱","LALIGA","CB",81,"27"],["Mikel Jauregizar","아틀레틱","LALIGA","CM",82,"23"],["Oihan Sancet","아틀레틱","LALIGA","AM",82,"26"],["Nico Williams","아틀레틱","LALIGA","LW",84,"24"],["Maarten Vandevoordt","라이프치히","BUNDESLIGA","GK",80,"24"],["Castello Lukeba","라이프치히","BUNDESLIGA","CB",86,"23"],["Christoph Baumgartner","라이프치히","BUNDESLIGA","AM",84,"27"],["Neil El Aynaoui","라이프치히","BUNDESLIGA","CM",83,"25"],["Antonio Nusa","라이프치히","BUNDESLIGA","LW",85,"21"],["Dennis Seimen","슈투트가르트","BUNDESLIGA","GK",78,"20"],["Finn Jeltsch","슈투트가르트","BUNDESLIGA","CB",84,"20"],["Angelo Stiller","슈투트가르트","BUNDESLIGA","DM",85,"25"],["Bilal El Khannouss","슈투트가르트","BUNDESLIGA","AM",84,"22"],["Jamie Leweling","슈투트가르트","BUNDESLIGA","RW",84,"25"],["Noah Atubolu","프랑크푸르트","BUNDESLIGA","GK",80,"24"],["Nnamdi Collins","프랑크푸르트","BUNDESLIGA","CB",81,"22"],["Can Uzun","프랑크푸르트","BUNDESLIGA","AM",85,"21"],["Raphael Onyedika","프랑크푸르트","BUNDESLIGA","DM",80,"25"],["Jonathan Burkardt","프랑크푸르트","BUNDESLIGA","ST",83,"26"],["Mile Svilar","로마","SERIEA","GK",84,"27"],["Wesley","로마","SERIEA","RB",84,"23"],["Manu Koné","로마","SERIEA","CM",86,"25"],["Rodrigo Mora","로마","SERIEA","AM",84,"19"],["Donyell Malen","로마","SERIEA","ST",86,"27"],["Marco Carnesecchi","아탈란타","SERIEA","GK",83,"26"],["Giorgio Scalvini","아탈란타","SERIEA","CB",84,"22"],["Éderson","아탈란타","SERIEA","CM",84,"27"],["Charles De Ketelaere","아탈란타","SERIEA","AM",84,"25"],["Jonathan Rowe","아탈란타","SERIEA","LW",83,"23"],["Robert Sánchez","코모","SERIEA","GK",80,"28"],["Jacobo Ramón","코모","SERIEA","CB",85,"21"],["Nico Paz","코모","SERIEA","AM",88,"22"],["Martin Baturina","코모","SERIEA","AM",86,"23"],["Assane Diao","코모","SERIEA","LW",84,"21"],["Philipp Köhn","모나코","LIGUE1","GK",71,"28"],["Vanderson","모나코","LIGUE1","RB",80,"25"],["Lamine Camara","모나코","LIGUE1","CM",86,"22"],["Denis Zakaria","모나코","LIGUE1","DM",82,"29"],["Folarin Balogun","모나코","LIGUE1","ST",86,"25"],["Jeffrey de Lange","마르세유","LIGUE1","GK",71,"28"],["Timothy Weah","마르세유","LIGUE1","RB",81,"26"],["Pierre-Emile Højbjerg","마르세유","LIGUE1","DM",80,"31"],["Angel Gomes","마르세유","LIGUE1","AM",78,"26"],["Igor Paixão","마르세유","LIGUE1","LW",84,"26"],["Dominik Greif","리옹","LIGUE1","GK",77,"29"],["Moussa Niakhaté","리옹","LIGUE1","CB",80,"30"],["Tyler Morton","리옹","LIGUE1","DM",83,"24"],["Pavel Sulc","리옹","LIGUE1","AM",81,"25"],["Loïs Openda","리옹","LIGUE1","ST",82,"26"],["Berke Özer","릴","LIGUE1","GK",78,"26"],["Nathan Ngoy","릴","LIGUE1","CB",82,"23"],["Hákon Arnar Haraldsson","릴","LIGUE1","AM",83,"23"],["Ngal'ayel Mukau","릴","LIGUE1","DM",80,"22"],["Dilane Bakwa","릴","LIGUE1","RW",83,"24"],["Filip Jørgensen","스트라스부르","LIGUE1","GK",80,"24"],["Karim Coulibaly","스트라스부르","LIGUE1","CB",83,"19"],["Samir El Mourabet","스트라스부르","LIGUE1","CM",81,"21"],["Dário Essugo","스트라스부르","LIGUE1","DM",80,"21"],["Joaquín Panichelli","스트라스부르","LIGUE1","ST",84,"24"],["Robin Risser","랑스","LIGUE1","GK",83,"21"],["Ismaëlo Ganiou","랑스","LIGUE1","CB",83,"21"],["Yacine Titraoui","랑스","LIGUE1","CM",77,"23"],["Andrija Bulatovic","랑스","LIGUE1","CM",76,"19"],["Franjo Ivanović","랑스","LIGUE1","ST",80,"23"]];
+const OPP={"맨체스터 시티":{"l":"EPL","o":88,"xi":[["Gianluigi Donnarumma","GK"],["Marc Guéhi","CB"],["Josko Gvardiol","LB"],["Nico O'Reilly","LB"],["Rúben Dias","CB"],["Elliot Anderson","DM"],["Enzo Fernández","CM"],["Rayan Cherki","AM"],["Antoine Semenyo","RW"],["Jérémy Doku","LW"],["Iliman Ndiaye","LW"]]},"리버풀":{"l":"EPL","o":88,"xi":[["Giorgi Mamardashvili","GK"],["Jérémy Jacquet","CB"],["Milos Kerkez","LB"],["Jeremie Frimpong","RB"],["Giovanni Leoni","CB"],["Dominik Szoboszlai","AM"],["Florian Wirtz","AM"],["Ryan Gravenberch","DM"],["Bradley Barcola","LW"],["Alexander Isak","ST"],["Hugo Ekitiké","ST"]]},"아스널":{"l":"EPL","o":88,"xi":[["David Raya","GK"],["William Saliba","CB"],["Gabriel","CB"],["Jurriën Timber","RB"],["Riccardo Calafiori","LB"],["Declan Rice","CM"],["Martin Ødegaard","AM"],["Bruno Guimarães","CM"],["Bukayo Saka","RW"],["Kai Havertz","ST"],["Max Dowman","RW"]]},"첼시":{"l":"EPL","o":86,"xi":[["Mike Penders","GK"],["Maxence Lacroix","CB"],["Reece James","RB"],["Levi Colwill","CB"],["Jorrel Hato","LB"],["Cole Palmer","AM"],["Moisés Caicedo","DM"],["Valentín Barco","CM"],["Morgan Rogers","LW"],["João Pedro","ST"],["Estêvão","RW"]]},"맨체스터 유나이티드":{"l":"EPL","o":86,"xi":[["Senne Lammens","GK"],["Lisandro Martínez","CB"],["Leny Yoro","CB"],["Ayden Heaven","CB"],["Diogo Dalot","RB"],["Kobbie Mainoo","CM"],["Carlos Baleba","DM"],["Andrey Santos","DM"],["Bryan Mbeumo","RW"],["Matheus Cunha","ST"],["Benjamin Šeško","ST"]]},"토트넘":{"l":"EPL","o":85,"xi":[["Antonín Kinský","GK"],["Jan Paul van Hecke","CB"],["Micky van de Ven","CB"],["Pedro Porro","RB"],["Archie Gray","RB"],["Sandro Tonali","DM"],["Mateus Fernandes","CM"],["Lucas Bergvall","CM"],["Sávio","LW"],["Omar Marmoush","ST"],["Mohammed Kudus","RW"]]},"뉴캐슬":{"l":"EPL","o":85,"xi":[["Lukas Hornicek","GK"],["Lewis Hall","LB"],["Malick Thiaw","CB"],["Tino Livramento","RB"],["Sven Botman","CB"],["Nico González","DM"],["Jacob Ramsey","CM"],["Lewis Miley","CM"],["Matias Fernandez-Pardo","ST"],["Bazoumana Touré","LW"],["Yoane Wissa","ST"]]},"아스톤 빌라":{"l":"EPL","o":84,"xi":[["Zion Suzuki","GK"],["Ian Maatsen","LB"],["Matteo Ruggeri","LB"],["Taylor Harwood-Bellis","CB"],["Matty Cash","RB"],["Johan Manzambi","AM"],["Boubacar Kamara","DM"],["Amadou Onana","DM"],["Ibrahim Mbaye","RW"],["Nicolas Jackson","ST"],["Alejandro Garnacho","LW"]]},"브라이턴":{"l":"EPL","o":84,"xi":[["Bart Verbruggen","GK"],["Luka Vuskovic","CB"],["Ferdi Kadıoğlu","LB"],["Maxim De Cuyper","LB"],["Mats Wieffer","RB"],["Yasin Ayari","CM"],["Jack Hinshelwood","DM"],["Diego Gómez","CM"],["Yankuba Minteh","RW"],["Charalampos Kostoulas","ST"],["Georginio Rutter","ST"]]},"에버턴":{"l":"EPL","o":83,"xi":[["Jordan Pickford","GK"],["Jarrad Branthwaite","CB"],["Vitaliy Mykolenko","LB"],["Jake O'Brien","RB"],["Ainsley Maitland-Niles","RB"],["James Garner","DM"],["Kiernan Dewsbury-Hall","AM"],["Hayden Hackney","DM"],["Thierno Barry","ST"],["Tyrique George","LW"],["Brennan Johnson","RW"]]},"크리스털 팰리스":{"l":"EPL","o":84,"xi":[["Dean Henderson","GK"],["Honest Ahanor","CB"],["Jaydee Canvot","CB"],["Chris Richards","CB"],["Tyrick Mitchell","LB"],["Adam Wharton","DM"],["Quinten Timber","CM"],["Daichi Kamada","CM"],["Ismaïla Sarr","RW"],["Jørgen Strand Larsen","ST"],["Yéremy Pino","LW"]]},"노팅엄 포리스트":{"l":"EPL","o":83,"xi":[["John Victor","GK"],["Murillo","CB"],["Ousmane Diomande","CB"],["Neco Williams","LB"],["Nikola Milenković","CB"],["Morgan Gibbs-White","AM"],["James McAtee","CM"],["Ibrahim Sangaré","DM"],["Liam Delap","ST"],["Dan Ndoye","RW"],["Callum Hudson-Odoi","LW"]]},"레알 마드리드":{"l":"LALIGA","o":89,"xi":[["Thibaut Courtois","GK"],["Dean Huijsen","CB"],["Marc Cucurella","LB"],["Trent Alexander-Arnold","RB"],["Álvaro Carreras","LB"],["Jude Bellingham","AM"],["Arda Güler","AM"],["Federico Valverde","CM"],["Kylian Mbappé","ST"],["Vinicius Junior","LW"],["Yan Diomande","RW"]]},"바르셀로나":{"l":"LALIGA","o":89,"xi":[["Joan García","GK"],["Pau Cubarsí","CB"],["Jules Koundé","RB"],["Eric García","CB"],["Gerard Martín","CB"],["Pedri","CM"],["Fermín López","AM"],["Rodri","DM"],["Lamine Yamal","RW"],["Anthony Gordon","LW"],["Raphinha","ST"]]},"아틀레티코":{"l":"LALIGA","o":85,"xi":[["Jan Oblak","GK"],["Marc Pubill","CB"],["Cristian Romero","CB"],["Dávid Hancko","CB"],["Alejandro Grimaldo","LB"],["Pablo Barrios","CM"],["Morten Hjulmand","DM"],["Kang-in Lee","AM"],["Julián Álvarez","ST"],["Álex Baena","LW"],["Ademola Lookman","LW"]]},"비야레알":{"l":"LALIGA","o":82,"xi":[["Luiz Júnior","GK"],["Renato Veiga","CB"],["Carlos Romero","LB"],["Santiago Mouriño","RB"],["Logan Costa","CB"],["Pape Gueye","CM"],["Carlos Macià","CM"],["Nathan Saliba","CM"],["Alberto Moleiro","LW"],["Georges Mikautadze","ST"],["Ilias Akhomach","RW"]]},"베티스":{"l":"LALIGA","o":80,"xi":[["Álvaro Valles","GK"],["Natan","CB"],["Valentín Gómez","CB"],["Fran García","LB"],["Ángel Ortiz","RB"],["Facundo Bernal","DM"],["Nelson Deossa","CM"],["Pablo Fornals","CM"],["Abde Ezzalzouli","LW"],["Antony","RW"],["Troy Parrott","ST"]]},"레알 소시에다드":{"l":"LALIGA","o":81,"xi":[["Álex Remiro","GK"],["Jon Martín","CB"],["Mamadou Sarr","CB"],["Sergio Gómez","LB"],["Jon Aramburu","RB"],["Jon Gorrotxategi","DM"],["Luka Sucic","AM"],["Beñat Turrientes","CM"],["Mikel Oyarzabal","ST"],["Takefusa Kubo","RW"],["Ander Barrenetxea","LW"]]},"아틀레틱":{"l":"LALIGA","o":79,"xi":[["Unai Simón","GK"],["Dani Vivian","CB"],["Aymeric Laporte","CB"],["Aitor Paredes","CB"],["Jesús Areso","RB"],["Mikel Jauregizar","CM"],["Oihan Sancet","AM"],["Beñat Prados","CM"],["Nico Williams","LW"],["Iñaki Williams","ST"],["Robert Navarro","RW"]]},"바이에른":{"l":"BUNDESLIGA","o":88,"xi":[["Jonas Urbig","GK"],["Dayot Upamecano","CB"],["Nathaniel Brown","LB"],["Alphonso Davies","LB"],["Josip Stanisic","RB"],["Aleksandar Pavlovic","DM"],["Jamal Musiala","AM"],["Lennart Karl","AM"],["Michael Olise","RW"],["Luis Díaz","LW"],["Harry Kane","ST"]]},"도르트문트":{"l":"BUNDESLIGA","o":84,"xi":[["Gregor Kobel","GK"],["Nico Schlotterbeck","CB"],["Joane Gadou","CB"],["Julian Ryerson","RB"],["Daniel Svensson","LB"],["Felix Nmecha","CM"],["Jobe Bellingham","CM"],["Ethan Nwaneri","AM"],["Maximilian Beier","ST"],["Serhou Guirassy","ST"],["Samuele Inácio","SS"]]},"레버쿠젠":{"l":"BUNDESLIGA","o":83,"xi":[["Mark Flekken","GK"],["Jarell Quansah","CB"],["Edmond Tapsoba","CB"],["Guéla Doué","RB"],["Miguel Gutiérrez","LB"],["Ibrahim Maza","AM"],["Malik Tillman","AM"],["Equi Fernández","DM"],["Christian Kofane","ST"],["Afonso Moreira","LW"],["Moussa Diaby","RW"]]},"라이프치히":{"l":"BUNDESLIGA","o":83,"xi":[["Maarten Vandevoordt","GK"],["Castello Lukeba","CB"],["Maxime Estève","CB"],["David Raum","LB"],["Abdoul Koné","CB"],["Christoph Baumgartner","AM"],["Neil El Aynaoui","CM"],["Brajan Gruda","AM"],["Antonio Nusa","LW"],["Rômulo","ST"],["Christopher Nkunku","ST"]]},"슈투트가르트":{"l":"BUNDESLIGA","o":82,"xi":[["Dennis Seimen","GK"],["Finn Jeltsch","CB"],["Ramon Hendriks","CB"],["Maximilian Mittelstädt","LB"],["Jeff Chabot","CB"],["Angelo Stiller","DM"],["Bilal El Khannouss","AM"],["Nikolas Nartey","CM"],["Jamie Leweling","RW"],["Dzenan Pejcinovic","ST"],["Ermedin Demirovic","ST"]]},"프랑크푸르트":{"l":"BUNDESLIGA","o":81,"xi":[["Noah Atubolu","GK"],["Nnamdi Collins","CB"],["Lilian Brassier","CB"],["Robin Koch","CB"],["Keita Kosugi","LB"],["Can Uzun","AM"],["Raphael Onyedika","DM"],["Oscar Højlund","CM"],["Jonathan Burkardt","ST"],["Younes Ebnoutalib","ST"],["Ritsu Doan","RW"]]},"인터 밀란":{"l":"SERIEA","o":86,"xi":[["Josep Martínez","GK"],["Alessandro Bastoni","CB"],["Yann Bisseck","CB"],["Federico Dimarco","LB"],["Djed Spence","RB"],["Nicolò Barella","CM"],["Petar Sučić","CM"],["Curtis Jones","CM"],["Lautaro Martínez","ST"],["Marcus Thuram","ST"],["Pio Esposito","ST"]]},"유벤투스":{"l":"SERIEA","o":83,"xi":[["Kamil Grabara","GK"],["Bremer","CB"],["Pierre Kalulu","CB"],["Lloyd Kelly","CB"],["Jhon Lucumí","CB"],["Khéphren Thuram","CM"],["Weston McKennie","CM"],["Pape Matar Sarr","CM"],["Kenan Yıldız","LW"],["Nick Woltemade","ST"],["Kerim Alajbegovic","LW"]]},"AC 밀란":{"l":"SERIEA","o":83,"xi":[["Mike Maignan","GK"],["Strahinja Pavlović","CB"],["Mario Gila","CB"],["Koni De Winter","CB"],["Davide Bartesaghi","LB"],["Ardon Jashari","DM"],["Alphadjo Cisse","AM"],["Adrien Rabiot","CM"],["Gonçalo Ramos","ST"],["Christian Pulisic","RW"],["Omari Hutchinson","RW"]]},"나폴리":{"l":"SERIEA","o":83,"xi":[["Vanja Milinković-Savić","GK"],["Alessandro Buongiorno","CB"],["Sam Beukema","CB"],["Rafa Marín","CB"],["Benoît Badiashile","CB"],["Scott McTominay","CM"],["Billy Gilmour","DM"],["Antonio Vergara","AM"],["Rasmus Højlund","ST"],["Alisson Santos","LW"],["Noa Lang","LW"]]},"로마":{"l":"SERIEA","o":84,"xi":[["Mile Svilar","GK"],["Wesley","RB"],["Evan Ndicka","CB"],["Konstantinos Koulierakis","CB"],["Leonardo Balerdi","CB"],["Manu Koné","CM"],["Rodrigo Mora","AM"],["Niccolò Pisilli","CM"],["Donyell Malen","ST"],["Matías Soulé","RW"],["Santiago Castro","ST"]]},"아탈란타":{"l":"SERIEA","o":82,"xi":[["Marco Carnesecchi","GK"],["Giorgio Scalvini","CB"],["Isak Hien","CB"],["Lorenzo Bernasconi","LB"],["Thomas Kristensen","CB"],["Éderson","CM"],["Charles De Ketelaere","AM"],["Lazar Samardžić","AM"],["Jonathan Rowe","LW"],["Nikola Krstović","ST"],["Giacomo Raspadori","SS"]]},"코모":{"l":"SERIEA","o":84,"xi":[["Robert Sánchez","GK"],["Jacobo Ramón","CB"],["Trevoh Chalobah","CB"],["Yan Couto","RB"],["Kaiki","LB"],["Nico Paz","AM"],["Martin Baturina","AM"],["Máximo Perrone","DM"],["Assane Diao","LW"],["Moise Kean","ST"],["Jesús Rodríguez","LW"]]},"PSG":{"l":"LIGUE1","o":89,"xi":[["Matvey Safonov","GK"],["Willian Pacho","CB"],["Nuno Mendes","LB"],["Achraf Hakimi","RB"],["Ilya Zabarnyi","CB"],["Vitinha","DM"],["João Neves","CM"],["Warren Zaïre-Emery","CM"],["Khvicha Kvaratskhelia","LW"],["Désiré Doué","RW"],["Ousmane Dembélé","ST"]]},"모나코":{"l":"LIGUE1","o":82,"xi":[["Philipp Köhn","GK"],["Vanderson","RB"],["Christian Mawissa","CB"],["Jordan Teze","RB"],["Sadibou Sané","CB"],["Lamine Camara","CM"],["Denis Zakaria","DM"],["Mamadou Coulibaly","CM"],["Folarin Balogun","ST"],["Matthis Abline","ST"],["Mathys Detourbet","LW"]]},"마르세유":{"l":"LIGUE1","o":79,"xi":[["Jeffrey de Lange","GK"],["Timothy Weah","RB"],["Nayef Aguerd","CB"],["CJ Egan-Riley","CB"],["Emerson","LB"],["Pierre-Emile Højbjerg","DM"],["Angel Gomes","AM"],["Himad Abdelli","AM"],["Igor Paixão","LW"],["Amine Gouiri","ST"],["Keyliane Abdallah","RW"]]},"리옹":{"l":"LIGUE1","o":80,"xi":[["Dominik Greif","GK"],["Moussa Niakhaté","CB"],["Zachary Athekame","RB"],["Abner","LB"],["Ruben Kluivert","CB"],["Tyler Morton","DM"],["Pavel Sulc","AM"],["Mads Bidstrup","CM"],["Loïs Openda","ST"],["Keito Nakamura","LW"],["Ernest Nuamah","RW"]]},"릴":{"l":"LIGUE1","o":80,"xi":[["Berke Özer","GK"],["Nathan Ngoy","CB"],["Alexsandro","CB"],["Tiago Santos","RB"],["Romain Perraud","LB"],["Hákon Arnar Haraldsson","AM"],["Ngal'ayel Mukau","DM"],["Maurits Kjærgaard","CM"],["Dilane Bakwa","RW"],["Ayase Ueda","ST"],["Hamza Igamane","ST"]]},"스트라스부르":{"l":"LIGUE1","o":81,"xi":[["Filip Jørgensen","GK"],["Karim Coulibaly","CB"],["Ismaël Doukouré","CB"],["Lucas Høgsberg","CB"],["Oso","LB"],["Samir El Mourabet","CM"],["Dário Essugo","DM"],["Diogo Sousa","DM"],["Joaquín Panichelli","ST"],["Martial Godo","LW"],["Gessime Yassine","RW"]]},"랑스":{"l":"LIGUE1","o":79,"xi":[["Robin Risser","GK"],["Ismaëlo Ganiou","CB"],["Samson Baidoo","CB"],["Jean-Clair Todibo","CB"],["Kyllian Antonio","CB"],["Yacine Titraoui","CM"],["Andrija Bulatovic","CM"],["Mezian Mesloub","AM"],["Franjo Ivanović","ST"],["Odsonne Édouard","ST"],["Florian Sotoca","ST"]]}};
+
+/* ================= DRAFT XI 26/27 ================= */
+'use strict';
+
+/* ---------- constants ---------- */
+const KEY = 'draftxi.v1';
+const STARTER_COINS = 3000;
+const ROLE_GROUP = {GK:'GK', LB:'DF', CB:'DF', RB:'DF', DM:'MF', CM:'MF', AM:'MF', LW:'FW', RW:'FW', ST:'FW', SS:'FW'};
+const WEIGHTS = {GK:[.42,.12,.06,.25,.15], DF:[.05,.15,.15,.45,.20], MF:[.15,.35,.15,.20,.15], FW:[.40,.15,.25,.05,.15]};
+const OFFS = {GK:[10,-6,-14,4,4], DF:[-18,-2,2,8,6], MF:[-2,7,2,-2,0], FW:[9,-3,5,-14,2]};
+const ATTR = ['슈팅','패스','스피드','수비','피지컬'];
+const ATTR_OF = {GK:['선방','패스','반사','수비','피지컬'], DF:ATTR, MF:ATTR, FW:ATTR};
+const labelsOf = sp => ATTR_OF[grp(sp)];
+const NEAR = {GK:[], LB:['CB'], RB:['CB'], CB:['LB','RB'], DM:['CM'], CM:['DM','AM'], AM:['CM','LW','RW'],
+  LW:['AM','RW'], RW:['AM','LW'], ST:['SS','LW','RW'], SS:['ST'], };
+const FORMS = {
+  '4-3-3':[['GK',50,92],['LB',13,72],['CB',36,77],['CB',64,77],['RB',87,72],['CM',25,54],['DM',50,61],['CM',75,54],['LW',14,27],['ST',50,18],['RW',86,27]],
+  '4-2-3-1':[['GK',50,92],['LB',13,72],['CB',36,77],['CB',64,77],['RB',87,72],['DM',36,58],['DM',64,58],['LW',14,36],['AM',50,34],['RW',86,36],['ST',50,15]],
+  '3-5-2':[['GK',50,92],['CB',24,77],['CB',50,80],['CB',76,77],['LB',9,53],['DM',36,60],['CM',50,48],['CM',64,60],['RB',91,53],['ST',37,18],['ST',63,18]],
+  '4-4-2':[['GK',50,92],['LB',13,72],['CB',36,77],['CB',64,77],['RB',87,72],['LW',12,47],['CM',38,52],['CM',62,52],['RW',88,47],['ST',37,19],['ST',63,19]],
+  '3-4-3':[['GK',50,92],['CB',24,77],['CB',50,80],['CB',76,77],['LB',12,53],['CM',38,55],['CM',62,55],['RB',88,53],['LW',14,26],['ST',50,15],['RW',86,26]],
+  '5-3-2':[['GK',50,92],['LB',9,70],['CB',29,79],['CB',50,81],['CB',71,79],['RB',91,70],['CM',29,50],['DM',50,55],['CM',71,50],['ST',38,19],['ST',62,19]],
+  '4-1-4-1':[['GK',50,92],['LB',13,72],['CB',36,77],['CB',64,77],['RB',87,72],['DM',50,58],['LW',12,40],['CM',38,43],['CM',62,43],['RW',88,40],['ST',50,16]]
+};
+const FORM_KEYS = Object.keys(FORMS);
+const TIERS = [
+  {n:'브론즈', min:0, c:'#b07a4a'},
+  {n:'실버', min:1100, c:'#c3d0d8'},
+  {n:'골드', min:1250, c:'#e9bb43'},
+  {n:'플래티넘', min:1400, c:'#6fe3c8'},
+  {n:'다이아', min:1550, c:'#6cb6ff'},
+  {n:'마스터', min:1700, c:'#c58cff'},
+  {n:'그랜드마스터', min:1850, c:'#ff8a63'},
+  {n:'레전드', min:2000, c:'#cdf95f'}
+];
+const MODES = {
+  normal:{name:'일반전', ic:'⚔️', coins:[260,110,55], desc:'유럽 5대 리그 클럽과 믹스 팀이 번갈아 상대합니다.'},
+  friendly:{name:'친선전', ic:'🤝', coins:[180,80,40], desc:'리그와 난이도를 직접 골라 가볍게 붙습니다.'},
+  ranked:{name:'AI 랭킹전', ic:'🏆', coins:[420,160,80], desc:'레이팅이 오르면 더 센 상대가 기다립니다.'}
+};
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => Math.max(0, Math.round(n)).toLocaleString('ko-KR');
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const grp = sp => ROLE_GROUP[sp] || 'MF';
+const posOf = i => P[i][3];
+const baseOvrOf = i => P[i][4];
+
+/* ---------- state ---------- */
+let U = {tab:'squad', sel:0, match:null, friendly:{open:false, league:'EPL', diff:0}, busy:false};
+let S = load();
+
+function freshState(){
+  return {v:1, code:makeCode(), coins:STARTER_COINS, squad:null, formation:null, draft:null,
+    record:{w:0,d:0,l:0}, rank:{r:1000,w:0,d:0,l:0}, best:{ovr:0,name:'',bonus:0}, ups:0};
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(!raw) return freshState();
+    const s = JSON.parse(raw);
+    if(!s || typeof s !== 'object' || !s.code) return freshState();
+    s.record ||= {w:0,d:0,l:0}; s.rank ||= {r:1000,w:0,d:0,l:0};
+    s.best ||= {ovr:0,name:'',bonus:0}; s.ups ||= 0; s.coins ||= STARTER_COINS;
+    return s;
+  }catch(e){ return freshState(); }
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function makeCode(){
+  const r = new Uint32Array(1); crypto.getRandomValues(r);
+  return String(100000 + (r[0] % 900000));
+}
+
+/* ---------- player math ---------- */
+function baseStats(i){
+  const sp = posOf(i), g = grp(sp), o = baseOvrOf(i), w = WEIGHTS[g];
+  const raw = OFFS[g].map(v => o + v);
+  const wsum = raw.reduce((s,v,k) => s + v*w[k], 0);
+  const delta = wsum - o;
+  return raw.map(v => Math.max(25, Math.round(v - delta)));
+}
+function statsOf(inst){
+  const b = baseStats(inst.i), x = inst.x || [0,0,0,0,0];
+  return b.map((v,k) => v + (x[k] || 0));
+}
+function ovrExact(inst){
+  const a = statsOf(inst), w = WEIGHTS[grp(posOf(inst.i))];
+  return a.reduce((s,v,k) => s + v*w[k], 0);
+}
+function ovrOf(inst){ return Math.round(ovrExact(inst)); }
+function bonusOf(inst){ return ovrOf(inst) - baseOvrOf(inst.i); }
+function fitOf(inst, role){
+  const sp = posOf(inst.i);
+  return sp === role || (role === 'ST' && sp === 'SS') || (role === 'SS' && sp === 'ST');
+}
+
+/* ---------- squad math ---------- */
+function squadEntries(){
+  if(!S.squad) return [];
+  const f = FORMS[S.formation] || [];
+  return S.squad.map((inst, idx) => {
+    const slot = f[idx] || ['CM',50,50];
+    return {inst, role:slot[0], fit:fitOf(inst, slot[0]), ovr:ovrOf(inst) - (fitOf(inst, slot[0]) ? 0 : 3)};
+  });
+}
+function teamStats(){
+  const e = squadEntries();
+  if(e.length < 11) return null;
+  const gk = e.filter(x => x.role === 'GK').map(x => x.ovr);
+  const df = e.filter(x => grp(x.role) === 'DF').map(x => x.ovr);
+  const mf = e.filter(x => grp(x.role) === 'MF').map(x => x.ovr);
+  const fw = e.filter(x => grp(x.role) === 'FW').map(x => x.ovr);
+  const avg = a => a.length ? a.reduce((s,v)=>s+v,0)/a.length : 60;
+  const def = avg(df)*0.78 + (gk.length ? gk[0]*0.22 : 60*0.22);
+  return {ovr: Math.round(e.reduce((s,x)=>s+x.ovr,0)/11), att: avg(fw), mid: avg(mf), def, gk: gk[0] || 60, entries:e};
+}
+function updateBest(inst){
+  const o = ovrOf(inst), b = bonusOf(inst), nm = P[inst.i][0];
+  if(o > S.best.ovr){ S.best.ovr = o; S.best.name = nm; }
+  if(b > S.best.bonus){ S.best.bonus = b; S.best.name2 = nm; S.best.bonusName = nm; }
+}
+
+/* ---------- draft ---------- */
+function startDraft(){
+  const f = pick(FORM_KEYS);
+  S.draft = {f, slot:0, picks:[], opts:[]};
+  S.draft.opts = sampleOptions(f, 0, []);
+  save(); U.tab = 'squad'; render();
+  toast('새 드래프트 · ' + f + ' 포메이션');
+}
+function slotOrder(f){
+  const idx = FORMS[f].map((s,i)=>i);
+  const order = ['GK','DF','MF','FW'];
+  return idx.sort((a,b) => order.indexOf(grp(FORMS[f][a][0])) - order.indexOf(grp(FORMS[f][b][0])) || a-b);
+}
+function sampleOptions(f, slotIdx, taken){
+  const role = FORMS[f][slotIdx][0];
+  const used = new Set(taken);
+  const all = P.map((p,i)=>i).filter(i => !used.has(i));
+  const exact = all.filter(i => posOf(i) === role || (role==='ST'&&posOf(i)==='SS'));
+  const near = all.filter(i => NEAR[role].includes(posOf(i)));
+  const group = all.filter(i => grp(posOf(i)) === grp(role));
+  const chosen = [];
+  pickBiased(exact, 3 - chosen.length, chosen);
+  if(chosen.length < 3) pickBiased(near, 3 - chosen.length, chosen);
+  if(chosen.length < 3) pickBiased(group, 3 - chosen.length, chosen);
+  return chosen.slice(0,3);
+}
+function pickBiased(list, k, out){
+  const pool = list.filter(i => !out.includes(i));
+  for(let n=0; n<k && pool.length; n++){
+    const sorted = pool.slice().sort((a,b) => baseOvrOf(b) - baseOvrOf(a));
+    const idx = Math.min(sorted.length-1, Math.floor(Math.pow(Math.random(), 1.55) * sorted.length));
+    const v = sorted[idx];
+    out.push(v); pool.splice(pool.indexOf(v), 1);
+  }
+}
+function choosePick(playerIdx){
+  const d = S.draft; if(!d) return;
+  const role = FORMS[d.f][d.slot][0];
+  d.picks.push({i:playerIdx, x:[0,0,0,0,0]});
+  if(d.picks.length >= 11){
+    S.squad = d.picks.map(p => ({i:p.i, x:[0,0,0,0,0]}));
+    S.formation = d.f;
+    S.draft = null;
+    S.squad.forEach(updateBest);
+    U.sel = 0;
+    save(); render();
+    toast('스쿼드 완성! 이제 경기장으로');
+    return;
+  }
+  d.slot++;
+  const order = slotOrder(d.f);
+  // slot index walks in order; keep visual index = picks.length
+  d.opts = sampleOptions(d.f, d.picks.length, d.picks.map(p=>p.i));
+  save(); render();
+}
+function currentRole(d){
+  const order = slotOrder(d.f);
+  return FORMS[d.f][d.picks.length][0];
+}
+
+/* ---------- coins ---------- */
+function addCoins(n){ S.coins = Math.max(0, S.coins + n); save(); paintHud(); }
+function spendCoins(n){ if(S.coins < n) return false; S.coins -= n; save(); paintHud(); return true; }
+
+/* ---------- enhancement ---------- */
+function costOne(cur){ return Math.round(7 + Math.max(0, cur - 70) * 1.05); }
+function costN(cur, n){ let c = 0; for(let k=0;k<n;k++) c += costOne(cur + k); return c; }
+function upgrade(inst, attr, n){
+  const cur = ovrOf(inst);
+  const price = costN(cur, n);
+  if(S.coins < price){ toast('코인이 ' + fmt(price - S.coins) + ' 부족합니다'); return; }
+  S.coins -= price;
+  inst.x = inst.x || [0,0,0,0,0];
+  inst.x[attr] += n;
+  S.ups += n;
+  updateBest(inst); save(); paintHud(); renderUpgrade(true);
+  const after = ovrOf(inst);
+  toast((ATTR[attr] || '전체') + ' +' + n + ' · OVR ' + after);
+  popFx('+' + (after - cur) + ' OVR');
+}
+function upgradeAll(inst, n){
+  const cur = ovrOf(inst);
+  let price = 0;
+  for(let a=0;a<5;a++) price += costN(cur, n);
+  price = Math.round(price * 0.86);
+  if(S.coins < price){ toast('코인이 ' + fmt(price - S.coins) + ' 부족합니다'); return; }
+  S.coins -= price;
+  inst.x = inst.x || [0,0,0,0,0];
+  for(let a=0;a<5;a++) inst.x[a] += n;
+  S.ups += n * 5;
+  updateBest(inst); save(); paintHud(); renderUpgrade(true);
+  const after = ovrOf(inst);
+  toast('전체 +' + n + ' · OVR ' + after);
+  popFx('+' + (after - cur) + ' OVR');
+}
+
+/* ---------- opponents ---------- */
+function hashOf(s){ let h=0; for(let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) % 9973; return h; }
+function opponentOf(club){
+  const o = OPP[club];
+  const h = hashOf(club);
+  const dAtt = ((h % 7) - 3) * 0.5, dDef = (((h>>3) % 7) - 3) * 0.5;
+  return {club, league:o.l, base:o.o, att:o.o + 1.5 + dAtt, mid:o.o + ((h%5)-2)*0.35, def:o.o + 1 + dDef, xi:o.xi};
+}
+function mixOpponent(){
+  const xi = [];
+  const roles = ['GK','CB','CB','LB','RB','DM','CM','AM','LW','ST','RW'];
+  const used = new Set();
+  for(const r of roles){
+    const cand = P.map((p,i)=>i).filter(i => !used.has(i) && (posOf(i) === r || (r==='ST' && posOf(i)==='SS')));
+    const i = cand.length ? pick(cand) : 0;
+    used.add(i); xi.push([P[i][0], r]);
+  }
+  const base = 85 + Math.round(rnd(-2, 3));
+  return {club:'유럽 믹스', league:'MIX', base, att: base+1, mid: base, def: base+1, xi, mix:true};
+}
+function randomClub(){
+  const keys = Object.keys(OPP);
+  return pick(keys);
+}
+function rankedOpponent(rating){
+  const mine = teamStats() ? teamStats().ovr : 80;
+  const target = clamp(Math.max(mine - 1.5, 78 + (rating - 1000) * 0.012), 74, 94);
+  let best = null, bd = 99;
+  for(const k of Object.keys(OPP)){
+    const d = Math.abs(OPP[k].o - target);
+    if(d < bd){ bd = d; best = k; }
+  }
+  return best;
+}
+function opponentFor(mode){
+  if(mode === 'normal') return Math.random() < 0.28 ? mixOpponent() : opponentOf(randomClub());
+  if(mode === 'ranked') {
+    const k = rankedOpponent(S.rank.r);
+    const o = opponentOf(k);
+    const bump = rnd(-1.2, 1.8);
+    return {...o, base:o.base + Math.round(bump), att:o.att+bump, mid:o.mid+bump, def:o.def+bump};
+  }
+  return null;
+}
+
+/* ---------- match simulation ---------- */
+function startMatch(mode, opp){
+  const t = teamStats();
+  if(!t){ toast('먼저 드래프트로 스쿼드를 만드세요'); U.tab='squad'; render(); return; }
+  U.match = {mode, opp, t, min:0, me:0, op:0, ev:[], shotsMe:0, shotsOp:0, poss:50,
+    over:false, timer:null, goals:[], rating:0, coins:0, diff:U.friendly.diff || 0};
+  if(mode === 'friendly'){
+    const d = U.friendly.diff;
+    U.match.opp.att += d; U.match.opp.mid += d; U.match.opp.def += d;
+  }
+  U.tab = 'stadium';
+  renderMatchScreen();
+  U.match.timer = setInterval(matchTick, 520);
+}
+function matchTick(){
+  const M = U.match; if(!M || M.over) return;
+  M.min += 5;
+  if(M.min === 45){
+    pushEvent({type:'half', text:'전반 종료. ' + scoreText(M) + '로 균형을 이룬 채 후반을 맞습니다.', cls:'half'});
+  } else if(M.min === 90){
+    finishMatch(); return;
+  } else {
+    simulateMinute(M);
+  }
+  paintMatch();
+}
+function scoreText(M){ return 'MY XI ' + M.me + ' - ' + M.op + ' ' + M.opp.club; }
+function attackerName(M, side){
+  if(side === 'me'){
+    const e = squadEntries();
+    const pool = e.flatMap(x => x.role==='FW'?[x,x,x,x,x]:grp(x.role)==='MF'?[x,x,x]:grp(x.role)==='DF'?[x]:[]);
+    const c = pool.length ? pick(pool) : e[0];
+    return P[c.inst.i][0];
+  }
+  const xi = M.opp.xi.filter(p => p[1] !== 'GK');
+  return pick(xi.map(p => p[0]));
+}
+function mateName(M, side, scorer){
+  if(side === 'me'){
+    const e = squadEntries().filter(x => P[x.inst.i][0] !== scorer && x.role !== 'GK');
+    return e.length ? P[pick(e).inst.i][0] : '';
+  }
+  const xi = M.opp.xi.filter(p => p[1] !== 'GK' && p[0] !== scorer);
+  return xi.length ? pick(xi)[0] : '';
+}
+function simulateMinute(M){
+  const pMe = clamp(0.5 + (M.t.mid - M.opp.mid) * 0.016, 0.26, 0.74);
+  M.poss = Math.round(M.poss * 0.82 + pMe * 100 * 0.18);
+  const side = Math.random() < pMe ? 'me' : 'op';
+  const atk = side === 'me' ? M.t.att : M.opp.att;
+  const dfn = side === 'me' ? M.opp.def : M.t.def;
+  const diff = clamp(atk - dfn, -14, 14);
+  const gp = clamp(0.155 + diff * 0.010, 0.05, 0.34);
+  const team = side === 'me' ? 'MY XI' : M.opp.club;
+  const p = attackerName(M, side);
+  const mm = M.min + "'";
+  if(Math.random() < gp){
+    if(side === 'me') M.me++; else M.op++;
+    const a = mateName(M, side, p);
+    const tpl = [
+      p + ', 골망을 가릅니다! ' + (a ? a + '의 패스를 받아 ' : '') + '침착하게 마무리.',
+      p + '의 헤더! 골키퍼 손끝을 스치고 골문 안으로 들어갑니다.',
+      '역습 한 방! ' + p + '가 수비수 두 명을 제치고 골망을 흔듭니다.',
+      '문전 혼전! ' + p + '가 끝까지 밀어 넣습니다.',
+      p + '의 감아차기, 반대편 구석에 정확히 꽂힙니다!'
+    ];
+    pushEvent({type:'goal', side, text: pick(tpl), mm, cls:'goal', score: scoreText(M)});
+    if(side === 'me') M.shotsMe++; else M.shotsOp++;
+    return;
+  }
+  const r = Math.random();
+  if(r < 0.34){
+    if(side === 'me') M.shotsMe++; else M.shotsOp++;
+    pushEvent({type:'shot', side, mm, text: pick([
+      p + '의 중거리포, 골키퍼가 몸을 날려 쳐냅니다.',
+      p + '의 감아차기, 골키퍼 정면으로 향합니다.',
+      p + '의 슛이 수비수 발에 굴절되어 골키퍼가 잡습니다.',
+      p + '가 수비 뒤 공간으로 침투했지만 슈팅이 막힙니다.'
+    ])});
+  } else if(r < 0.53){
+    if(side === 'me') M.shotsMe++; else M.shotsOp++;
+    pushEvent({type:'shot', side, mm, text: pick([
+      p + '의 슛이 골대 위로 날아갑니다.',
+      p + '의 헤더, 크로스바를 살짝 넘어갑니다.',
+      p + '의 왼발 슛, 옆그물을 흔듭니다.',
+      p + '의 발리슛이 허공을 갈랐습니다.'
+    ])});
+  } else if(r < 0.7){
+    pushEvent({type:'corner', side, mm, text: pick([
+      team + ' 코너킥. 문전으로 날카로운 공이 올라옵니다.',
+      team + ' 프리킥 기회, 벽을 넘기지 못합니다.',
+      '수비수 몸에 맞고 코너킥. ' + team + '이(가) 압박을 이어갑니다.'
+    ])});
+  } else if(r < 0.84){
+    pushEvent({type:'info', side, mm, text: pick([
+      team + '가 후방에서 볼을 돌리며 상대를 흔듭니다.',
+      '중원 싸움이 치열합니다. ' + team + '이(가) 압박 강도를 높입니다.',
+      team + ' 벤치가 몸을 일으킵니다. 흐름을 바꿀 교체 카드.',
+      '주심이 파울을 선언합니다. 경기가 잠시 끊깁니다.',
+      team + '의 측면 돌파가 이어집니다. 크로스가 수비에 막힙니다.'
+    ])});
+  } else {
+    pushEvent({type:'info', side, mm, text: pick([
+      p + '가 드리블로 공간을 만듭니다. 수비가 따라붙습니다.',
+      '경고 카드가 나옵니다. 거친 태클이었습니다.',
+      team + '의 오프사이드. 아쉽게 무산됩니다.',
+      'VAR 체크. 득점 여부를 확인하지만 그대로 진행됩니다.'
+    ])});
+  }
+}
+function pushEvent(ev){
+  const M = U.match;
+  M.ev.unshift(ev);
+  if(M.ev.length > 40) M.ev.pop();
+  if(document.getElementById('tkHost')) addTick(ev);
+}
+function finishMatch(){
+  const M = U.match; if(!M || M.over) return;
+  M.over = true;
+  clearInterval(M.timer); M.timer = null;
+  const res = M.me > M.op ? 'w' : M.me === M.op ? 'd' : 'l';
+  const base = MODES[M.mode].coins[res === 'w' ? 0 : res === 'd' ? 1 : 2];
+  const gd = Math.abs(M.me - M.op);
+  let coins = base + (res === 'w' ? gd * 35 : 0);
+  if(M.mode === 'ranked'){
+    const oppOvr = Math.round(M.opp.base);
+    const delta = res === 'w' ? Math.round(clamp(21 + (oppOvr - M.t.ovr) * 1.3, 12, 48))
+      : res === 'd' ? Math.round(clamp(2 + (oppOvr - M.t.ovr) * 0.4, -6, 10))
+      : -Math.round(clamp(10 + (M.t.ovr - oppOvr) * 0.8, 5, 26));
+    M.ratingDelta = delta;
+    S.rank.r = Math.max(0, S.rank.r + delta);
+    S.rank[res] = (S.rank[res] || 0) + 1;
+  }
+  M.coins = coins;
+  S.record[res] = (S.record[res] || 0) + 1;
+  S.coins += coins;
+  save(); paintHud();
+  renderResult();
+}
+
+/* ---------- rendering: shell ---------- */
+function paintHud(){
+  $('#coinVal').textContent = fmt(S.coins);
+  const c = $('#codePill'); c.innerHTML = '#<b>' + esc(S.code) + '</b>';
+}
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('on'), 1900);
+}
+function popFx(text){
+  const el = document.createElement('div');
+  el.className = 'pop'; el.textContent = text;
+  const r = document.querySelector('main').getBoundingClientRect();
+  el.style.left = (r.left + r.width/2 - 26) + 'px';
+  el.style.top = (r.top + r.height*0.38) + 'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 850);
+}
+function render(){
+  paintHud();
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === U.tab));
+  if(U.match) return;
+  const m = $('#main');
+  if(U.tab === 'squad') m.innerHTML = S.draft ? draftHTML() : S.squad ? squadHTML() : introHTML();
+  else if(U.tab === 'stadium') m.innerHTML = stadiumHTML();
+  else if(U.tab === 'upgrade') m.innerHTML = upgradeHTML();
+  else m.innerHTML = rankingHTML();
+  m.scrollTop = 0;
+}
+
+/* ---------- intro ---------- */
+function introHTML(){
+  const cards = [
+    ['🎲','랜덤 포메이션','드래프트를 시작하면 4-3-3, 3-5-2, 4-2-3-1 같은 포메이션이 무작위로 정해집니다.'],
+    ['👥','포지션별 3택','11개 슬롯마다 26/27 유럽 5대 리그 현역 3명이 제시됩니다. 한 명씩 골라 팀을 완성하세요.'],
+    ['⚡','무제한 강화','경기로 번 코인으로 능력치를 계속 올립니다. 상한이 없어 OVR 99를 넘겨 200까지도 갑니다.']
+  ];
+  return `
+  <section class="hero">
+    <div class="eyebrow">EUROPE TOP 5 · 2026/27</div>
+    <h2>3명 중 1명.<br>11번의 선택으로 <em>팀</em>을 만든다</h2>
+    <p>선수 구매 없음. 이적시장 없음. 오직 드래프트와 강화로만. 같은 판은 두 번 없습니다.</p>
+    <div class="facts"><span class="fact">선수 <b>${P.length}명</b></span><span class="fact">클럽 <b>${Object.keys(OPP).length}팀</b></span><span class="fact">포메이션 <b>${FORM_KEYS.length}종</b></span></div>
+  </section>
+  <div class="sect stack">
+    <button class="btn primary wide" data-act="start-draft">드래프트 시작 <span style="font-size:16px">→</span></button>
+    <div class="tiny" style="text-align:center">시작 코인 ${fmt(STARTER_COINS)} · 드래프트는 무료</div>
+  </div>
+  <div class="sect stack">
+    ${cards.map(c=>`<div class="card" style="padding:12px 13px;display:flex;gap:11px;align-items:flex-start">
+      <div style="font-size:18px;line-height:1.2">${c[0]}</div>
+      <div><b style="font-size:12.5px;letter-spacing:-.02em">${c[1]}</b><div class="muted" style="margin-top:2px">${c[2]}</div></div>
+    </div>`).join('')}
+  </div>
+  <div class="sect">
+    <div class="sect-h"><div class="eyebrow g">HOW IT WORKS</div></div>
+    <div class="card" style="padding:13px">
+      <div class="muted">경기에서 이기면 코인이 쌓입니다. 강화 화면에서 선수의 슈팅·패스·스피드·수비·피지컬을 올리면 OVR이 그대로 올라가고, 그 수치가 경기 시뮬레이션에 바로 반영됩니다. 랭킹전은 레이팅으로 브론즈부터 레전드까지 올라갑니다.</div>
+    </div>
+  </div>`;
+}
+
+/* ---------- draft ---------- */
+function draftHTML(){
+  const d = S.draft, f = d.f, picks = d.picks, slotIdx = picks.length;
+  const role = FORMS[f][slotIdx][0];
+  const prog = Array.from({length:11}, (_,k)=>`<i class="${k<picks.length?'on':k===picks.length?'now':''}"></i>`).join('');
+  const dots = FORMS[f].map((s,k)=>{
+    const filled = picks[k] ? P[picks[k].i][0] : '';
+    const cls = picks[k] ? 'f' : (k === slotIdx ? 'n' : '');
+    return `<div class="mdot ${cls}" style="left:${s[1]}%;top:${s[2]}%">${filled ? s[0] : ''}</div>`;
+  }).join('');
+  const cards = d.opts.map(i => optionHTML(i, role)).join('');
+  const teamOvr = picks.length ? Math.round(picks.reduce((s,p)=>s+ovrOf(p),0)/picks.length) : 0;
+  return `
+  <div class="dhead">
+    <div>
+      <div class="eyebrow">DRAFT · ${f}</div>
+      <div class="row" style="gap:7px;margin-top:3px"><b style="font-size:15px;letter-spacing:-.03em">${slotIdx+1}번째 선택</b><span class="tag lime">${role}</span></div>
+    </div>
+    <div class="prog">${prog}</div>
+  </div>
+  <div class="mini">
+    <div class="line"></div><div class="circ"></div><div class="box t"></div><div class="box b"></div>
+    ${dots}
+  </div>
+  <div class="between" style="margin-top:12px">
+    <div class="tiny">${picks.length}/11 선택 완료${picks.length?` · 평균 OVR <b style="color:var(--lime)">${teamOvr}</b>`:''}</div>
+    <button class="chip" data-act="reroll">🔄 리롤 <span class="mono" style="color:var(--lime)">80</span></button>
+  </div>
+  <div class="picks">${cards}</div>
+  <div class="tiny" style="margin-top:12px;line-height:1.6">이미 뽑힌 선수는 다시 나오지 않습니다. 포지션이 다르면 임시 배치(−3 OVR)로 들어갑니다.</div>`;
+}
+function optionHTML(i, role){
+  const sp = posOf(i), o = baseOvrOf(i), st = baseStats(i);
+  const nm = P[i][0], club = P[i][1], lg = P[i][2];
+  const off = !(sp === role || (role==='ST'&&sp==='SS'));
+  const bars = [0,1,2,3].map(k => `<i><s style="width:${clamp((st[k]-40)*1.5,6,100)}%"></s></i>`).join('');
+  return `<button class="pick ${off?'off':''}" data-act="pick" data-i="${i}">
+    <div class="ovr"><b>${o}</b><small>OVR</small></div>
+    <div class="who">
+      <div class="nm">${esc(nm)}</div>
+      <div class="cl">${esc(club)} · ${esc(LG[lg] || lg)} ${off?`<span class="tag amber" style="height:15px;font-size:8px">임시 ${sp}</span>`:`<span class="tag" style="height:15px;font-size:8px">${sp}</span>`}</div>
+      <div class="bars">${bars}</div>
+    </div>
+    <div class="go">→</div>
+  </button>`;
+}
+
+/* ---------- squad ---------- */
+function squadHTML(){
+  const t = teamStats(); if(!t) return introHTML();
+  const f = S.formation;
+  const dots = FORMS[f].map((s,k)=>{
+    const inst = S.squad[k]; if(!inst) return '';
+    const nm = P[inst.i][0], o = t.entries[k].ovr, fit = t.entries[k].fit;
+    return `<div class="pdot ${fit?'':'off'}" style="left:${s[1]}%;top:${s[2]}%" data-act="player" data-k="${k}">
+      <div class="bead">${o}</div><div class="pn">${esc(nm.split(' ').slice(-1)[0])}</div><div class="pp">${s[0]}</div></div>`;
+  }).join('');
+  const rec = S.record;
+  return `
+  <div class="teamhead">
+    <div>
+      <div class="eyebrow">MY XI · ${f}</div>
+      <div class="nm" style="margin-top:3px">드래프트 팀 <span class="tag lime" style="margin-left:4px">${S.squad.length}명</span></div>
+      <div class="tiny" style="margin-top:3px">전적 <b style="color:var(--ink)">${rec.w}승 ${rec.d}무 ${rec.l}패</b> · 누적 강화 ${fmt(S.ups)}회</div>
+    </div>
+    <div class="ovr"><b>${t.ovr}</b><small>TEAM OVR</small></div>
+  </div>
+  <div class="pitch" style="margin-top:11px">
+    <div class="pl-line"></div><div class="pl-circ"></div><div class="pl-box t"></div><div class="pl-box b"></div><div class="pl-arc"></div>
+    ${dots}
+  </div>
+  <div class="linesum">
+    <div><span>수비</span><b>${Math.round(t.def)}</b></div>
+    <div><span>중원</span><b>${Math.round(t.mid)}</b></div>
+    <div><span>공격</span><b>${Math.round(t.att)}</b></div>
+  </div>
+  <div class="sect stack">
+    <button class="btn primary wide" data-act="go-stadium">경기장으로 →</button>
+    <div class="row" style="gap:8px">
+      <button class="btn dark" style="flex:1" data-act="go-upgrade">⚡ 강화</button>
+      <button class="btn dark" style="flex:1" data-act="new-draft">🔄 새 드래프트</button>
+    </div>
+    <div class="tiny" style="text-align:center">선수 구매·이적 없음 · 코인은 경기와 강화에만 씁니다</div>
+  </div>`;
+}
+
+/* ---------- player sheet ---------- */
+function openPlayer(k){
+  const inst = S.squad[k], e = squadEntries()[k];
+  const nm = P[inst.i][0], club = P[inst.i][1], lg = P[inst.i][2], sp = posOf(inst.i);
+  const st = statsOf(inst), o = ovrOf(inst), b = bonusOf(inst);
+  const labels = labelsOf(sp);
+  const rows = labels.map((a,i)=>`<div class="row" style="justify-content:space-between;padding:5px 0">
+    <span class="tiny" style="width:44px">${a}</span>
+    <div class="tr" style="flex:1;height:4px;border-radius:2px;background:#1b2f24;overflow:hidden;margin:0 8px"><s style="display:block;height:100%;background:var(--lime);width:${clamp((st[i]-40)*1.5,5,100)}%"></s></div>
+    <b class="mono" style="font-size:13px;width:32px;text-align:right">${st[i]}</b></div>`).join('');
+  $('#sheet').innerHTML = `
+    <div class="grab"></div>
+    <div class="between">
+      <div>
+        <div class="eyebrow">${sp} · ${esc(LG[lg]||lg)}</div>
+        <div style="font-size:17px;font-weight:900;letter-spacing:-.03em;margin-top:3px">${esc(nm)}</div>
+        <div class="tiny">${esc(club)} · ${P[inst.i][5] ? P[inst.i][5]+'세' : ''}</div>
+      </div>
+      <div style="text-align:right"><div class="mono" style="font-size:32px;font-weight:800;letter-spacing:-.07em;line-height:1">${o}</div>
+      <div class="tiny">기본 ${baseOvrOf(inst.i)}${b>0?` <b style="color:var(--lime)">+${b}</b>`:''}</div></div>
+    </div>
+    <div style="margin-top:12px">${rows}</div>
+    ${e && !e.fit ? `<div class="tag amber" style="margin-top:9px">임시 배치 · 팀 전력 −3</div>`:''}
+    <div class="stack" style="margin-top:14px">
+      <button class="btn primary wide" data-act="sheet-upgrade" data-k="${k}">⚡ 이 선수 강화하기</button>
+      <button class="btn dark wide" data-act="close-sheet">닫기</button>
+    </div>`;
+  $('#sheetHost').classList.add('on');
+}
+function openConfirm(title, desc, okLabel, act){
+  $('#sheet').innerHTML = `<div class="grab"></div>
+    <div style="font-size:16px;font-weight:900;letter-spacing:-.03em">${esc(title)}</div>
+    <div class="muted" style="margin-top:6px">${esc(desc)}</div>
+    <div class="stack" style="margin-top:14px">
+      <button class="btn primary wide" data-act="${act}">${esc(okLabel)}</button>
+      <button class="btn dark wide" data-act="close-sheet">취소</button>
+    </div>`;
+  $('#sheetHost').classList.add('on');
+}
+
+/* ---------- stadium ---------- */
+function stadiumHTML(){
+  const t = S.teamStats ? null : teamStats();
+  if(!S.squad || !t){
+    return `<div class="eyebrow">STADIUM</div><h2 class="title">경기장</h2>
+      <div class="sect"><div class="empty"><div class="ic">⚽</div><b>아직 팀이 없습니다</b>
+      <div class="muted">드래프트로 11명을 먼저 뽑으면 경기장이 열립니다.</div>
+      <button class="btn primary" style="margin:14px auto 0;width:190px" data-act="start-draft">드래프트 시작</button></div></div>`;
+  }
+  const modeCard = (key) => {
+    const m = MODES[key];
+    const rec = key === 'ranked' ? S.rank : S.record;
+    const tag = key === 'ranked' ? tierOf(S.rank.r).name : '상대 무작위';
+    return `<button class="mode ${key==='ranked'?'hot':''}" data-act="mode" data-mode="${key}">
+      <div class="row">
+        <div class="ic">${m.ic}</div>
+        <div style="flex:1"><div class="ttl">${m.name}</div><div class="dsc">${m.desc}</div></div>
+        <div style="text-align:right"><div class="mono" style="font-size:12px;color:var(--lime)">${key==='ranked'?S.rank.r:'→'}</div>
+        <div class="tiny">${key==='ranked'?tag:'시작'}</div></div>
+      </div>
+      <div class="rw"><span class="tag lime">승 ${m.coins[0]}C</span><span class="tag">무 ${m.coins[1]}C</span><span class="tag">패 ${m.coins[2]}C</span>
+      <span class="tag sky">${rec.w}승 ${rec.d}무 ${rec.l}패</span></div>
+    </button>`;
+  };
+  let body = '';
+  if(U.friendly.open){
+    const leagues = ['EPL','LALIGA','BUNDESLIGA','SERIEA','LIGUE1'];
+    const clubs = Object.keys(OPP).filter(k => OPP[k].l === U.friendly.league)
+      .sort((a,b)=>OPP[b].o-OPP[a].o);
+    body = `<div class="sect stack">
+      <div class="sect-h"><div class="eyebrow">FRIENDLY</div><button class="chip" data-act="close-friendly">닫기 ✕</button></div>
+      <div class="chips">${leagues.map(l=>`<button class="chip ${U.friendly.league===l?'on':''}" data-act="fleague" data-l="${l}">${LG[l]}</button>`).join('')}</div>
+      <div class="chips">${[['약함',-5],['보통',0],['강함',4]].map(([n,v])=>`<button class="chip ${U.friendly.diff===v?'on':''}" data-act="fdiff" data-v="${v}">${n}</button>`).join('')}</div>
+      <div class="opps">${clubs.map(c=>`<div class="opp">
+        <div class="cr">${OPP[c].o}</div>
+        <div class="nm">${esc(c)}</div>
+        <div class="ov">${esc(LG[OPP[c].l]||OPP[c].l)}</div>
+        <button class="pl" data-act="play-friendly" data-c="${esc(c)}">경기</button>
+      </div>`).join('')}</div>
+    </div>`;
+  }
+  return `<div class="eyebrow">STADIUM · ${S.formation}</div>
+    <h2 class="title">경기장 <span class="mono" style="font-size:13px;color:var(--dim)">OVR ${t.ovr}</span></h2>
+    <div class="sect stack">${modeCard('normal')}${modeCard('friendly')}${modeCard('ranked')}</div>
+    ${body}
+    <div class="sect">
+      <div class="card" style="padding:12px 13px">
+        <div class="between"><span class="eyebrow g">보상</span><span class="tiny">코인은 강화에만 쓰입니다</span></div>
+        <div class="muted" style="margin-top:6px">승리 시 골 차이만큼 코인이 더 붙습니다. 랭킹전은 레이팅까지 오르고, 상대가 강할수록 더 많이 오릅니다.</div>
+      </div>
+    </div>`;
+}
+
+/* ---------- match ---------- */
+function renderMatchScreen(){
+  const M = U.match;
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  $('#main').innerHTML = `
+    <div class="between" style="margin-bottom:9px">
+      <div><div class="eyebrow">${MODES[M.mode].name}</div>
+      <div class="tiny" style="margin-top:2px">${esc(M.opp.league === 'MIX' ? '믹스 팀' : (LG[M.opp.league]||M.opp.league))} · 상대 OVR ${Math.round(M.opp.base)}</div></div>
+      <button class="chip" data-act="skip">⏩ 바로 결과</button>
+    </div>
+    <div class="board">
+      <div class="tm">
+        <div class="side"><div class="n">MY XI</div><div class="o">OVR ${M.t.ovr}</div></div>
+        <div class="sc"><b id="mMe">0</b><i>:</i><b id="mOp">0</b></div>
+        <div class="side r"><div class="n">${esc(M.opp.club)}</div><div class="o">OVR ${Math.round(M.opp.base)}</div></div>
+      </div>
+      <div class="clock"><span class="live">LIVE</span><span class="m" id="mMin">0'</span><span class="tiny" id="mHalf">전반</span></div>
+      <div class="mbar"><i id="mBar" style="width:0%"></i></div>
+      <div class="stats3">
+        <div><span>점유</span><b id="sPoss">50%</b></div>
+        <div><span>슈팅</span><b id="sShots">0 - 0</b></div>
+        <div><span>기세</span><b id="sMom">-</b></div>
+      </div>
+    </div>
+    <div class="sect-h" style="margin-top:14px"><div class="eyebrow g">LIVE COMMENTARY</div><div class="tiny" id="mCount">0</div></div>
+    <div class="ticker" id="tkHost"></div>
+    <div class="sect"><button class="btn dark wide" data-act="quit-match">중계 나가기</button></div>`;
+  paintMatch();
+  M.ev.slice().reverse().forEach(ev => addTick(ev, true));
+}
+function addTick(ev, silent){
+  const host = $('#tkHost'); if(!host) return;
+  const el = document.createElement('div');
+  el.className = 'tk ' + (ev.cls || '');
+  el.innerHTML = `<div class="mm">${esc(ev.mm || '—')}</div><div class="tx">${esc(ev.text)}${ev.score?`<div class="mono" style="font-size:10px;color:var(--lime);margin-top:2px">${esc(ev.score)}</div>`:''}</div>`;
+  if(silent) el.style.animation = 'none';
+  host.prepend(el);
+  while(host.children.length > 24) host.lastChild.remove();
+}
+function paintMatch(){
+  const M = U.match; if(!M) return;
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('mMe', M.me); set('mOp', M.op); set('mMin', M.min + "'");
+  set('mHalf', M.min <= 45 ? '전반' : '후반');
+  set('sPoss', M.poss + '%'); set('sShots', M.shotsMe + ' - ' + M.shotsOp);
+  const mom = M.t.att - M.opp.def > 2 ? '압도' : M.t.att - M.opp.def > -2 ? '팽팽' : '열세';
+  set('sMom', mom); set('mCount', M.ev.length + '개');
+  const bar = document.getElementById('mBar'); if(bar) bar.style.width = clamp(M.min / 90 * 100, 0, 100) + '%';
+}
+function renderResult(){
+  const M = U.match;
+  const res = M.me > M.op ? 'w' : M.me === M.op ? 'd' : 'l';
+  const label = res === 'w' ? '승리' : res === 'd' ? '무승부' : '패배';
+  const cls = res === 'w' ? 'lime' : res === 'd' ? 'sky' : 'red';
+  const before = S.rank.r - (M.ratingDelta || 0);
+  $('#main').innerHTML = `
+    <div class="result">
+      <div class="rb">
+        <span class="tag ${cls}">${label}</span>
+        <h3>${res==='w'?'완벽한 90분':res==='d'?'아쉬운 균형':'다음 판을 노립니다'}</h3>
+        <div class="fs">${M.me} : ${M.op}</div>
+        <div class="tiny">MY XI vs ${esc(M.opp.club)}</div>
+      </div>
+      <div class="rewards">
+        <div><span>획득 코인</span><b class="up">+${fmt(M.coins)}</b></div>
+        <div><span>${M.mode==='ranked'?'레이팅':'점유율'}</span>
+          ${M.mode==='ranked'
+            ? `<b class="${M.ratingDelta>=0?'up':'dn'}">${M.ratingDelta>=0?'+':''}${M.ratingDelta} <span style="font-size:10px;color:var(--dim)">→ ${S.rank.r}</span></b>`
+            : `<b>${M.poss}% <span style="font-size:10px;color:var(--dim)">점유</span></b>`}</div>
+      </div>
+      <div class="hr"></div>
+      <div class="between"><span class="eyebrow g">MATCH REPORT</span><span class="tiny">점유 ${M.poss}% · 슈팅 ${M.shotsMe}-${M.shotsOp}</span></div>
+      <div class="ticker" style="margin-top:9px">${M.ev.filter(e=>e.type==='goal').slice(0,4).map(e=>`
+        <div class="tk goal"><div class="mm">${esc(e.mm)}</div><div class="tx">${esc(e.text)}</div></div>`).join('') || '<div class="tiny">득점 없이 끝났습니다.</div>'}</div>
+      <div class="stack" style="margin-top:14px">
+        <button class="btn primary wide" data-act="rematch">다시 붙기</button>
+        <div class="row" style="gap:8px">
+          <button class="btn dark" style="flex:1" data-act="go-upgrade">⚡ 강화</button>
+          <button class="btn dark" style="flex:1" data-act="quit-result">경기장으로</button>
+        </div>
+      </div>
+    </div>
+    <div class="tiny" style="text-align:center;margin-top:12px">보유 코인 ${fmt(S.coins)} · 랭킹전 ${S.rank.w}승 ${S.rank.d}무 ${S.rank.l}패</div>`;
+}
+
+/* ---------- upgrade ---------- */
+function upgradeHTML(){
+  if(!S.squad) return `<div class="eyebrow">TRAINING</div><h2 class="title">강화</h2>
+    <div class="sect"><div class="empty"><div class="ic">⚡</div><b>강화할 선수가 없습니다</b>
+    <div class="muted">드래프트로 스쿼드를 만들면 선수별 능력치를 코인으로 올릴 수 있습니다.</div>
+    <button class="btn primary" style="margin:14px auto 0;width:190px" data-act="start-draft">드래프트 시작</button></div></div>`;
+  const list = S.squad.map((inst,k)=>({k, inst, o:ovrOf(inst)})).sort((a,b)=>b.o-a.o);
+  if(!list.some(x=>x.k===U.sel)) U.sel = list[0].k;
+  const cur = S.squad[U.sel];
+  const st = statsOf(cur), o = ovrOf(cur), b = bonusOf(cur), base = baseOvrOf(cur.i);
+  const nm = P[cur.i][0], club = P[cur.i][1], sp = posOf(cur.i);
+  const exact = ovrExact(cur);
+  const cards = list.map(x=>`<button class="pcard ${x.k===U.sel?'on':''}" data-act="sel" data-k="${x.k}">
+    <div class="o">${x.o}</div><div class="n">${esc(P[x.inst.i][0].split(' ').slice(-1)[0])}</div>
+    <div class="p">${posOf(x.inst.i)}</div>${bonusOf(x.inst)>0?`<div class="b">+${bonusOf(x.inst)}</div>`:''}</button>`).join('');
+  const labels = labelsOf(sp);
+  const rows = labels.map((a,i)=>{
+    const c1 = costOne(o), c5 = costN(o,5);
+    return `<div class="stat">
+      <div class="lb">${a}</div><div class="vl">${st[i]}</div>
+      <div class="tr"><s style="width:${clamp((st[i]-40)*1.2,4,100)}%"></s></div>
+      <div class="btns">
+        <button class="up ${S.coins<c1?'poor':''}" data-act="up" data-a="${i}" data-n="1">+1</button>
+        <button class="up ${S.coins<c5?'poor':''}" data-act="up" data-a="${i}" data-n="5">+5</button>
+      </div></div>`;
+  }).join('');
+  const allCost = Math.round(ATTR.reduce((s,_,a)=>s+costOne(o),0)*0.86);
+  return `<div class="eyebrow">TRAINING · NO LIMIT</div>
+    <h2 class="title">강화 <span class="mono" style="font-size:12px;color:var(--dim)">🪙 ${fmt(S.coins)}</span></h2>
+    <div class="pscroll" style="margin-top:11px">${cards}</div>
+    <div class="up-head" style="margin-top:9px">
+      <div>
+        <div class="eyebrow">${sp} · ${esc(club)}</div>
+        <div class="nm">${esc(nm)}</div>
+        <div class="cl">기본 OVR ${base} · 강화 ${b>0?'+'+b:'0'}</div>
+      </div>
+      <div style="text-align:right"><div class="big ${b>0?'up':''}">${exact.toFixed(1)}</div><div class="tiny">OVR${b>0?` · +${(exact-baseOvrOf(cur.i)).toFixed(1)}`:''}</div></div>
+    </div>
+    <div class="card" style="padding:6px 13px;margin-top:9px">${rows}</div>
+    <div class="stack" style="margin-top:11px">
+      <button class="btn primary wide ${S.coins<allCost?'':''}" data-act="upall">전체 +1 · <span class="mono">${fmt(allCost)}</span> 코인</button>
+      <div class="tiny" style="text-align:center">상한 없음 · 코인이 닿는 만큼 계속 올라갑니다 (OVR 99 → 120 → 200+)</div>
+    </div>`;
+}
+
+/* ---------- ranking ---------- */
+function tierOf(r){
+  let t = TIERS[0];
+  for(const x of TIERS) if(r >= x.min) t = x;
+  const i = TIERS.indexOf(t);
+  return {...t, idx:i, next:TIERS[i+1] || null};
+}
+function recordText(){ return `${S.rank.w}승 ${S.rank.d}무 ${S.rank.l}패`; }
+function shareText(){
+  const t = tierOf(S.rank.r);
+  const bestName = S.best.bonusName || (S.squad ? P[S.squad.reduce((a,b)=>ovrOf(b)>ovrOf(a)?b:a).i][0] : '-');
+  const tOvr = teamStats() ? teamStats().ovr : 0;
+  return `⚽ DRAFT XI 26/27\n식별코드 #${S.code}\n랭킹전 ${t.n} ${S.rank.r}점 (${recordText()})\n최고 OVR ${S.best.ovr || tOvr} · ${S.best.name || '-'}\n최고 강화 ${bestName} +${S.best.bonus || 0}\n내 팀 OVR ${tOvr}`;
+}
+function rankingHTML(){
+  const t = tierOf(S.rank.r);
+  const nxt = t.next;
+  const pct = nxt ? clamp((S.rank.r - t.min) / (nxt.min - t.min) * 100, 2, 100) : 100;
+  const total = S.record.w + S.record.d + S.record.l;
+  const wr = total ? Math.round(S.record.w / total * 100) : 0;
+  const bestInst = S.best.bonusName || (S.squad ? P[S.squad.reduce((a,b)=>ovrOf(b)>ovrOf(a)?b:a).i][0] : '-');
+  const tOvr = teamStats() ? teamStats().ovr : 0;
+  const ladder = TIERS.map((x,i)=>{
+    const on = i === t.idx;
+    return `<div class="lad ${on?'on':''}"><span class="d" style="background:${x.c}"></span><span class="n" style="${on?`color:${x.c}`:''}">${x.n}</span><span class="r">${x.min}+</span></div>`;
+  }).join('');
+  return `<div class="eyebrow">RANKING · AI LADDER</div>
+    <h2 class="title">랭킹</h2>
+    <div class="tier" style="margin-top:11px">
+      <span class="badge" style="background:${t.c}22;color:${t.c};border:1px solid ${t.c}55">${t.n.toUpperCase()}</span>
+      <div class="rt">${fmt(S.rank.r)}<small>RATING</small></div>
+      <div class="tiny" style="margin-top:5px">${nxt ? `${nxt.n}까지 ${fmt(nxt.min - S.rank.r)}점` : '최고 티어 · 레전드'} · ${recordText()}</div>
+      <div class="tierp"><i style="width:${pct}%"></i></div>
+    </div>
+    <div class="grid2" style="margin-top:9px">
+      <div class="gcard"><span>최고 OVR</span><b>${S.best.ovr || tOvr}</b><small>${esc(S.best.name || '—')}</small></div>
+      <div class="gcard"><span>최고 강화</span><b>+${S.best.bonus || 0}</b><small>${esc(bestInst)}</small></div>
+      <div class="gcard"><span>전체 전적</span><b>${S.record.w}-${S.record.d}-${S.record.l}</b><small>승률 ${wr}%</small></div>
+      <div class="gcard"><span>누적 강화</span><b>${fmt(S.ups)}</b><small>회</small></div>
+    </div>
+    <div class="sect stack">
+      <div class="sect-h"><div class="eyebrow g">TIER LADDER</div><div class="tiny">AI 랭킹전 기준</div></div>
+      <div class="ladder">${ladder}</div>
+    </div>
+    <div class="sect stack">
+      <div class="between"><div class="eyebrow g">SHARE</div><div class="tiny">식별코드 #${S.code}</div></div>
+      <div class="share" id="shareBox">${esc(shareText())}</div>
+      <button class="btn primary wide" data-act="copy">전적 문구 복사</button>
+      <button class="btn dark wide" data-act="reset">전체 초기화</button>
+    </div>`;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', ev => {
+  const el = ev.target.closest('[data-act]');
+  if(!el) return;
+  const act = el.dataset.act;
+  if(act === 'start-draft'){ startDraft(); }
+  else if(act === 'reroll'){
+    if(!S.draft) return;
+    if(S.coins < 80){ toast('코인이 부족합니다'); return; }
+    spendCoins(80);
+    S.draft.opts = sampleOptions(S.draft.f, S.draft.picks.length, S.draft.picks.map(p=>p.i));
+    save(); render();
+  }
+  else if(act === 'pick'){
+    const i = +el.dataset.i;
+    choosePick(i);
+  }
+  else if(act === 'player'){ openPlayer(+el.dataset.k); }
+  else if(act === 'close-sheet'){ $('#sheetHost').classList.remove('on'); }
+  else if(act === 'sheet-upgrade'){ $('#sheetHost').classList.remove('on'); U.sel = +el.dataset.k; U.tab='upgrade'; U.match=null; render(); }
+  else if(act === 'new-draft'){
+    if(S.draft) openConfirm('드래프트를 버릴까요?', '진행 중인 선택이 사라집니다.', '버리고 새로 시작', 'confirm-draft');
+    else openConfirm('새 드래프트를 시작할까요?', '지금 스쿼드는 사라지고, 코인과 전적은 그대로 남습니다.', '새 드래프트', 'confirm-draft');
+  }
+  else if(act === 'confirm-draft'){
+    $('#sheetHost').classList.remove('on');
+    S.squad = null; S.formation = null; S.draft = null; save(); startDraft();
+  }
+  else if(act === 'go-stadium'){ U.tab='stadium'; render(); }
+  else if(act === 'go-upgrade'){ U.tab='upgrade'; render(); }
+  else if(act === 'mode'){
+    const m = el.dataset.mode;
+    if(m === 'friendly'){ U.friendly.open = true; render(); }
+    else startMatch(m, opponentFor(m));
+  }
+  else if(act === 'fleague'){ U.friendly.league = el.dataset.l; render(); }
+  else if(act === 'fdiff'){ U.friendly.diff = +el.dataset.v; render(); }
+  else if(act === 'close-friendly'){ U.friendly.open = false; render(); }
+  else if(act === 'play-friendly'){
+    const club = el.dataset.c;
+    const o = opponentOf(club);
+    startMatch('friendly', o);
+  }
+  else if(act === 'skip'){
+    const M = U.match; if(!M || M.over) return;
+    clearInterval(M.timer); M.timer = null;
+    while(M.min < 90 && !M.over){
+      M.min += 5;
+      if(M.min === 90){ finishMatch(); break; }
+      if(M.min === 45){ pushEvent({type:'half', mm:"45'", text:'전반 종료.', cls:'half'}); continue; }
+      simulateMinute(M);
+    }
+    paintMatch();
+  }
+  else if(act === 'rematch'){
+    const M = U.match;
+    if(!M) return;
+    if(M.mode === 'friendly' && !M.opp.mix) startMatch('friendly', opponentOf(M.opp.club));
+    else startMatch(M.mode, opponentFor(M.mode));
+  }
+  else if(act === 'quit-match'){
+    if(U.match && !U.match.over) openConfirm('중계를 나갈까요?', '진행 중인 경기는 기록되지 않습니다.', '나가기', 'confirm-quit');
+    else { U.match = null; U.tab='stadium'; render(); }
+  }
+  else if(act === 'confirm-quit'){
+    $('#sheetHost').classList.remove('on');
+    if(U.match && U.match.timer) clearInterval(U.match.timer);
+    U.match = null; U.tab='stadium'; render();
+  }
+  else if(act === 'quit-result'){ U.match = null; U.tab='stadium'; render(); }
+  else if(act === 'sel'){ U.sel = +el.dataset.k; renderUpgrade(false); }
+  else if(act === 'up'){ const inst = S.squad[U.sel]; upgrade(inst, +el.dataset.a, +el.dataset.n); }
+  else if(act === 'upall'){ upgradeAll(S.squad[U.sel], 1); }
+  else if(act === 'copy'){ copyShare(); }
+  else if(act === 'reset'){ openConfirm('전체 초기화', '스쿼드, 코인, 전적, 식별코드까지 모두 지워집니다.', '모두 지우기', 'confirm-reset'); }
+  else if(act === 'confirm-reset'){
+    $('#sheetHost').classList.remove('on');
+    localStorage.removeItem(KEY); S = freshState(); U = {tab:'squad', sel:0, match:null, friendly:{open:false, league:'EPL', diff:0}, busy:false};
+    save(); render(); toast('초기화 완료');
+  }
+});
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
+  if(U.match && !U.match.over){ toast('경기 중에는 이동할 수 없습니다'); return; }
+  U.match = null;
+  U.tab = b.dataset.tab; render();
+}));
+$('#codePill').addEventListener('click', () => {
+  copyText('#' + S.code).then(()=>toast('식별코드 복사됨'), ()=>toast('#' + S.code));
+});
+
+function renderUpgrade(keepScroll){
+  const m = $('#main');
+  const top = keepScroll ? m.scrollTop : 0;
+  m.innerHTML = upgradeHTML();
+  if(keepScroll) m.scrollTop = top;
+}
+function copyText(txt){
+  if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(txt);
+  const ta = document.createElement('textarea');
+  ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  ta.remove(); return Promise.resolve();
+}
+function copyShare(){ copyText(shareText()).then(()=>toast('전적 문구를 복사했습니다'), ()=>toast('복사 실패')); }
+
+/* ---------- zoom / gesture guard ---------- */
+['gesturestart','gesturechange','gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), {passive:false}));
+document.addEventListener('touchmove', e => { if(e.touches.length > 1) e.preventDefault(); }, {passive:false});
+let lastTouch = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if(now - lastTouch <= 300) e.preventDefault();
+  lastTouch = now;
+}, {passive:false});
+document.addEventListener('dblclick', e => e.preventDefault());
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => { if((e.ctrlKey||e.metaKey) && ['+','-','=','0'].includes(e.key)) e.preventDefault(); });
+
+/* ---------- boot ---------- */
+paintHud();
+render();
+
+</script>
+</body>
+</html>
