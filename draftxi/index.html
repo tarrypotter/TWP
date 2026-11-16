@@ -764,7 +764,7 @@ function freshState(){
     record:{w:0,d:0,l:0}, rank:{r:1000,w:0,d:0,l:0},
     best:{ovr:0,name:''}, bestTeam:{ovr:0,f:''}, recent:[],
     q:freshQuests(), drain:{day:'', used:0}, grow:{i:null, lv:0, prot:false, last:null, best:0, idx:0, list:[]},
-    squadInfo:null, tactic:'balance'};
+    duel:{w:0,d:0,l:0,r:1000}, squadInfo:null, tactic:'balance'};
 }
 function sanitize(s){
   if(!s || typeof s !== 'object' || !s.code) return null;
@@ -781,6 +781,9 @@ function sanitize(s){
   if(!s.q || typeof s.q !== 'object') s.q = freshQuests();
   if(!s.drain || typeof s.drain !== 'object') s.drain = {day:'', used:0};
   if(!s.squadInfo || typeof s.squadInfo !== 'object') s.squadInfo = null;
+  if(!s.duel || typeof s.duel !== 'object') s.duel = {w:0,d:0,l:0,r:1000};
+  ['w','d','l'].forEach(k => { s.duel[k] = Math.max(0, Math.round(+s.duel[k] || 0)); });
+  s.duel.r = Math.max(0, Math.round(+s.duel.r || 1000));
   if(!s.grow || typeof s.grow !== 'object') s.grow = {i:null, lv:0, prot:false, last:null, best:0, idx:0, list:[]};
   s.grow.i = (typeof s.grow.i === 'number' && s.grow.i >= 0 && s.grow.i < P.length) ? s.grow.i : null;
   s.grow.lv = Math.max(0, Math.min(GROW_MAX, Math.round(+s.grow.lv || 0)));
@@ -1470,7 +1473,7 @@ function startDuel(kind){
   let b;
   if(kind === 'invite') b = {...U.ace};
   else {
-    const target = a.ovr + (kind === 'ranked' ? clamp((tierOf(S.rank.r).idx - 2) * 3, -10, 14) : 0) + Math.round(Math.random() * 6 - 3);
+    const target = a.ovr + (kind === 'ranked' ? clamp((tierOf(duelRec().r).idx - 2) * 3, -10, 14) : 0) + Math.round(Math.random() * 6 - 3);
     b = duelPickOpp(target, cur.i);
   }
   U.match = {duel:true, kind:kind || 'normal', a, b, me:0, op:0, min:0, half:false, over:false,
@@ -1563,7 +1566,7 @@ function renderDuelScreen(){
   $('#main').innerHTML = `
     <div class="between" style="margin-bottom:9px">
       <div><div class="eyebrow">1 VS 1 · ${M.kind === 'ranked' ? 'AI 랭킹' : M.kind === 'invite' ? '친구 초대' : '일반'}</div>
-      <div class="tiny" style="margin-top:2px">키운 선수 한 명이 그대로 맞붙습니다</div></div>
+      <div class="tiny" style="margin-top:2px">키운 선수 1명 대 상대 1명 · 임대 스쿼드와 별개</div></div>
       <button class="chip" data-act="duel-skip">⏩ 바로 결과</button>
     </div>
     <div class="board">
@@ -1599,18 +1602,16 @@ function finishDuel(){
   const base = M.kind === 'ranked' ? (res === 'w' ? 260 : res === 'd' ? 90 : 40) : (res === 'w' ? 190 : res === 'd' ? 70 : 30);
   const gd = Math.abs(M.me - M.op);
   M.coins = base + (res === 'w' ? gd * 20 : 0);
+  const d1 = duelRec();
+  d1[res] = (d1[res] || 0) + 1;
   if(M.kind === 'ranked'){
     const delta = res === 'w' ? Math.round(clamp(16 + (M.b.ovr - M.a.ovr) * 1.2, 8, 40))
       : res === 'd' ? 2 : -Math.round(clamp(8 + (M.a.ovr - M.b.ovr) * 0.6, 4, 20));
     M.ratingDelta = delta;
-    S.rank.r = Math.max(0, S.rank.r + delta);
-    S.rank[res] = (S.rank[res] || 0) + 1;
+    d1.r = Math.max(0, d1.r + delta);
   }
   S.coins += M.coins;
-  S.record[res] = (S.record[res] || 0) + 1;
-  S.matches = (S.matches || 0) + 1;
   ensureQuests(); questAdd('game', 1);
-  if(M.kind === 'ranked') questAdd('ranked', 1);
   if(res === 'w') questAdd('win', 1);
   save(); paintHud(); renderDuelResult();
 }
@@ -1626,7 +1627,7 @@ function renderDuelResult(){
   const line = side => (M.goals || []).filter(g => g.side === side)
     .map(g => `<div class="bsrow"><span class="mm">${esc(g.mm)}</span><span class="nm">${esc(g.name)}</span></div>`).join('') || '<div class="bsrow empty"><span class="nm">득점 없음</span></div>';
   const reward2 = M.kind === 'ranked'
-    ? `<b class="${M.ratingDelta >= 0 ? 'up' : 'dn'}">${M.ratingDelta >= 0 ? '+' : ''}${M.ratingDelta} <small>→ ${S.rank.r}</small></b>`
+    ? `<b class="${M.ratingDelta >= 0 ? 'up' : 'dn'}">${M.ratingDelta >= 0 ? '+' : ''}${M.ratingDelta} <small>→ ${fmt(duelRec().r)}</small></b>`
     : `<b>${M.poss}<small>%</small></b>`;
   $('#main').innerHTML = `
     <div class="result">
@@ -1657,11 +1658,12 @@ function renderDuelResult(){
         <button class="btn primary wide" data-act="duel-again" data-mode="${M.kind}">한 판 더</button>
         <div class="row" style="gap:6px">
           <button class="btn dark sm" style="flex:1" data-act="duel-goto-grow">🔨 키우기로</button>
-          <button class="btn dark sm" style="flex:1" data-act="quit-duel">경기장으로</button>
+          <button class="btn dark sm" style="flex:1" data-act="go-ranking">🏆 1대1 랭킹</button>
         </div>
       </div>
     </div>
-    <div class="rfoot">보유 코인 ${fmt(S.coins)} · 랭킹전 ${S.rank.w}승 ${S.rank.d}무 ${S.rank.l}패</div>`;
+    <div class="rfoot">보유 코인 ${fmt(S.coins)} · 1대1 전적 ${duelRecordText()} · 레이팅 ${fmt(duelRec().r)}</div>
+  `;
 }
 
 /* ---------- rendering: shell ---------- */
@@ -1732,7 +1734,7 @@ function introHTML(){
     <div class="grid2">
       <div class="gcard"><span>보유 코인</span><b>${fmt(S.coins)}</b><small>버프에 사용</small></div>
       <div class="gcard"><span>총 버프 Lv</span><b>${fmt(totalBuf())}</b><small>${bufLine()}</small></div>
-      <div class="gcard"><span>AI 랭킹전</span><b>${fmt(S.rank.r)}</b><small>${t.n} · ${recordText()}</small></div>
+      <div class="gcard"><span>AI 랭킹전 (11대11)</span><b>${fmt(S.rank.r)}</b><small>${t.n} · ${recordText()}</small></div>
       <div class="gcard"><span>최고 팀 OVR</span><b>${S.bestTeam.ovr || '—'}</b><small>${S.bestTeam.f || '기록 없음'}</small></div>
     </div>
   </div>
@@ -1923,6 +1925,16 @@ function growCur(){
   return {i:S.grow.i, b:baseOvrOf(S.grow.i), lv:growLv(), c:0};
 }
 function growList(){ if(!S.grow || !Array.isArray(S.grow.list)) S.grow = {...(S.grow || {}), list:[]}; return S.grow.list; }
+/* 키우기 1대1 전용 기록 — 11대11 임대 전적(S.record·S.rank)과 섞지 않는다 */
+function duelRec(){
+  if(!S.duel || typeof S.duel !== 'object') S.duel = {w:0,d:0,l:0,r:1000};
+  S.duel.w = Math.max(0, Math.round(+S.duel.w || 0));
+  S.duel.d = Math.max(0, Math.round(+S.duel.d || 0));
+  S.duel.l = Math.max(0, Math.round(+S.duel.l || 0));
+  S.duel.r = Math.max(0, Math.round(+S.duel.r || 1000));
+  return S.duel;
+}
+function duelRecordText(){ const d = duelRec(); return d.w + '승 ' + d.d + '무 ' + d.l + '패'; }
 function growIdx(){ const L = growList(); return L.length ? clamp(Math.round(+S.grow.idx || 0), 0, L.length - 1) : 0; }
 /* 현재 키우는 선수를 보관함 슬롯에 기록 */
 function growSaveActive(){
@@ -2461,7 +2473,7 @@ function growHTML(){
   <div class="card" style="padding:6px 13px;margin-top:11px">${rows}</div>
   <div class="tiny" style="margin-top:9px;line-height:1.6">성공하면 +${GROW_STEP}씩 능력치가 오릅니다. 보호카드 없이 실패하면 0강으로 초기화, 켜고 실패하면 55% 유지 · 45%는 1~7강 하락.</div>
   <div class="sect stack">
-    <div class="sect-h"><div class="eyebrow g">키운 선수로 1대1 대결</div><div class="tiny">선택한 1명이 그대로 출전</div></div>
+    <div class="sect-h"><div class="eyebrow g">키운 선수로 1대1 대결</div><div class="tiny">1대1 전적 ${duelRecordText()}</div></div>
     <div class="duelcard">
       <div class="dc-l"><span>1 VS 1 · MY PICK</span><b>${esc(nm)}</b><small>${sp} · ${esc(club)}</small></div>
       <div class="dc-r"><b>${ovr}</b><span>+${lv}강</span></div>
@@ -2485,6 +2497,7 @@ function tierOf(r){
   return {...t, idx:i, next:TIERS[i+1] || null};
 }
 function recordText(){ return `${S.rank.w}승 ${S.rank.d}무 ${S.rank.l}패`; }
+function duelWr(){ const d = duelRec(), n = d.w + d.d + d.l; return n ? '승률 ' + Math.round(d.w / n * 100) + '%' : '기록 없음'; }
 function shareText(){
   const t = tierOf(S.rank.r);
   const total = S.record.w + S.record.d + S.record.l;
@@ -2496,7 +2509,8 @@ function shareText(){
     + '총 버프 Lv ' + fmt(totalBuf()) + ' · ' + bufLine() + '\n'
     + '최고 팀 OVR ' + tOvr + (S.bestTeam.f ? ' (' + S.bestTeam.f + ')' : '') + '\n'
     + (S.grow && S.grow.best ? '최고 강화 +' + S.grow.best + '강' + (S.grow.best >= 10 ? ' 🥇' : '') + '\n' : '')
-    + '경기 ' + S.matches + '회 · 승률 ' + wr + '%';
+    + '11대11 경기 ' + S.matches + '회 · 승률 ' + wr + '%\n'
+    + '키우기 1대1 ' + duelRecordText() + ' · 레이팅 ' + duelRec().r;
 }
 function rankingHTML(){
   const t = tierOf(S.rank.r);
@@ -2509,8 +2523,9 @@ function rankingHTML(){
     const on = i === t.idx;
     return `<div class="lad ${on?'on':''}"><span class="d" style="background:${x.c}"></span><span class="n" style="${on?`color:${x.c}`:''}">${x.n}</span><span class="r">${x.min}+</span></div>`;
   }).join('');
-  return `<div class="eyebrow">RANKING · AI LADDER</div>
+  return `<div class="eyebrow">11 VS 11 · AI LADDER</div>
     <h2 class="title">랭킹</h2>
+    <div class="tiny" style="margin-top:2px">임대 드래프트 11대11 전적입니다. 키우기 1대1 기록은 아래에 따로 있습니다.</div>
     <div class="tier" style="margin-top:11px">
       <span class="badge" style="background:${t.c}22;color:${t.c};border:1px solid ${t.c}55">${t.n.toUpperCase()}</span>
       <div class="rt">${fmt(S.rank.r)}<small>RATING</small></div>
@@ -2520,8 +2535,16 @@ function rankingHTML(){
     <div class="grid2" style="margin-top:9px">
       <div class="gcard"><span>최고 팀 OVR</span><b>${S.bestTeam.ovr || tOvr || '—'}</b><small>${esc(S.bestTeam.f || '기록 없음')}</small></div>
       <div class="gcard"><span>총 버프 Lv</span><b>${fmt(totalBuf())}</b><small>${esc(bufLine())}</small></div>
-      <div class="gcard"><span>전체 전적</span><b>${S.record.w}-${S.record.d}-${S.record.l}</b><small>승률 ${wr}%</small></div>
+      <div class="gcard"><span>11대11 전적</span><b>${S.record.w}-${S.record.d}-${S.record.l}</b><small>승률 ${wr}%</small></div>
       <div class="gcard"><span>최고 강화</span><b>+${Math.round((S.grow && S.grow.best) || 0)}</b><small>${(S.grow && S.grow.best >= 10) ? '🥇 명예 배지' : '키우기 최고 기록'}</small></div>
+    </div>
+    <div class="sect">
+      <div class="sect-h"><div class="eyebrow g">키우기 1 VS 1</div><div class="tiny">임대 드래프트와 별개 기록</div></div>
+      <div class="grid2">
+        <div class="gcard"><span>1대1 레이팅</span><b>${fmt(duelRec().r)}</b><small>${tierOf(duelRec().r).n}</small></div>
+        <div class="gcard"><span>1대1 전적</span><b>${duelRec().w}-${duelRec().d}-${duelRec().l}</b><small>${duelWr()}</small></div>
+      </div>
+      <button class="btn dark wide" style="margin-top:7px" data-act="go-grow">🔨 키우기 1대1 하러 가기</button>
     </div>
     <div class="sect stack">
       <div class="sect-h"><div class="eyebrow g">TIER LADDER</div><div class="tiny">AI 랭킹전 기준</div></div>
@@ -2656,6 +2679,8 @@ document.addEventListener('click', ev => {
   else if(act === 'buf'){ buyBuf(el.dataset.k, +el.dataset.n); }
   else if(act === 'resume-draft'){ U.tab='squad'; render(); }
   else if(act === 'go-squad'){ U.tab='squad'; render(); }
+  else if(act === 'go-ranking'){ if(U.match && U.match.timer) clearInterval(U.match.timer); U.match = null; U.tab='ranking'; render(); }
+  else if(act === 'go-grow'){ U.tab='grow'; render(); }
   else if(act === 'copy'){ copyShare(); }
   else if(act === 'reset'){ openConfirm('전체 초기화', '스쿼드, 코인, 전적, 식별코드까지 모두 지워집니다.', '모두 지우기', 'confirm-reset'); }
   else if(act === 'confirm-reset'){
