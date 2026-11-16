@@ -422,8 +422,9 @@ function josa(word, a, b){
   const s = String(word || '').trim();
   if(!s) return a;
   const c = s.charCodeAt(s.length - 1);
-  if(c < 0xac00 || c > 0xd7a3) return a;
-  return ((c - 0xac00) % 28) ? a : b;
+  if(c >= 0xac00 && c <= 0xd7a3) return ((c - 0xac00) % 28) ? a : b;
+  if(c < 128) return 'aeiouy'.indexOf(String.fromCharCode(c).toLowerCase()) >= 0 ? b : a;
+  return b;
 }
 const ga = w => josa(w, '이', '가');
 const eun = w => josa(w, '은', '는');
