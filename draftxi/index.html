@@ -5,7 +5,7 @@
 <title>DRAFT XI 26/27 · 드래프트 축구 시뮬</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#070d0b">
-<meta name="description" content="랜덤 포메이션 · 포지션별 3택 드래프트 · 무제한 능력치 강화로 유럽 5대 리그 26/27 선수들과 붙는 축구 시뮬레이션.">
+<meta name="description" content="매 경기 새로 뽑는 임대 드래프트 · 포지션별 무제한 영구 버프로 유럽 5대 리그 26/27 선수들과 붙는 축구 시뮬레이션.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="DRAFT XI">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23cdf95f'/%3E%3Ctext x='32' y='45' font-size='36' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='%230a120c'%3ED%3C/text%3E%3C/svg%3E">
@@ -281,6 +281,23 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
   font-family:var(--mono);font-size:11px;font-weight:800;color:var(--ink);display:grid;place-items:center;line-height:1}
 .up:active{background:var(--lime);color:#0a120c}
 .up.poor{opacity:.38}
+.brow{padding:11px 12px;border-radius:13px;border:1px solid var(--line);background:linear-gradient(110deg,#12201a,#0c1613)}
+.brow.on{border-color:#3d6a3a}
+.brow .hd{display:flex;align-items:center;gap:9px}
+.brow .ic{width:31px;height:31px;border-radius:9px;background:var(--card3);border:1px solid var(--line2);display:grid;place-items:center;font-size:14px}
+.brow .nm{flex:1 1 auto;min-width:0}
+.brow .nm b{display:block;font-size:12.5px;font-weight:900;letter-spacing:-.02em}
+.brow .nm span{display:block;font-size:9.5px;color:var(--sub);margin-top:1px;letter-spacing:-.01em}
+.brow .lv{font-family:var(--mono);font-size:19px;font-weight:800;letter-spacing:-.05em;color:var(--lime);line-height:1}
+.brow .lv small{font-size:8px;color:var(--dim);letter-spacing:.08em;margin-left:2px}
+.brow .tr{height:4px;border-radius:2px;background:#1b2f24;margin-top:9px;overflow:hidden}
+.brow .tr s{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#7bbf35,var(--lime));text-decoration:none;transition:width .2s}
+.brow .ft{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.brow .btns{display:flex;gap:5px}
+.rental{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:11px;border:1px dashed var(--line2);background:rgba(255,180,58,.05)}
+.rental .ic{font-size:14px}
+.rental .tx{flex:1 1 auto;font-size:10.5px;line-height:1.5;color:var(--sub);letter-spacing:-.01em}
+.rental .tx b{color:var(--amber)}
 .pop{position:fixed;z-index:120;font-family:var(--mono);font-size:14px;font-weight:800;color:var(--lime);
   pointer-events:none;animation:pop .8s ease-out forwards;text-shadow:0 2px 10px rgba(0,0,0,.6)}
 @keyframes pop{0%{opacity:0;transform:translateY(4px) scale(.9)}30%{opacity:1;transform:translateY(-10px) scale(1.05)}100%{opacity:0;transform:translateY(-34px) scale(1)}}
@@ -353,7 +370,7 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
     </button>
     <button class="tab" data-tab="upgrade">
       <svg viewBox="0 0 24 24"><path d="M13 3L5 14h6l-1 7 9-12h-6l1-6z"/></svg>
-      <span>강화</span>
+      <span>버프</span>
     </button>
     <button class="tab" data-tab="ranking">
       <svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg>
@@ -407,6 +424,16 @@ const MODES = {
   friendly:{name:'친선전', ic:'🤝', coins:[180,80,40], desc:'리그와 난이도를 직접 골라 가볍게 붙습니다.'},
   ranked:{name:'AI 랭킹전', ic:'🏆', coins:[420,160,80], desc:'레이팅이 오르면 더 센 상대가 기다립니다.'}
 };
+/* 포지션별 영구 버프 — Lv 상한 없음 */
+const BUF = [
+  {k:'GK', name:'GK 버프', ic:'🧤', desc:'골키퍼 전 스탯 · 선방·반사까지', ex:'GK 임대 선수 능력치'},
+  {k:'DF', name:'DF 버프', ic:'🛡️', desc:'수비수 전 스탯 · CB·LB·RB', ex:'수비수 임대 선수 능력치'},
+  {k:'MF', name:'MF 버프', ic:'🎯', desc:'미드필더 전 스탯 · DM·CM·AM', ex:'미드필더 임대 선수 능력치'},
+  {k:'FW', name:'FW 버프', ic:'⚡', desc:'공격수 전 스탯 · ST·LW·RW', ex:'공격수 임대 선수 능력치'}
+];
+const BUF_KEYS = BUF.map(b => b.k);
+const bufCost = L => Math.round(30 + 14 * L + 0.6 * L * L);
+function bufCostN(L, n){ let c = 0; for(let k=0;k<n;k++) c += bufCost(L + k); return c; }
 
 /* ---------- helpers ---------- */
 const $ = s => document.querySelector(s);
@@ -450,8 +477,10 @@ let U = {tab:'squad', sel:-1, match:null, friendly:{open:false, league:'EPL', di
 let S = load();
 
 function freshState(){
-  return {v:1, code:makeCode(), coins:STARTER_COINS, squad:null, formation:null, draft:null,
-    record:{w:0,d:0,l:0}, rank:{r:1000,w:0,d:0,l:0}, best:{ovr:0,name:'',bonus:0}, ups:0, recent:[]};
+  return {v:2, code:makeCode(), coins:STARTER_COINS, buf:{GK:0,DF:0,MF:0,FW:0},
+    squad:null, formation:null, draft:null, matches:0,
+    record:{w:0,d:0,l:0}, rank:{r:1000,w:0,d:0,l:0},
+    best:{ovr:0,name:''}, bestTeam:{ovr:0,f:''}, recent:[]};
 }
 function load(){
   try{
@@ -460,8 +489,12 @@ function load(){
     const s = JSON.parse(raw);
     if(!s || typeof s !== 'object' || !s.code) return freshState();
     s.record ||= {w:0,d:0,l:0}; s.rank ||= {r:1000,w:0,d:0,l:0};
-    s.best ||= {ovr:0,name:'',bonus:0}; s.ups ||= 0; s.coins ||= STARTER_COINS; s.recent ||= [];
-    ['name','name2','bonusName'].forEach(k => { if(typeof s.best[k] === 'string' && /[A-Za-z]/.test(s.best[k])) s.best[k] = ''; });
+    s.best ||= {ovr:0,name:''}; s.bestTeam ||= {ovr:0,f:''}; s.recent ||= [];
+    if(typeof s.coins !== 'number' || !isFinite(s.coins)) s.coins = STARTER_COINS;
+    if(typeof s.matches !== 'number') s.matches = 0;
+    s.buf = (s.buf && typeof s.buf === 'object') ? s.buf : {};
+    BUF.forEach(b => { s.buf[b.k] = Math.max(0, Math.round(+s.buf[b.k] || 0)); });
+    if(s.v !== 2){ s.squad = null; s.formation = null; s.draft = null; s.bestTeam = {ovr:0,f:''}; s.v = 2; }
     return s;
   }catch(e){ return freshState(); }
 }
@@ -479,9 +512,10 @@ function baseStats(i){
   const delta = wsum - o;
   return raw.map(v => Math.max(25, Math.round(v - delta)));
 }
+function bufLvOf(inst){ return (S.buf && S.buf[grp(posOf(inst.i))]) || 0; }
 function statsOf(inst){
-  const b = baseStats(inst.i), x = inst.x || [0,0,0,0,0];
-  return b.map((v,k) => v + (x[k] || 0));
+  const b = baseStats(inst.i), add = bufLvOf(inst);
+  return b.map(v => v + add);
 }
 function ovrExact(inst){
   const a = statsOf(inst), w = WEIGHTS[grp(posOf(inst.i))];
@@ -515,10 +549,15 @@ function teamStats(){
   return {ovr: Math.round(e.reduce((s,x)=>s+x.ovr,0)/11), att: avg(fw), mid: avg(mf), def, gk: gk[0] || 60, entries:e};
 }
 function updateBest(inst){
-  const o = ovrOf(inst), b = bonusOf(inst), nm = P[inst.i][0];
+  const o = ovrOf(inst), nm = P[inst.i][0];
   if(o > S.best.ovr){ S.best.ovr = o; S.best.name = nm; }
-  if(b > S.best.bonus){ S.best.bonus = b; S.best.name2 = nm; S.best.bonusName = nm; }
 }
+function updateBestTeam(){
+  const t = teamStats();
+  if(t && t.ovr > (S.bestTeam.ovr || 0)) S.bestTeam = {ovr: t.ovr, f: S.formation || ''};
+}
+function totalBuf(){ return BUF_KEYS.reduce((s,k) => s + (S.buf[k] || 0), 0); }
+function bufLine(){ return BUF_KEYS.map(k => k + ' ' + (S.buf[k] || 0)).join(' · '); }
 
 /* ---------- draft ---------- */
 function startDraft(){
@@ -557,21 +596,20 @@ function pickBiased(list, k, out){
 }
 function choosePick(playerIdx){
   const d = S.draft; if(!d) return;
-  const role = FORMS[d.f][d.slot][0];
-  d.picks.push({i:playerIdx, x:[0,0,0,0,0]});
+  d.picks.push({i:playerIdx});
   if(d.picks.length >= 11){
-    S.squad = d.picks.map(p => ({i:p.i, x:[0,0,0,0,0]}));
+    S.squad = d.picks.map(p => ({i:p.i}));
     S.formation = d.f;
     S.draft = null;
     S.squad.forEach(updateBest);
+    updateBestTeam();
     U.sel = -1;
-    save(); render();
-    toast('스쿼드 완성! 이제 경기장으로');
+    save();
+    U.tab = 'stadium';
+    render();
+    toast('임대 스쿼드 완성 · 1경기만 뛸 수 있습니다');
     return;
   }
-  d.slot++;
-  const order = slotOrder(d.f);
-  // slot index walks in order; keep visual index = picks.length
   d.opts = sampleOptions(d.f, d.picks.length, d.picks.map(p=>p.i));
   save(); render();
 }
@@ -584,36 +622,17 @@ function currentRole(d){
 function addCoins(n){ S.coins = Math.max(0, S.coins + n); save(); paintHud(); }
 function spendCoins(n){ if(S.coins < n) return false; S.coins -= n; save(); paintHud(); return true; }
 
-/* ---------- enhancement ---------- */
-function costOne(cur){ return Math.round(7 + Math.max(0, cur - 70) * 1.05); }
-function costN(cur, n){ let c = 0; for(let k=0;k<n;k++) c += costOne(cur + k); return c; }
-function upgrade(inst, attr, n){
-  const cur = ovrOf(inst);
-  const price = costN(cur, n);
+/* ---------- 포지션별 영구 버프 ---------- */
+function buyBuf(k, n){
+  if(BUF_KEYS.indexOf(k) < 0) return;
+  const L = S.buf[k] || 0;
+  const price = bufCostN(L, n);
   if(S.coins < price){ toast('코인이 ' + fmt(price - S.coins) + ' 부족합니다'); return; }
   S.coins -= price;
-  inst.x = inst.x || [0,0,0,0,0];
-  inst.x[attr] += n;
-  S.ups += n;
-  updateBest(inst); save(); paintHud(); renderUpgrade(true);
-  const after = ovrOf(inst);
-  toast((ATTR[attr] || '전체') + ' +' + n + ' · OVR ' + after);
-  popFx('+' + (after - cur) + ' OVR');
-}
-function upgradeAll(inst, n){
-  const cur = ovrOf(inst);
-  let price = 0;
-  for(let a=0;a<5;a++) price += costN(cur, n);
-  price = Math.round(price * 0.86);
-  if(S.coins < price){ toast('코인이 ' + fmt(price - S.coins) + ' 부족합니다'); return; }
-  S.coins -= price;
-  inst.x = inst.x || [0,0,0,0,0];
-  for(let a=0;a<5;a++) inst.x[a] += n;
-  S.ups += n * 5;
-  updateBest(inst); save(); paintHud(); renderUpgrade(true);
-  const after = ovrOf(inst);
-  toast('전체 +' + n + ' · OVR ' + after);
-  popFx('+' + (after - cur) + ' OVR');
+  S.buf[k] = L + n;
+  save(); paintHud(); renderBuff(true);
+  toast(k + ' 버프 Lv.' + S.buf[k] + ' · ' + k + ' 전 스탯 +' + S.buf[k]);
+  popFx('Lv.' + S.buf[k]);
 }
 
 /* ---------- opponents ---------- */
@@ -666,7 +685,7 @@ function opponentFor(mode){
 function startMatch(mode, opp){
   const t = teamStats();
   if(!t){ toast('먼저 드래프트로 스쿼드를 만드세요'); U.tab='squad'; render(); return; }
-  U.match = {mode, opp, t, min:0, me:0, op:0, ev:[], shotsMe:0, shotsOp:0, poss:50,
+  U.match = {mode, opp, t, f:S.formation, min:0, me:0, op:0, ev:[], shotsMe:0, shotsOp:0, poss:50,
     over:false, timer:null, goals:[], rating:0, coins:0, diff:U.friendly.diff || 0};
   if(mode === 'friendly'){
     const d = U.friendly.diff;
@@ -688,7 +707,7 @@ function matchTick(){
   }
   paintMatch();
 }
-function scoreText(M){ return 'MY XI ' + M.me + ' - ' + M.op + ' ' + M.opp.club; }
+function scoreText(M){ return '임대 XI ' + M.me + ' - ' + M.op + ' ' + M.opp.club; }
 function attackerName(M, side){
   if(side === 'me'){
     const e = squadEntries();
@@ -715,7 +734,7 @@ function simulateMinute(M){
   const dfn = side === 'me' ? M.opp.def : M.t.def;
   const diff = clamp(atk - dfn, -14, 14);
   const gp = clamp(0.185 + diff * 0.011, 0.06, 0.38);
-  const team = side === 'me' ? 'MY XI' : M.opp.club;
+  const team = side === 'me' ? '임대 XI' : M.opp.club;
   const p = attackerName(M, side);
   const mm = M.min + "'";
   if(Math.random() < gp){
@@ -797,8 +816,13 @@ function finishMatch(){
   }
   M.coins = coins;
   S.record[res] = (S.record[res] || 0) + 1;
+  S.matches = (S.matches || 0) + 1;
   S.recent = [{m:M.mode, o:M.opp.club, me:M.me, op:M.op, res}].concat(S.recent || []).slice(0,4);
   S.coins += coins;
+  if(M.t.ovr > (S.bestTeam.ovr || 0)) S.bestTeam = {ovr: M.t.ovr, f: M.f || ''};
+  /* 임대 스쿼드는 이 경기로 계약 종료 */
+  M.expired = true;
+  S.squad = null; S.formation = null; S.draft = null;
   save(); paintHud();
   renderResult();
 }
@@ -828,28 +852,37 @@ function render(){
   const m = $('#main');
   if(U.tab === 'squad') m.innerHTML = S.draft ? draftHTML() : S.squad ? squadHTML() : introHTML();
   else if(U.tab === 'stadium') m.innerHTML = stadiumHTML();
-  else if(U.tab === 'upgrade') m.innerHTML = upgradeHTML();
+  else if(U.tab === 'upgrade') m.innerHTML = buffHTML();
   else m.innerHTML = rankingHTML();
   m.scrollTop = 0;
 }
 
 /* ---------- intro ---------- */
 function introHTML(){
+  const t = tierOf(S.rank.r);
   const cards = [
-    ['🎲','랜덤 포메이션','드래프트를 시작하면 4-3-3, 3-5-2, 4-2-3-1 같은 포메이션이 무작위로 정해집니다.'],
-    ['👥','포지션별 3택','11개 슬롯마다 26/27 유럽 5대 리그 현역 3명이 제시됩니다. 한 명씩 골라 팀을 완성하세요.'],
-    ['⚡','무제한 강화','경기로 번 코인으로 능력치를 계속 올립니다. 상한이 없어 OVR 99를 넘겨 200까지도 갑니다.']
+    ['🎲','매 경기 새 임대 스쿼드','포메이션은 무작위. 11개 슬롯마다 26/27 유럽 5대 리그 현역 3명 중 한 명을 고릅니다.'],
+    ['⏳','1경기만 뛴다','임대 계약은 한 경기. 경기가 끝나면 11명은 반납되고, 다음 경기는 새 드래프트로 시작합니다.'],
+    ['⚡','포지션별 무제한 버프','GK·DF·MF·FW 버프 Lv를 코인으로 계속 올립니다. 상한이 없어서 다음 드래프트부터 그 포지션 전원이 강해집니다.']
   ];
   return `
   <section class="hero">
     <div class="eyebrow">EUROPE TOP 5 · 2026/27</div>
-    <h2>3명 중 1명.<br>11번의 선택으로 <em>팀</em>을 만든다</h2>
-    <p>선수 구매 없음. 이적시장 없음. 오직 드래프트와 강화로만. 같은 판은 두 번 없습니다.</p>
+    <h2>매 경기 새로 뽑는<br><em>임대 11명</em></h2>
+    <p>선수 구매 없음. 이적시장 없음. 한 경기씩 임대해 쓰고, 코인은 포지션 버프에 쌓습니다.</p>
     <div class="facts"><span class="fact">선수 <b>${P.length}명</b></span><span class="fact">클럽 <b>${Object.keys(OPP).length}팀</b></span><span class="fact">포메이션 <b>${FORM_KEYS.length}종</b></span></div>
   </section>
   <div class="sect stack">
-    <button class="btn primary wide" data-act="start-draft">드래프트 시작 <span style="font-size:16px">→</span></button>
-    <div class="tiny" style="text-align:center">시작 코인 ${fmt(STARTER_COINS)} · 드래프트는 무료</div>
+    <button class="btn primary wide" data-act="start-draft">새 임대 드래프트 시작 <span style="font-size:16px">→</span></button>
+    <div class="tiny" style="text-align:center">드래프트 무료 · 코인은 포지션 버프에만 씁니다</div>
+  </div>
+  <div class="sect">
+    <div class="grid2">
+      <div class="gcard"><span>보유 코인</span><b>${fmt(S.coins)}</b><small>버프에 사용</small></div>
+      <div class="gcard"><span>총 버프 Lv</span><b>${fmt(totalBuf())}</b><small>${bufLine()}</small></div>
+      <div class="gcard"><span>AI 랭킹전</span><b>${fmt(S.rank.r)}</b><small>${t.n} · ${recordText()}</small></div>
+      <div class="gcard"><span>최고 팀 OVR</span><b>${S.bestTeam.ovr || '—'}</b><small>${S.bestTeam.f || '기록 없음'}</small></div>
+    </div>
   </div>
   <div class="sect stack">
     ${cards.map(c=>`<div class="card" style="padding:12px 13px;display:flex;gap:11px;align-items:flex-start">
@@ -860,7 +893,7 @@ function introHTML(){
   <div class="sect">
     <div class="sect-h"><div class="eyebrow g">HOW IT WORKS</div></div>
     <div class="card" style="padding:13px">
-      <div class="muted">경기에서 이기면 코인이 쌓입니다. 강화 화면에서 선수의 슈팅·패스·스피드·수비·피지컬을 올리면 OVR이 그대로 올라가고, 그 수치가 경기 시뮬레이션에 바로 반영됩니다. 랭킹전은 레이팅으로 브론즈부터 레전드까지 올라갑니다.</div>
+      <div class="muted">한 판의 틀은 늘 같습니다. 드래프트로 11명을 임대하고, 한 경기를 뛰고, 결과 화면에서 바로 다음 드래프트로 넘어갑니다. 번 코인은 버프 탭에서 GK·DF·MF·FW Lv로 바꿉니다. 버프는 스쿼드가 바뀌어도 남아서 드래프트 카드와 경기 시뮬레이션에 그대로 더해집니다.</div>
     </div>
   </div>`;
 }
@@ -876,12 +909,13 @@ function draftHTML(){
     return `<div class="mdot ${cls}" style="left:${s[1]}%;top:${s[2]}%">${filled ? s[0] : ''}</div>`;
   }).join('');
   const cards = d.opts.map(i => optionHTML(i, role)).join('');
+  const g = grp(role), bl = S.buf[g] || 0;
   const teamOvr = picks.length ? Math.round(picks.reduce((s,p)=>s+ovrOf(p),0)/picks.length) : 0;
   return `
   <div class="dhead">
     <div>
-      <div class="eyebrow">DRAFT · ${f}</div>
-      <div class="row" style="gap:7px;margin-top:3px"><b style="font-size:15px;letter-spacing:-.03em">${slotIdx+1}번째 선택</b><span class="tag lime">${role}</span></div>
+      <div class="eyebrow">RENTAL DRAFT · ${f}</div>
+      <div class="row" style="gap:7px;margin-top:3px"><b style="font-size:15px;letter-spacing:-.03em">${slotIdx+1}번째 선택</b><span class="tag lime">${role}</span>${bl?`<span class="tag amber">${g} 버프 +${bl}</span>`:''}</div>
     </div>
     <div class="prog">${prog}</div>
   </div>
@@ -894,10 +928,12 @@ function draftHTML(){
     <button class="chip" data-act="reroll">🔄 리롤 <span class="mono" style="color:var(--lime)">80</span></button>
   </div>
   <div class="picks">${cards}</div>
-  <div class="tiny" style="margin-top:12px;line-height:1.6">이미 뽑힌 선수는 다시 나오지 않습니다. 포지션이 다르면 임시 배치(−3 OVR)로 들어갑니다.</div>`;
+  <div class="tiny" style="margin-top:12px;line-height:1.6">카드의 OVR은 포지션 버프 Lv가 더해진 값입니다. 이미 뽑힌 선수는 다시 나오지 않고, 포지션이 다르면 임시 배치(−3 OVR)로 들어갑니다.</div>
+  <div class="rental" style="margin-top:9px"><span class="ic">⏳</span><span class="tx">완성한 11명은 <b>한 경기만</b> 뛰는 임대 스쿼드입니다. 경기가 끝나면 반납되고 다음 드래프트로 넘어갑니다.</span></div>`;
 }
 function optionHTML(i, role){
-  const sp = posOf(i), o = baseOvrOf(i), st = baseStats(i);
+  const sp = posOf(i), base = baseOvrOf(i), inst = {i};
+  const bl = bufLvOf(inst), o = ovrOf(inst), st = statsOf(inst);
   const nm = P[i][0], club = P[i][1], lg = P[i][2];
   const off = !(sp === role || (role==='ST'&&sp==='SS'));
   const bars = [0,1,2,3].map(k => `<i><s style="width:${clamp((st[k]-40)*1.5,6,100)}%"></s></i>`).join('');
@@ -905,7 +941,7 @@ function optionHTML(i, role){
     <div class="ovr"><b>${o}</b><small>OVR</small></div>
     <div class="who">
       <div class="nm">${esc(nm)}</div>
-      <div class="cl">${esc(club)} · ${esc(LG[lg] || lg)}</div>
+      <div class="cl">${esc(club)} · ${esc(LG[lg] || lg)}${bl?` · <b style="color:var(--lime)">+${bl}</b>`:''}</div>
       <div class="bars">${bars}</div>
     </div>
     <div class="rt">
@@ -929,9 +965,9 @@ function squadHTML(){
   return `
   <div class="teamhead">
     <div>
-      <div class="eyebrow">MY XI · ${f}</div>
-      <div class="nm" style="margin-top:3px">드래프트 팀 <span class="tag lime" style="margin-left:4px">${S.squad.length}명</span></div>
-      <div class="tiny" style="margin-top:3px">전적 <b style="color:var(--ink)">${rec.w}승 ${rec.d}무 ${rec.l}패</b> · 누적 강화 ${fmt(S.ups)}회</div>
+      <div class="eyebrow">RENTAL XI · ${f}</div>
+      <div class="nm" style="margin-top:3px">임대 스쿼드 <span class="tag lime" style="margin-left:4px">${S.squad.length}명</span></div>
+      <div class="tiny" style="margin-top:3px">전적 <b style="color:var(--ink)">${rec.w}승 ${rec.d}무 ${rec.l}패</b> · 총 버프 Lv ${fmt(totalBuf())}</div>
     </div>
     <div class="ovr"><b>${t.ovr}</b><small>TEAM OVR</small></div>
   </div>
@@ -947,10 +983,11 @@ function squadHTML(){
   <div class="sect stack">
     <button class="btn primary wide" data-act="go-stadium">경기장으로 →</button>
     <div class="row" style="gap:8px">
-      <button class="btn dark" style="flex:1" data-act="go-upgrade">⚡ 강화</button>
+      <button class="btn dark" style="flex:1" data-act="go-upgrade">⚡ 버프 강화</button>
       <button class="btn dark" style="flex:1" data-act="new-draft">🔄 새 드래프트</button>
     </div>
-    <div class="tiny" style="text-align:center">선수 구매·이적 없음 · 코인은 경기와 강화에만 씁니다</div>
+    <div class="rental"><span class="ic">⏳</span><span class="tx">이 11명은 <b>1경기용 임대</b>입니다. 경기가 끝나면 반납되고, 버프 Lv은 그대로 남습니다.</span></div>
+    <div class="tiny" style="text-align:center">${bufLine()} · 선수 구매·이적 없음</div>
   </div>`;
 }
 
@@ -958,7 +995,7 @@ function squadHTML(){
 function openPlayer(k){
   const inst = S.squad[k], e = squadEntries()[k];
   const nm = P[inst.i][0], club = P[inst.i][1], lg = P[inst.i][2], sp = posOf(inst.i);
-  const st = statsOf(inst), o = ovrOf(inst), b = bonusOf(inst);
+  const st = statsOf(inst), o = ovrOf(inst), bl = bufLvOf(inst), g = grp(sp);
   const labels = labelsOf(sp);
   const rows = labels.map((a,i)=>`<div class="row" style="justify-content:space-between;padding:5px 0">
     <span class="tiny" style="width:44px">${a}</span>
@@ -973,12 +1010,13 @@ function openPlayer(k){
         <div class="tiny">${esc(club)} · ${P[inst.i][5] ? P[inst.i][5]+'세' : ''}</div>
       </div>
       <div style="text-align:right"><div class="mono" style="font-size:32px;font-weight:800;letter-spacing:-.07em;line-height:1">${o}</div>
-      <div class="tiny">기본 ${baseOvrOf(inst.i)}${b>0?` <b style="color:var(--lime)">+${b}</b>`:''}</div></div>
+      <div class="tiny">기본 ${baseOvrOf(inst.i)}${bl>0?` <b style="color:var(--lime)">+${bl}</b>`:''}</div></div>
     </div>
     <div style="margin-top:12px">${rows}</div>
     ${e && !e.fit ? `<div class="tag amber" style="margin-top:9px">임시 배치 · 팀 전력 −3</div>`:''}
-    <div class="stack" style="margin-top:14px">
-      <button class="btn primary wide" data-act="sheet-upgrade" data-k="${k}">⚡ 이 선수 강화하기</button>
+    <div class="rental" style="margin-top:10px"><span class="ic">⚡</span><span class="tx"><b>${g} 버프 Lv.${bl}</b>이 전 스탯에 더해진 값입니다. 버프는 선수 개인이 아니라 이번 드래프트의 ${g} 전원에게 적용됩니다.</span></div>
+    <div class="stack" style="margin-top:12px">
+      <button class="btn primary wide" data-act="sheet-buff">⚡ ${g} 버프 강화하기</button>
       <button class="btn dark wide" data-act="close-sheet">닫기</button>
     </div>`;
   $('#sheetHost').classList.add('on');
@@ -999,9 +1037,10 @@ function stadiumHTML(){
   const t = teamStats();
   if(!S.squad || !t){
     return `<div class="eyebrow">STADIUM</div><h2 class="title">경기장</h2>
-      <div class="sect"><div class="empty"><div class="ic">⚽</div><b>아직 팀이 없습니다</b>
-      <div class="muted">드래프트로 11명을 먼저 뽑으면 경기장이 열립니다.</div>
-      <button class="btn primary" style="margin:14px auto 0;width:190px" data-act="start-draft">드래프트 시작</button></div></div>`;
+      <div class="sect"><div class="empty"><div class="ic">⏳</div><b>임대 스쿼드가 없습니다</b>
+      <div class="muted">임대 계약은 한 경기뿐입니다. 다음 경기를 뛰려면 새 드래프트로 11명을 다시 뽑으세요.</div>
+      <button class="btn primary" style="margin:14px auto 0;width:210px" data-act="${S.draft ? 'resume-draft' : 'start-draft'}">${S.draft ? '드래프트 이어서' : '새 임대 드래프트 시작'}</button></div></div>
+      <div class="sect"><div class="card" style="padding:11px 12px"><div class="between"><span class="eyebrow g">영구 버프</span><span class="tiny">총 Lv ${fmt(totalBuf())}</span></div><div class="tiny" style="margin-top:5px">${bufLine()}</div></div></div>`;
   }
   const modeCard = (key) => {
     const m = MODES[key];
@@ -1038,6 +1077,12 @@ function stadiumHTML(){
   }
   return `<div class="eyebrow">STADIUM · ${S.formation}</div>
     <h2 class="title">경기장 <span class="mono" style="font-size:13px;color:var(--dim)">OVR ${t.ovr}</span></h2>
+    <div class="card" style="padding:10px 12px;margin-top:10px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1 1 auto;min-width:0"><div style="font-size:11.5px;font-weight:900;letter-spacing:-.02em">임대 XI 준비 완료</div>
+      <div class="tiny" style="margin-top:2px">${S.formation} · ${t.ovr} OVR · 이번 경기 한 판</div></div>
+      <button class="chip" data-act="go-squad">스쿼드 보기</button>
+    </div>
+    <div class="rental" style="margin-top:8px"><span class="ic">⏳</span><span class="tx">모드를 골라 <b>1경기</b>를 뛰면 이 11명은 반납됩니다. 결과 화면에서 바로 새 드래프트로 이어집니다.</span></div>
     <div class="sect stack">${modeCard('normal')}${modeCard('friendly')}${modeCard('ranked')}</div>
     ${body}
     ${(S.recent && S.recent.length) ? `<div class="sect">
@@ -1050,8 +1095,8 @@ function stadiumHTML(){
     </div>` : ''}
     <div class="sect">
       <div class="card" style="padding:12px 13px">
-        <div class="between"><span class="eyebrow g">보상</span><span class="tiny">코인은 강화에만 쓰입니다</span></div>
-        <div class="muted" style="margin-top:6px">승리 시 골 차이만큼 코인이 더 붙습니다. 랭킹전은 레이팅까지 오르고, 상대가 강할수록 더 많이 오릅니다.</div>
+        <div class="between"><span class="eyebrow g">보상</span><span class="tiny">코인은 포지션 버프에만 쓰입니다</span></div>
+        <div class="muted" style="margin-top:6px">승리하면 골 차이만큼 코인이 더 붙습니다. 랭킹전은 레이팅까지 오르고, 상대가 강할수록 더 많이 오릅니다. 번 코인은 버프 탭에서 GK·DF·MF·FW Lv로 바꾸면 다음 드래프트부터 영구히 적용됩니다.</div>
       </div>
     </div>`;
 }
@@ -1068,7 +1113,7 @@ function renderMatchScreen(){
     </div>
     <div class="board">
       <div class="tm">
-        <div class="side"><div class="n">MY XI</div><div class="o">OVR ${M.t.ovr}</div></div>
+        <div class="side"><div class="n">임대 XI</div><div class="o">OVR ${M.t.ovr}</div></div>
         <div class="sc"><b id="mMe">0</b><i>:</i><b id="mOp">0</b></div>
         <div class="side r"><div class="n">${esc(M.opp.club)}</div><div class="o">OVR ${Math.round(M.opp.base)}</div></div>
       </div>
@@ -1117,7 +1162,7 @@ function renderResult(){
         <span class="tag ${cls}">${label}</span>
         <h3>${res==='w'?'완벽한 90분':res==='d'?'아쉬운 균형':'다음 판을 노립니다'}</h3>
         <div class="fs">${M.me} : ${M.op}</div>
-        <div class="tiny">MY XI vs ${esc(M.opp.club)}</div>
+        <div class="tiny">임대 XI vs ${esc(M.opp.club)}</div>
       </div>
       <div class="rewards">
         <div><span>획득 코인</span><b class="up">+${fmt(M.coins)}</b></div>
@@ -1130,68 +1175,71 @@ function renderResult(){
       <div class="between"><span class="eyebrow g">MATCH REPORT</span><span class="tiny">점유 ${M.poss}% · 슈팅 ${M.shotsMe}-${M.shotsOp}</span></div>
       <div class="ticker" style="margin-top:9px">${M.ev.filter(e=>e.type==='goal').slice(0,6).map(e=>`
         <div class="tk goal"><div class="mm">${esc(e.mm)}</div><div class="tx"><b style="font-size:9px;letter-spacing:.06em;${
-          e.side==='me'?'color:var(--lime)':'color:#ff9c8c'}">${e.side==='me'?'MY XI':esc(M.opp.club)}</b> · ${esc(e.text)}</div></div>`).join('') || '<div class="tiny">득점 없이 경기가 끝났습니다.</div>'}</div>
-      <div class="stack" style="margin-top:14px">
-        <button class="btn primary wide" data-act="rematch">다시 붙기</button>
+          e.side==='me'?'color:var(--lime)':'color:#ff9c8c'}">${e.side==='me'?'임대 XI':esc(M.opp.club)}</b> · ${esc(e.text)}</div></div>`).join('') || '<div class="tiny">득점 없이 경기가 끝났습니다.</div>'}</div>
+      <div class="stack" style="margin-top:12px">
+        <button class="btn primary wide" data-act="next-draft">다음 경기 새 드래프트 →</button>
         <div class="row" style="gap:8px">
-          <button class="btn dark" style="flex:1" data-act="go-upgrade">⚡ 강화</button>
+          <button class="btn dark" style="flex:1" data-act="go-upgrade">⚡ 버프 강화</button>
           <button class="btn dark" style="flex:1" data-act="quit-result">경기장으로</button>
         </div>
       </div>
     </div>
+    <div class="rental" style="margin-top:10px"><span class="ic">⏳</span><span class="tx"><b>임대 계약 종료</b> · 11명을 반납했습니다. 버프 Lv ${fmt(totalBuf())}은 남아서 다음 드래프트에 바로 적용됩니다.</span></div>
     <div class="tiny" style="text-align:center;margin-top:12px">보유 코인 ${fmt(S.coins)} · 랭킹전 ${S.rank.w}승 ${S.rank.d}무 ${S.rank.l}패</div>`;
 }
 
 /* ---------- upgrade ---------- */
-function upgradeHTML(){
-  if(!S.squad) return `<div class="eyebrow">TRAINING</div><h2 class="title">강화</h2>
-    <div class="sect"><div class="empty"><div class="ic">⚡</div><b>강화할 선수가 없습니다</b>
-    <div class="muted">드래프트로 스쿼드를 만들면 선수별 능력치를 코인으로 올릴 수 있습니다.</div>
-    <button class="btn primary" style="margin:14px auto 0;width:190px" data-act="start-draft">드래프트 시작</button></div></div>`;
-  const list = S.squad.map((inst,k)=>({k, inst, o:ovrOf(inst)})).sort((a,b)=>b.o-a.o);
-  if(!list.some(x=>x.k===U.sel)) U.sel = list[0].k;
-  const selTop = list[0].o;
-  const cur = S.squad[U.sel];
-  const st = statsOf(cur), o = ovrOf(cur), b = bonusOf(cur), base = baseOvrOf(cur.i);
-  const nm = P[cur.i][0], club = P[cur.i][1], sp = posOf(cur.i);
-  const exact = ovrExact(cur);
-  const cards = list.map(x=>`<button class="pcard ${x.k===U.sel?'on':''}" id="${x.k===U.sel?'selChip':''}" data-act="sel" data-k="${x.k}">
-    <div class="o">${x.o}</div><div class="n">${esc(shortNm(P[x.inst.i][0]))}</div>
-    <div class="p">${posOf(x.inst.i)}</div>${bonusOf(x.inst)>0?`<div class="b">+${bonusOf(x.inst)}</div>`:''}</button>`).join('');
-  const labels = labelsOf(sp);
-  const rows = labels.map((a,i)=>{
-    const c1 = costOne(o), c5 = costN(o,5);
-    return `<div class="stat">
-      <div class="lb">${a}</div><div class="vl">${st[i]}</div>
-      <div class="tr"><s style="width:${clamp((st[i]-40)*1.2,4,100)}%"></s></div>
-      <div class="btns">
-        <button class="up ${S.coins<c1?'poor':''}" data-act="up" data-a="${i}" data-n="1">+1</button>
-        <button class="up ${S.coins<c5?'poor':''}" data-act="up" data-a="${i}" data-n="5">+5</button>
-      </div></div>`;
-  }).join('');
-  const allCost = Math.round(ATTR.reduce((s,_,a)=>s+costOne(o),0)*0.86);
-  return `<div class="eyebrow">TRAINING · NO LIMIT</div>
-    <div class="between"><h2 class="title">강화</h2><span class="pill" style="height:27px"><span class="dot"></span><b>${fmt(S.coins)}</b></span></div>
-    <div class="pscroll" style="margin-top:11px">${cards}</div>
-    <div class="up-head" style="margin-top:9px">
-      <div>
-        <div class="eyebrow">${sp} · ${esc(club)}</div>
-        <div class="nm">${esc(nm)}</div>
-        <div class="cl">기본 OVR ${base} · 강화 ${b>0?'+'+b:'0'}</div>
+function buffHTML(){
+  const t = teamStats();
+  const tb = totalBuf();
+  const rows = BUF.map(b=>{
+    const lv = S.buf[b.k] || 0;
+    const p1 = bufCost(lv), p5 = bufCostN(lv, 5);
+    const pct = lv > 0 && lv % 10 === 0 ? 100 : (lv % 10) * 10;
+    return `<div class="brow ${lv>0?'on':''}">
+      <div class="hd">
+        <div class="ic">${b.ic}</div>
+        <div class="nm"><b>${b.name}</b><span>${b.desc}</span></div>
+        <div class="lv">Lv.${lv}<small>/ 무한</small></div>
       </div>
-      <div style="text-align:right"><div class="big ${b>0?'up':''}">${exact.toFixed(1)}</div><div class="tiny">OVR${b>0?` · +${(exact-baseOvrOf(cur.i)).toFixed(1)}`:''}</div></div>
+      <div class="tr"><s style="width:${pct}%"></s></div>
+      <div class="ft">
+        <div class="tiny">${b.ex} <b style="color:var(--lime)">+${lv}</b></div>
+        <div class="btns">
+          <button class="up ${S.coins<p1?'poor':''}" data-act="buf" data-k="${b.k}" data-n="1">+1 <span style="color:var(--dim);font-size:9.5px">${fmt(p1)}</span></button>
+          <button class="up ${S.coins<p5?'poor':''}" data-act="buf" data-k="${b.k}" data-n="5">+5 <span style="color:var(--dim);font-size:9.5px">${fmt(p5)}</span></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="eyebrow">BUFF · NO LIMIT</div>
+    <div class="between"><h2 class="title">버프 강화</h2><span class="pill" style="height:27px"><span class="dot"></span><b>${fmt(S.coins)}</b></span></div>
+    <div class="up-head" style="margin-top:11px">
+      <div>
+        <div class="eyebrow">POSITION BUFF</div>
+        <div class="nm">총 버프 Lv</div>
+        <div class="cl">${bufLine()}</div>
+      </div>
+      <div style="text-align:right"><div class="big ${tb>0?'up':''}">${fmt(tb)}</div><div class="tiny">드래프트에 그대로 합산</div></div>
     </div>
-    <div class="card" style="padding:6px 13px;margin-top:9px">${rows}</div>
+    <div class="stack" style="margin-top:10px">${rows}</div>
+    <div class="rental" style="margin-top:10px"><span class="ic">⚡</span><span class="tx">버프는 선수 개인이 아니라 <b>포지션 전체</b>에 걸립니다. 드래프트 3택 카드, 피치, 경기 시뮬레이션 모두 버프가 더해진 능력치로 돌아갑니다.</span></div>
     <div class="stack" style="margin-top:11px">
-      <button class="btn primary wide ${S.coins<allCost?'':''}" data-act="upall">전체 +1 · <span class="mono">${fmt(allCost)}</span> 코인</button>
-      <div class="tiny" style="text-align:center">상한 없음 · 코인이 닿는 만큼 계속 올라갑니다 (OVR 99 → 120 → 200+)</div>
+      <button class="btn dark wide" data-act="go-stadium">경기장으로 → 코인 벌기</button>
+      <div class="tiny" style="text-align:center">Lv 상한 없음 · 코인이 닿는 만큼 계속 올라갑니다</div>
     </div>
     <div class="card" style="padding:12px 13px;margin-top:12px">
-      <div class="between"><span class="eyebrow g">TEAM</span><span class="tiny">${S.formation} · 팀 OVR <b style="color:var(--ink)">${teamStats()?teamStats().ovr:0}</b></span></div>
-      <div class="muted" style="margin-top:6px">${o >= 100
-        ? 'OVR 100 이상 구간입니다. 능력치에 상한이 없어 계속 올릴 수 있고, 강화 수치는 다음 경기 시뮬레이션에 바로 반영됩니다.'
-        : `이 선수를 ${o}에서 100으로 올리면 팀 OVR은 약 ${Math.round((teamStats()?teamStats().ovr:0) + (100-o)/11)}까지 오릅니다. 강화 수치는 다음 경기 시뮬레이션에 바로 반영됩니다.`}</div>
+      <div class="between"><span class="eyebrow g">TEAM</span><span class="tiny">${t ? S.formation + ' · 팀 OVR <b style="color:var(--ink)">' + t.ovr + '</b>' : '임대 스쿼드 없음'}</span></div>
+      <div class="muted" style="margin-top:6px">${t
+        ? '지금 임대 스쿼드는 버프가 더해진 OVR ' + t.ovr + '입니다. 버프를 더 올리면 다음 드래프트부터 바로 반영됩니다.'
+        : '아직 임대 스쿼드가 없습니다. 드래프트하면 위 버프가 포지션별로 합산되어 카드와 경기에 적용됩니다.'}</div>
     </div>`;
+}
+function renderBuff(keepScroll){
+  const m = $('#main');
+  const top = keepScroll ? m.scrollTop : 0;
+  m.innerHTML = buffHTML();
+  if(keepScroll) m.scrollTop = top;
 }
 
 /* ---------- ranking ---------- */
@@ -1204,9 +1252,15 @@ function tierOf(r){
 function recordText(){ return `${S.rank.w}승 ${S.rank.d}무 ${S.rank.l}패`; }
 function shareText(){
   const t = tierOf(S.rank.r);
-  const bestName = S.best.bonusName || (S.squad ? P[S.squad.reduce((a,b)=>ovrOf(b)>ovrOf(a)?b:a).i][0] : '-');
-  const tOvr = teamStats() ? teamStats().ovr : 0;
-  return `⚽ DRAFT XI 26/27\n식별코드 #${S.code}\n랭킹전 ${t.n} ${S.rank.r}점 (${recordText()})\n최고 OVR ${S.best.ovr || tOvr || '-'} · ${S.best.name || '-'}\n최고 강화 ${S.best.bonus ? bestName + ' +' + S.best.bonus : '-'}\n내 팀 OVR ${tOvr || '-'}`;
+  const total = S.record.w + S.record.d + S.record.l;
+  const wr = total ? Math.round(S.record.w / total * 100) : 0;
+  const tOvr = S.bestTeam.ovr || (teamStats() ? teamStats().ovr : 0) || '-';
+  return '⚽ DRAFT XI 26/27\n'
+    + '식별코드 #' + S.code + '\n'
+    + 'AI 랭킹전 ' + t.n + ' ' + S.rank.r + '점 (' + recordText() + ')\n'
+    + '총 버프 Lv ' + fmt(totalBuf()) + ' · ' + bufLine() + '\n'
+    + '최고 팀 OVR ' + tOvr + (S.bestTeam.f ? ' (' + S.bestTeam.f + ')' : '') + '\n'
+    + '경기 ' + S.matches + '회 · 승률 ' + wr + '%';
 }
 function rankingHTML(){
   const t = tierOf(S.rank.r);
@@ -1214,7 +1268,6 @@ function rankingHTML(){
   const pct = nxt ? clamp((S.rank.r - t.min) / (nxt.min - t.min) * 100, 2, 100) : 100;
   const total = S.record.w + S.record.d + S.record.l;
   const wr = total ? Math.round(S.record.w / total * 100) : 0;
-  const bestInst = S.best.bonusName || (S.squad ? P[S.squad.reduce((a,b)=>ovrOf(b)>ovrOf(a)?b:a).i][0] : '-');
   const tOvr = teamStats() ? teamStats().ovr : 0;
   const ladder = TIERS.map((x,i)=>{
     const on = i === t.idx;
@@ -1229,10 +1282,10 @@ function rankingHTML(){
       <div class="tierp"><i style="width:${pct}%"></i></div>
     </div>
     <div class="grid2" style="margin-top:9px">
-      <div class="gcard"><span>최고 OVR</span><b>${S.best.ovr || tOvr || '—'}</b><small>${esc(S.best.name || '—')}</small></div>
-      <div class="gcard"><span>최고 강화</span><b>${S.best.bonus ? '+' + S.best.bonus : '—'}</b><small>${esc(bestInst)}</small></div>
+      <div class="gcard"><span>최고 팀 OVR</span><b>${S.bestTeam.ovr || tOvr || '—'}</b><small>${esc(S.bestTeam.f || '기록 없음')}</small></div>
+      <div class="gcard"><span>총 버프 Lv</span><b>${fmt(totalBuf())}</b><small>${esc(bufLine())}</small></div>
       <div class="gcard"><span>전체 전적</span><b>${S.record.w}-${S.record.d}-${S.record.l}</b><small>승률 ${wr}%</small></div>
-      <div class="gcard"><span>누적 강화</span><b>${fmt(S.ups)}</b><small>회</small></div>
+      <div class="gcard"><span>경기 수</span><b>${fmt(S.matches || 0)}</b><small>임대 스쿼드 소진 ${fmt(S.matches || 0)}회</small></div>
     </div>
     <div class="sect stack">
       <div class="sect-h"><div class="eyebrow g">TIER LADDER</div><div class="tiny">AI 랭킹전 기준</div></div>
@@ -1265,7 +1318,7 @@ document.addEventListener('click', ev => {
   }
   else if(act === 'player'){ openPlayer(+el.dataset.k); }
   else if(act === 'close-sheet'){ $('#sheetHost').classList.remove('on'); }
-  else if(act === 'sheet-upgrade'){ $('#sheetHost').classList.remove('on'); U.sel = +el.dataset.k; U.tab='upgrade'; U.match=null; render(); }
+  else if(act === 'sheet-buff'){ $('#sheetHost').classList.remove('on'); U.match = null; U.tab='upgrade'; render(); }
   else if(act === 'new-draft'){
     if(S.draft) openConfirm('드래프트를 버릴까요?', '진행 중인 선택이 사라집니다.', '버리고 새로 시작', 'confirm-draft');
     else openConfirm('새 드래프트를 시작할까요?', '지금 스쿼드는 사라지고, 코인과 전적은 그대로 남습니다.', '새 드래프트', 'confirm-draft');
@@ -1300,11 +1353,10 @@ document.addEventListener('click', ev => {
     }
     paintMatch();
   }
-  else if(act === 'rematch'){
-    const M = U.match;
-    if(!M) return;
-    if(M.mode === 'friendly' && !M.opp.mix) startMatch('friendly', opponentOf(M.opp.club));
-    else startMatch(M.mode, opponentFor(M.mode));
+  else if(act === 'next-draft'){
+    if(U.match && U.match.timer) clearInterval(U.match.timer);
+    U.match = null;
+    startDraft();
   }
   else if(act === 'quit-match'){
     if(U.match && !U.match.over) openConfirm('중계를 나갈까요?', '진행 중인 경기는 기록되지 않습니다.', '나가기', 'confirm-quit');
@@ -1316,9 +1368,9 @@ document.addEventListener('click', ev => {
     U.match = null; U.tab='stadium'; render();
   }
   else if(act === 'quit-result'){ U.match = null; U.tab='stadium'; render(); }
-  else if(act === 'sel'){ U.sel = +el.dataset.k; renderUpgrade(false); }
-  else if(act === 'up'){ const inst = S.squad[U.sel]; upgrade(inst, +el.dataset.a, +el.dataset.n); }
-  else if(act === 'upall'){ upgradeAll(S.squad[U.sel], 1); }
+  else if(act === 'buf'){ buyBuf(el.dataset.k, +el.dataset.n); }
+  else if(act === 'resume-draft'){ U.tab='squad'; render(); }
+  else if(act === 'go-squad'){ U.tab='squad'; render(); }
   else if(act === 'copy'){ copyShare(); }
   else if(act === 'reset'){ openConfirm('전체 초기화', '스쿼드, 코인, 전적, 식별코드까지 모두 지워집니다.', '모두 지우기', 'confirm-reset'); }
   else if(act === 'confirm-reset'){
@@ -1336,14 +1388,6 @@ $('#codePill').addEventListener('click', () => {
   copyText('#' + S.code).then(()=>toast('식별코드 복사됨'), ()=>toast('#' + S.code));
 });
 
-function renderUpgrade(keepScroll){
-  const m = $('#main');
-  const top = keepScroll ? m.scrollTop : 0;
-  m.innerHTML = upgradeHTML();
-  if(keepScroll) m.scrollTop = top;
-  const chip = document.getElementById('selChip');
-  if(chip && chip.scrollIntoView) chip.scrollIntoView({block:'nearest', inline:'center'});
-}
 function copyText(txt){
   if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(txt);
   const ta = document.createElement('textarea');
