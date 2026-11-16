@@ -107,6 +107,17 @@ main::-webkit-scrollbar{display:none}
 .honor.top{background:linear-gradient(100deg,rgba(255,224,120,.3),rgba(255,160,60,.12));border-color:rgba(255,224,120,.75);
   box-shadow:0 0 18px rgba(255,200,70,.25);color:#fff3c4}
 
+/* ---------- 키우기 보관함 ---------- */
+.groster{display:flex;gap:6px;overflow-x:auto;padding:9px 0 3px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.groster::-webkit-scrollbar{display:none}
+.gchip{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:6px 10px;border-radius:9px;
+  background:rgba(255,255,255,.035);border:1px solid var(--line);color:var(--sub);transition:all .15s}
+.gchip b{font-size:10px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;max-width:104px;overflow:hidden;text-overflow:ellipsis}
+.gchip small{font-family:var(--mono);font-size:9px;font-weight:800;color:var(--dim);letter-spacing:-.02em}
+.gchip.on{background:rgba(205,249,95,.14);border-color:rgba(205,249,95,.55);color:var(--lime)}
+.gchip.on small{color:#a9e12f}
+.gchip.add{border-style:dashed;color:var(--dim);align-items:center;justify-content:center}
+
 /* ---------- generic ---------- */
 .eyebrow{font-size:9.5px;font-weight:800;letter-spacing:.16em;color:var(--lime);text-transform:uppercase}
 .eyebrow.g{color:var(--dim)}
@@ -587,7 +598,7 @@ const CARE = {
 };
 const TICK_MS = 380, HALF_MS = 2600;
 /* 선수 키우기 (0~+15강) */
-const GROW_MAX = 15, PROT_COST = 500, GROW_STEP = 2;
+const GROW_MAX = 15, PROT_COST = 500, GROW_STEP = 2, GROW_SLOTS = 11;
 const GROW_T = [
   {cost:300, p:95},{cost:450, p:90},{cost:650, p:85},{cost:900, p:78},{cost:1200, p:70},
   {cost:1600, p:62},{cost:2100, p:55},{cost:2700, p:48},{cost:3400, p:42},{cost:4200, p:36},
@@ -692,7 +703,7 @@ function freshState(){
     squad:null, formation:null, draft:null, matches:0,
     record:{w:0,d:0,l:0}, rank:{r:1000,w:0,d:0,l:0},
     best:{ovr:0,name:''}, bestTeam:{ovr:0,f:''}, recent:[],
-    q:freshQuests(), drain:{day:'', used:0}, grow:{i:null, lv:0, prot:false, last:null, best:0},
+    q:freshQuests(), drain:{day:'', used:0}, grow:{i:null, lv:0, prot:false, last:null, best:0, idx:0, list:[]},
     squadInfo:null, tactic:'balance'};
 }
 function sanitize(s){
@@ -710,11 +721,23 @@ function sanitize(s){
   if(!s.q || typeof s.q !== 'object') s.q = freshQuests();
   if(!s.drain || typeof s.drain !== 'object') s.drain = {day:'', used:0};
   if(!s.squadInfo || typeof s.squadInfo !== 'object') s.squadInfo = null;
-  if(!s.grow || typeof s.grow !== 'object') s.grow = {i:null, lv:0, prot:false, last:null, best:0};
+  if(!s.grow || typeof s.grow !== 'object') s.grow = {i:null, lv:0, prot:false, last:null, best:0, idx:0, list:[]};
   s.grow.i = (typeof s.grow.i === 'number' && s.grow.i >= 0 && s.grow.i < P.length) ? s.grow.i : null;
   s.grow.lv = Math.max(0, Math.min(GROW_MAX, Math.round(+s.grow.lv || 0)));
   s.grow.prot = !!s.grow.prot;
   s.grow.best = Math.max(s.grow.lv, Math.min(GROW_MAX, Math.round(+s.grow.best || 0)));
+  /* v1.2 이전 단일 grow → 보관함 첫 슬롯으로 이관 */
+  const okIdx = i => typeof i === 'number' && i >= 0 && i < P.length;
+  if(!Array.isArray(s.grow.list)){
+    s.grow.list = okIdx(s.grow.i) ? [{i:s.grow.i, lv:Math.max(0, Math.min(GROW_MAX, Math.round(+s.grow.lv || 0)))}] : [];
+    s.grow.idx = 0;
+  }
+  s.grow.list = s.grow.list.filter(x => x && okIdx(x.i)).slice(0, GROW_SLOTS)
+    .map(x => ({i:x.i, lv:Math.max(0, Math.min(GROW_MAX, Math.round(+x.lv || 0)))}));
+  if(!s.grow.list.length){ s.grow.i = null; s.grow.lv = 0; s.grow.idx = 0; }
+  const gi = Math.max(0, Math.min(s.grow.list.length - 1, Math.round(+s.grow.idx || 0)));
+  if(s.grow.list.length && !okIdx(s.grow.i)){ s.grow.idx = gi; s.grow.i = s.grow.list[gi].i; s.grow.lv = s.grow.list[gi].lv; }
+  else if(s.grow.list.length){ s.grow.idx = gi; s.grow.lv = s.grow.list[gi].lv; s.grow.i = s.grow.list[gi].i; }
   if(!TACT_KEYS.includes(s.tactic)) s.tactic = 'balance';
   if(!s.grow.last || typeof s.grow.last !== 'object') s.grow.last = null;
   else s.grow.last.lv = s.grow.lv;
@@ -1604,10 +1627,47 @@ function growCur(){
   if(!S.grow || S.grow.i == null) return null;
   return {i:S.grow.i, b:baseOvrOf(S.grow.i), lv:growLv(), c:0};
 }
+function growList(){ if(!S.grow || !Array.isArray(S.grow.list)) S.grow = {...(S.grow || {}), list:[]}; return S.grow.list; }
+function growIdx(){ const L = growList(); return L.length ? clamp(Math.round(+S.grow.idx || 0), 0, L.length - 1) : 0; }
+/* 현재 키우는 선수를 보관함 슬롯에 기록 */
+function growSaveActive(){
+  const L = growList();
+  if(!S.grow || S.grow.i == null) return;
+  const lv = growLv();
+  let k = L.findIndex((x, j) => j === growIdx() && x.i === S.grow.i);
+  if(k < 0) k = L.findIndex(x => x.i === S.grow.i);
+  if(k >= 0){ L[k].lv = lv; S.grow.idx = k; }
+  else { L.push({i:S.grow.i, lv}); S.grow.idx = L.length - 1; }
+}
+function growSelect(k){
+  const L = growList();
+  if(!L[k]) return;
+  growSaveActive();
+  S.grow.idx = k; S.grow.i = L[k].i; S.grow.lv = L[k].lv; S.grow.last = null;
+  save(); render(); toast('+' + L[k].lv + '강 ' + P[L[k].i][0] + '으로 전환');
+}
 function growPickNew(){
-  const i = Math.floor(Math.random() * P.length);
-  S.grow = {i, lv:0, prot:!!(S.grow && S.grow.prot), last:null};
-  save(); render(); toast('새 선수 · ' + P[i][0]);
+  const L = growList();
+  if(L.length >= GROW_SLOTS){ toast('보관함이 가득 찼습니다 · ' + GROW_SLOTS + '명 (한 명을 방출하세요)'); return; }
+  const used = new Set(L.map(x => x.i));
+  let i = Math.floor(Math.random() * P.length), guard = 0;
+  while(used.has(i) && guard++ < 220) i = Math.floor(Math.random() * P.length);
+  if(used.has(i)) i = P.map((x, j) => j).filter(j => !used.has(j))[0] ?? 0;
+  growSaveActive();
+  L.push({i, lv:0});
+  S.grow.idx = L.length - 1; S.grow.i = i; S.grow.lv = 0; S.grow.last = null;
+  save(); render(); toast('새 선수 · ' + P[i][0] + ' · 보관함 ' + L.length + '/' + GROW_SLOTS);
+}
+function growRelease(k){
+  const L = growList();
+  if(!L[k]) return;
+  const nm = P[L[k].i][0];
+  L.splice(k, 1);
+  if(L.length){
+    const nk = Math.min(k, L.length - 1);
+    S.grow.idx = nk; S.grow.i = L[nk].i; S.grow.lv = L[nk].lv;
+  } else { S.grow.i = null; S.grow.lv = 0; S.grow.idx = 0; }
+  S.grow.last = null; save(); render(); toast(nm + ' 방출 · 보관함 ' + L.length + '/' + GROW_SLOTS);
 }
 function growAttempt(){
   const cur = growCur();
@@ -1640,6 +1700,7 @@ function growAttempt(){
   }
   out.lv = S.grow.lv;
   S.grow.last = out;
+  growSaveActive();
   save(); paintHud(); renderGrow(true);
   if(out.res === 'ok'){
     popFx('+' + out.to + '강');
@@ -1672,7 +1733,7 @@ function buildGrowSquad(){
   });
   return {f, squad};
 }
-let PEND_GROW = null;
+let PEND_GROW = null, PEND_REL = null;
 function growMatch(mode){
   if(!S.grow || S.grow.i == null){ toast('먼저 키울 선수를 뽑으세요'); return; }
   if(mode === 'invite' && !U.invite){ toast('받은 초대 링크가 없습니다'); return; }
@@ -2080,12 +2141,18 @@ function questHTML(){
 function growHTML(){
   const g = S.grow || {};
   const picked = g.i != null && g.i >= 0 && g.i < P.length;
+  const roster = growList(), ridx = growIdx();
   const head = `<div class="eyebrow">TRAIN · 0 → +${GROW_MAX}강</div>
-    <div class="between"><h2 class="title">선수 키우기</h2><span class="pill" style="height:27px"><span class="dot"></span><b>${fmt(S.coins)}</b></span></div>`;
+    <div class="between"><h2 class="title">선수 키우기</h2><span class="pill" style="height:27px"><span class="dot"></span><b>${fmt(S.coins)}</b></span></div>
+    <div class="groster">
+      ${roster.map((x, k) => `<button class="gchip ${k === ridx && picked ? 'on' : ''}" data-act="grow-switch" data-k="${k}">
+        <b>${esc(P[x.i][0])}</b><small>+${x.lv}강</small></button>`).join('')}
+      <button class="gchip add" data-act="grow-pick">＋ 새 선수<small>${roster.length}/${GROW_SLOTS}</small></button>
+    </div>`;
   if(!picked){
     return `${head}
     <div class="sect"><div class="empty"><div class="ic">🔨</div><b>키울 선수를 뽑아주세요</b>
-      <div class="muted">465명 중 1명을 데려와 0강부터 +15강까지 키웁니다. 보호카드 없이 실패하면 0강으로 터집니다.</div>
+      <div class="muted">465명 중 원하는 만큼 데려와 보관함(${GROW_SLOTS}명)에 두고, 탭해서 전환하며 0강부터 +15강까지 키웁니다. 보호카드 없이 실패하면 0강으로 터집니다.</div>
       <button class="btn primary" style="margin:14px auto 0;width:200px" data-act="grow-pick">선수 뽑기</button></div></div>`;
   }
   const lv = growLv(), sp = posOf(g.i), base = baseOvrOf(g.i), bl = S.buf[grp(sp)] || 0;
@@ -2124,7 +2191,10 @@ function growHTML(){
       ${done ? '최대 +15강 달성' : '+' + (lv+1) + '강 도전'}
       <small>${done ? '다른 선수를 뽑아 다시 키우세요' : fmt(price) + '코인 · 성공 ' + step.p + '%' + (prot ? ' · 보호카드 포함' : '')}</small>
     </button>
-    <button class="chip ${prot?'on':''}" data-act="grow-prot" style="align-self:center">† 보호카드 ${prot?'ON':'OFF'} · ${fmt(PROT_COST)}코인</button>
+    <div class="row" style="gap:6px;justify-content:center;flex-wrap:wrap">
+      <button class="chip ${prot?'on':''}" data-act="grow-prot">† 보호카드 ${prot?'ON':'OFF'} · ${fmt(PROT_COST)}</button>
+      <button class="chip" data-act="grow-release" data-k="${ridx}">방출</button>
+    </div>
     ${res}
   </div>
   <div class="card" style="padding:6px 13px;margin-top:11px">${rows}</div>
@@ -2137,7 +2207,7 @@ function growHTML(){
     </div>
     <button class="btn dark wide" data-act="grow-match" data-mode="invite" ${U.invite?'':'disabled'}>🤝 친구 초대 대결${U.invite ? ' · #' + esc(U.invite.code) : ' (받은 초대 없음)'}</button>
     <button class="btn dark wide" data-act="grow-invite">🔗 이 선수로 초대 링크 복사</button>
-    <button class="btn dark wide" data-act="grow-pick">🎲 다른 선수 뽑기</button>
+    <button class="btn dark wide" data-act="grow-pick">🎲 새 선수 뽑기 (보관함 ${roster.length}/${GROW_SLOTS})</button>
   </div>`;
 }
 
@@ -2246,9 +2316,18 @@ document.addEventListener('click', ev => {
   else if(act === 'qatt'){ claimAtt(); }
   else if(act === 'care'){ openCareSheet(); }
   else if(act === 'care-do'){ applyCare(el.dataset.k); }
-  else if(act === 'grow-pick'){
-    if(S.grow && growLv() > 0) openConfirm('다른 선수 뽑기', '+' + growLv() + '강 기록이 사라지고 0강에서 다시 시작합니다.', '뽑기', 'confirm-grow-pick');
-    else growPickNew();
+  else if(act === 'grow-pick'){ growPickNew(); }
+  else if(act === 'grow-switch'){ growSelect(+el.dataset.k); }
+  else if(act === 'grow-release'){
+    const k = +el.dataset.k, L = growList();
+    if(!L[k]) return;
+    if(L.length <= 1 && growLv() > 0){ PEND_REL = k; openConfirm('선수 방출', '+' + growLv() + '강 기록이 사라집니다. 계속할까요?', '방출', 'confirm-grow-release'); }
+    else growRelease(k);
+  }
+  else if(act === 'confirm-grow-release'){
+    $('#sheetHost').classList.remove('on');
+    const k = PEND_REL; PEND_REL = null;
+    if(k != null && growList()[k]) growRelease(k);
   }
   else if(act === 'confirm-grow-pick'){ $('#sheetHost').classList.remove('on'); growPickNew(); }
   else if(act === 'grow-try'){ growAttempt(); }
