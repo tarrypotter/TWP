@@ -56,7 +56,7 @@ main{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overfl
 main::-webkit-scrollbar{display:none}
 
 /* ---------- bottom tabs ---------- */
-.tabs{flex:0 0 auto;display:grid;grid-template-columns:repeat(6,1fr);height:calc(var(--navh) + env(safe-area-inset-bottom));
+.tabs{flex:0 0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:calc(var(--navh) + env(safe-area-inset-bottom));
   padding-bottom:env(safe-area-inset-bottom);border-top:1px solid var(--line);background:rgba(8,15,12,.97);
   backdrop-filter:blur(12px);z-index:20}
 .tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:48px;
@@ -401,6 +401,88 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .opp .ov{font-family:var(--mono);font-size:12px;color:var(--sub);font-weight:700}
 .opp .pl{width:52px;height:29px;border-radius:8px;background:var(--lime);color:#0a120c;font-size:11px;font-weight:900;display:grid;place-items:center}
 
+/* ---------- 레전드 컵 · 메뉴 ---------- */
+.cupvs{position:relative;padding:13px;border-radius:16px;border:1px solid #4b5f2d;overflow:hidden;
+  background:linear-gradient(135deg,#20301a,#0d1713 72%)}
+.cupvs:after{content:"";position:absolute;right:-34px;top:-38px;width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,rgba(245,201,106,.16),transparent 70%)}
+.cupvs .ttl{font-size:16px;font-weight:900;letter-spacing:-.035em;margin-top:6px;line-height:1.25}
+.cupvs .ttl i{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--gold);margin-right:6px;letter-spacing:0}
+.cupvs .st{font-size:10.5px;color:var(--sub);margin-top:5px;line-height:1.5;letter-spacing:-.01em}
+.cupvs .stars{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.cupvs .btn{margin-top:11px}
+.cupcard{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card)}
+.cupcard .lc{flex:0 0 auto;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:15px;
+  background:rgba(245,201,106,.13);border:1px solid rgba(245,201,106,.35);color:var(--gold)}
+.cupcard .tx{flex:1 1 auto;min-width:0}
+.cupcard .tx b{display:block;font-size:12.5px;font-weight:900;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cupcard .tx span{display:block;font-size:9.5px;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cupcard .ov{flex:0 0 auto;font-family:var(--mono);font-size:13px;font-weight:800;color:var(--gold)}
+.pick3{display:flex;flex-direction:column;gap:8px}
+.pick3 .btn{margin-top:9px}
+.cupick{position:relative;padding:12px 13px;border-radius:15px;border:1px solid var(--line);background:linear-gradient(120deg,#15241c,#0c1613)}
+.cupick:active{transform:scale(.99)}
+.cupick .hd{display:flex;align-items:baseline;gap:7px;min-width:0}
+.cupick .hd b{font-size:14px;font-weight:900;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cupick .hd i{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--gold)}
+.cupick .ov{position:absolute;right:12px;top:12px;font-family:var(--mono);font-size:15px;font-weight:800;color:var(--lime)}
+.cupick .st{font-size:10px;color:var(--sub);margin-top:5px;line-height:1.5;letter-spacing:-.01em;padding-right:34px}
+.cupick .stars{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}
+.cupick .go{margin-top:9px;width:100%;height:38px;border-radius:10px;background:var(--lime);color:#0a120c;font-size:12px;font-weight:900;display:grid;place-items:center}
+.xi{display:flex;flex-direction:column;gap:3px}
+.xr{display:flex;align-items:center;gap:7px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,.028);border:1px solid #16281f}
+.xr .ps{flex:0 0 auto;width:26px;font-family:var(--mono);font-size:9px;font-weight:800;color:var(--dim);letter-spacing:.02em}
+.xr .nm{flex:1 1 auto;min-width:0;font-size:11px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xr b{flex:0 0 auto;font-family:var(--mono);font-size:11px;font-weight:800;color:var(--sub)}
+.ties{display:flex;flex-direction:column;gap:5px}
+.tie{padding:6px 7px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.tie.mine{border-color:#3d6a3a;background:linear-gradient(100deg,#17281a,#0d1713)}
+.tie.live{border-color:rgba(245,201,106,.6);box-shadow:0 0 0 1px rgba(245,201,106,.15) inset}
+.tie .tr{display:flex;align-items:center;gap:7px;padding:3px 3px;border-radius:6px;min-width:0}
+.tie .tr .nm{flex:1 1 auto;min-width:0;font-size:11px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--sub)}
+.tie .tr b{flex:0 0 auto;min-width:11px;text-align:right;font-family:var(--mono);font-size:11.5px;font-weight:800;color:var(--dim)}
+.tie .tr.w .nm{color:var(--lime)}
+.tie .tr.w b{color:var(--lime)}
+.tie .tr.me .nm{color:#eaffc4}
+.tie .tr.me b{color:var(--ink)}
+.tie .tf{margin-top:2px;padding:0 3px;text-align:right;font-size:8.5px;font-weight:800;color:var(--amber);letter-spacing:.01em}
+.tie .tf.wait{color:var(--dim)}
+.path{display:flex;flex-direction:column;gap:4px}
+.path .pr{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:9px;background:rgba(255,255,255,.03);border:1px solid var(--line);min-width:0}
+.path .pr .rd{flex:0 0 auto;width:30px;font-size:9px;font-weight:800;color:var(--dim)}
+.path .pr .op{flex:1 1 auto;min-width:0;font-size:10.5px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.path .pr .sc{flex:0 0 auto;font-family:var(--mono);font-size:10.5px;font-weight:800;color:var(--sub)}
+.path .pr.w .sc{color:var(--lime)}.path .pr.l .sc{color:var(--red)}
+.path .pr.now{border-color:#3d6a3a}
+.cuptro{display:flex;align-items:center;gap:10px;padding:12px;border-radius:15px;border:1px solid rgba(245,201,106,.45);
+  background:linear-gradient(110deg,rgba(245,201,106,.16),rgba(245,201,106,.02))}
+.cuptro .ic{flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:20px;
+  background:rgba(245,201,106,.16);border:1px solid rgba(245,201,106,.4)}
+.cuptro .tx{flex:1 1 auto;min-width:0}
+.cuptro .tx b{display:block;font-size:12.5px;font-weight:900;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cuptro .tx span{display:block;font-size:9.5px;color:var(--sub);margin-top:2px;line-height:1.45}
+.cuptro .tx small{display:block;font-size:8.5px;color:var(--dim);margin-top:2px}
+.trop{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:12px;border:1px solid var(--line);background:var(--card)}
+.trop .ic{flex:0 0 auto;width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:15px;
+  background:rgba(245,201,106,.14);border:1px solid rgba(245,201,106,.3)}
+.trop .tx{flex:1 1 auto;min-width:0}
+.trop .tx b{display:block;font-size:11.5px;font-weight:900;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trop .tx span{display:block;font-size:9.5px;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trop .tx small{display:block;font-size:8.5px;color:var(--dim);margin-top:1px}
+.rpen{margin-top:3px;font-size:10px;font-weight:900;color:var(--amber);letter-spacing:.02em}
+.mrows{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.mrow{display:flex;align-items:center;gap:10px;width:100%;padding:12px 13px;border-radius:13px;border:1px solid var(--line);
+  background:var(--card);text-align:left}
+.mrow:active{transform:scale(.99)}
+.mrow .mi{flex:0 0 auto;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:15px;
+  background:var(--card3);border:1px solid var(--line2)}
+.mrow .mt{flex:1 1 auto;min-width:0}
+.mrow .mt b{display:block;font-size:12.5px;font-weight:900;letter-spacing:-.02em}
+.mrow .mt span{display:block;font-size:9.5px;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .mb{flex:0 0 auto;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--lime);color:#0a120c;
+  font-size:10px;font-weight:900;display:grid;place-items:center}
+.mrow .go{flex:0 0 auto;color:var(--dim);font-size:12px;font-weight:900}
+
 /* ---------- match ---------- */
 .board{padding:13px 13px 11px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(180deg,#15241c,#0b1512)}
 .board .tm{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -713,22 +795,18 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4"/><circle cx="12" cy="12" r="2.4"/></svg>
       <span>경기장</span>
     </button>
+    <button class="tab" data-tab="cup">
+      <svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg>
+      <span>레전드컵</span>
+    </button>
     <button class="tab" data-tab="grow">
       <svg viewBox="0 0 24 24"><path d="M4 20V9M10 20V4M16 20v-7M22 20V7"/><path d="M2 20h20"/></svg>
       <span>키우기</span>
     </button>
-    <button class="tab" data-tab="upgrade">
-      <svg viewBox="0 0 24 24"><path d="M13 3L5 14h6l-1 7 9-12h-6l1-6z"/></svg>
-      <span>버프</span>
-    </button>
-    <button class="tab" data-tab="quest">
-      <svg viewBox="0 0 24 24"><path d="M8 5h8M9 3h6v4H9z"/><path d="M6 5H5v16h14V5h-1"/><path d="M9 12l2 2 4-4"/></svg>
-      <span>퀘스트</span>
+    <button class="tab" data-tab="menu">
+      <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <span>메뉴</span>
       <span class="badge" id="qBadge" style="display:none">0</span>
-    </button>
-    <button class="tab" data-tab="ranking">
-      <svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg>
-      <span>랭킹</span>
     </button>
   </nav>
   <div class="sheet-host" id="sheetHost"><div class="sheet" id="sheet"></div></div>
@@ -738,6 +816,43 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 const LG={"EPL": "EPL", "LALIGA": "라리가", "BUNDESLIGA": "분데스리가", "SERIEA": "세리에A", "LIGUE1": "리그1"};
 const P=[["티보 쿠르투아","레알 마드리드","LALIGA","GK",90,"34"],["트렌트 알렉산더-아놀드","레알 마드리드","LALIGA","RB",88,"28"],["주드 벨링엄","레알 마드리드","LALIGA","AM",93,"23"],["아르다 귈러","레알 마드리드","LALIGA","AM",87,"21"],["비니시우스 주니오르","레알 마드리드","LALIGA","LW",93,"26"],["킬리안 음바페","레알 마드리드","LALIGA","ST",95,"27"],["딘 하위선","레알 마드리드","LALIGA","CB",86,"21"],["마르크 쿠쿠레야","레알 마드리드","LALIGA","LB",86,"28"],["알바로 카레라스","레알 마드리드","LALIGA","LB",86,"23"],["페데리코 발베르데","레알 마드리드","LALIGA","CM",88,"28"],["얀 디오망데","레알 마드리드","LALIGA","RW",90,"20"],["파우 쿠바르시","바르셀로나","LALIGA","CB",90,"19"],["쥘 쿤데","바르셀로나","LALIGA","RB",85,"28"],["로드리","바르셀로나","LALIGA","DM",91,"30"],["페드리","바르셀로나","LALIGA","CM",92,"23"],["가비","바르셀로나","LALIGA","CM",84,"22"],["프렝키 더 용","바르셀로나","LALIGA","CM",86,"29"],["페르민 로페스","바르셀로나","LALIGA","AM",87,"23"],["다니 올모","바르셀로나","LALIGA","AM",85,"28"],["라민 야말","바르셀로나","LALIGA","RW",95,"19"],["카림 아데예미","바르셀로나","LALIGA","RW",83,"24"],["하피냐","바르셀로나","LALIGA","ST",90,"29"],["잔루이지 돈나룸마","맨체스터 시티","EPL","GK",90,"27"],["마크 게히","맨체스터 시티","EPL","CB",85,"26"],["후벵 디아스","맨체스터 시티","EPL","CB",87,"29"],["요슈코 그바르디올","맨체스터 시티","EPL","LB",86,"24"],["리코 루이스","맨체스터 시티","EPL","RB",82,"21"],["엘리엇 앤더슨","맨체스터 시티","EPL","DM",86,"24"],["엔소 페르난데스","맨체스터 시티","EPL","CM",90,"25"],["마테오 코바치치","맨체스터 시티","EPL","CM",82,"32"],["라얀 셰르키","맨체스터 시티","EPL","AM",86,"23"],["필 포든","맨체스터 시티","EPL","AM",89,"26"],["제레미 도쿠","맨체스터 시티","EPL","LW",85,"24"],["앙투안 세메뇨","맨체스터 시티","EPL","RW",84,"26"],["엘링 홀란","맨체스터 시티","EPL","ST",94,"26"],["알리송","리버풀","EPL","GK",88,"34"],["로날드 아라우호","리버풀","EPL","CB",86,"27"],["버질 반 다이크","리버풀","EPL","CB",89,"35"],["밀로시 케르케즈","리버풀","EPL","LB",84,"23"],["제레미 프림퐁","리버풀","EPL","RB",84,"25"],["라이언 흐라번베르흐","리버풀","EPL","DM",87,"24"],["알렉시스 맥 알리스터","리버풀","EPL","CM",89,"27"],["도미니크 소보슬라이","리버풀","EPL","AM",88,"26"],["플로리안 비르츠","리버풀","EPL","AM",91,"23"],["코디 학포","리버풀","EPL","LW",86,"27"],["알렉산데르 이사크","리버풀","EPL","ST",89,"27"],["위고 에키티케","리버풀","EPL","ST",86,"24"],["윌리엄 살리바","아스널","EPL","CB",88,"25"],["유리언 팀버르","아스널","EPL","RB",85,"25"],["마르틴 수비멘디","아스널","EPL","DM",87,"27"],["데클런 라이스","아스널","EPL","CM",90,"27"],["마르틴 외데고르","아스널","EPL","AM",88,"27"],["부카요 사카","아스널","EPL","RW",89,"25"],["빅토르 요케레스","아스널","EPL","ST",86,"28"],["다비드 라야","아스널","EPL","GK",83,"31"],["가브리엘","아스널","EPL","CB",88,"28"],["리카르도 칼라피오리","아스널","EPL","LB",87,"24"],["카이 하베르츠","아스널","EPL","ST",86,"27"],["마누엘 노이어","바이에른","BUNDESLIGA","GK",84,"40"],["다요 우파메카노","바이에른","BUNDESLIGA","CB",85,"28"],["요나탄 타","바이에른","BUNDESLIGA","CB",85,"30"],["요주아 키미히","바이에른","BUNDESLIGA","DM",88,"31"],["미하엘 올리세","바이에른","BUNDESLIGA","RW",92,"24"],["세르주 그나브리","바이에른","BUNDESLIGA","SS",82,"31"],["해리 케인","바이에른","BUNDESLIGA","ST",92,"33"],["나타니엘 브라운","바이에른","BUNDESLIGA","LB",86,"23"],["알폰소 데이비스","바이에른","BUNDESLIGA","LB",85,"26"],["알렉산다르 파블로비치","바이에른","BUNDESLIGA","DM",88,"22"],["자말 무시알라","바이에른","BUNDESLIGA","AM",88,"23"],["아슈라프 하키미","PSG","LIGUE1","RB",89,"28"],["비티냐","PSG","LIGUE1","DM",91,"26"],["주앙 네베스","PSG","LIGUE1","CM",91,"22"],["데지레 두에","PSG","LIGUE1","RW",88,"21"],["마트베이 사포노프","PSG","LIGUE1","GK",83,"27"],["윌리안 파초","PSG","LIGUE1","CB",88,"25"],["누누 멘데스","PSG","LIGUE1","LB",88,"24"],["일리야 자바르니","PSG","LIGUE1","CB",84,"24"],["와렌 자이르에므리","PSG","LIGUE1","CM",88,"20"],["흐비차 크바라츠헬리아","PSG","LIGUE1","LW",91,"25"],["우스만 뎀벨레","PSG","LIGUE1","ST",89,"29"],["알레산드로 바스토니","인터 밀란","SERIEA","CB",89,"27"],["마누엘 아칸지","인터 밀란","SERIEA","CB",84,"31"],["페데리코 디마르코","인터 밀란","SERIEA","LB",85,"29"],["니콜로 바렐라","인터 밀란","SERIEA","CM",89,"29"],["피오트르 지엘린스키","인터 밀란","SERIEA","CM",82,"32"],["라우타로 마르티네스","인터 밀란","SERIEA","ST",90,"29"],["주제프 마르티네스","인터 밀란","SERIEA","GK",78,"28"],["얀 비세크","인터 밀란","SERIEA","CB",86,"25"],["페타르 수치치","인터 밀란","SERIEA","CM",85,"23"],["마르퀴스 튀람","인터 밀란","SERIEA","ST",86,"29"],["피오 에스포지토","인터 밀란","SERIEA","ST",86,"21"],["모이세스 카이세도","첼시","EPL","DM",88,"25"],["콜 파머","첼시","EPL","AM",90,"24"],["모건 로저스","첼시","EPL","LW",86,"24"],["제이미 기튼스","첼시","EPL","LW",82,"22"],["이스테방","첼시","EPL","RW",85,"19"],["주앙 페드루","첼시","EPL","ST",84,"25"],["막상스 라크루아","첼시","EPL","CB",86,"26"],["리스 제임스","첼시","EPL","RB",86,"26"],["유리 틸레만스","맨체스터 유나이티드","EPL","CM",82,"29"],["브루누 페르난데스","맨체스터 유나이티드","EPL","AM",87,"32"],["메이슨 마운트","맨체스터 유나이티드","EPL","AM",80,"27"],["마커스 래시포드","맨체스터 유나이티드","EPL","LW",84,"29"],["마테우스 쿠냐","맨체스터 유나이티드","EPL","ST",83,"27"],["베냐민 셰슈코","맨체스터 유나이티드","EPL","ST",82,"23"],["리산드로 마르티네스","맨체스터 유나이티드","EPL","CB",85,"28"],["레니 요로","맨체스터 유나이티드","EPL","CB",85,"21"],["미키 판 더 펜","토트넘","EPL","CB",85,"25"],["산드로 토날리","토트넘","EPL","DM",86,"26"],["코너 갤러거","토트넘","EPL","CM",82,"26"],["사비 시몬스","토트넘","EPL","AM",85,"23"],["제임스 매디슨","토트넘","EPL","AM",82,"29"],["모하메드 쿠두스","토트넘","EPL","RW",84,"26"],["도미닉 솔란케","토트넘","EPL","ST",82,"29"],["얀 파울 판헤케","토트넘","EPL","CB",86,"26"],["루카시 호르니체크","뉴캐슬","EPL","GK",82,"24"],["루이스 홀","뉴캐슬","EPL","LB",86,"22"],["말릭 티아우","뉴캐슬","EPL","CB",86,"25"],["티노 리브라멘투","뉴캐슬","EPL","RB",85,"24"],["니코 곤살레스","뉴캐슬","EPL","DM",86,"24"],["제이컵 램지","뉴캐슬","EPL","CM",84,"25"],["마티아스 페르난데스-파르도","뉴캐슬","EPL","ST",86,"21"],["바주마나 투레","뉴캐슬","EPL","LW",86,"20"],["얀 오블락","아틀레티코","LALIGA","GK",88,"33"],["크리스티안 로메로","아틀레티코","LALIGA","CB",86,"28"],["파블로 바리오스","아틀레티코","LALIGA","CM",85,"23"],["훌리안 알바레스","아틀레티코","LALIGA","ST",89,"26"],["마르크 푸빌","아틀레티코","LALIGA","CB",86,"23"],["다비트 한츠코","아틀레티코","LALIGA","CB",84,"28"],["모르텐 율만","아틀레티코","LALIGA","DM",85,"27"],["알렉스 바에나","아틀레티코","LALIGA","LW",85,"25"],["그레고어 코벨","도르트문트","BUNDESLIGA","GK",87,"28"],["니코 슐로터베크","도르트문트","BUNDESLIGA","CB",85,"26"],["세루 기라시","도르트문트","BUNDESLIGA","ST",85,"30"],["조안 가두","도르트문트","BUNDESLIGA","CB",83,"19"],["율리안 리에르손","도르트문트","BUNDESLIGA","RB",82,"28"],["펠릭스 은메차","도르트문트","BUNDESLIGA","CM",87,"26"],["조브 벨링엄","도르트문트","BUNDESLIGA","CM",84,"21"],["막시밀리안 바이어","도르트문트","BUNDESLIGA","ST",84,"24"],["마르크 플레컨","레버쿠젠","BUNDESLIGA","GK",75,"33"],["저렐 콴사","레버쿠젠","BUNDESLIGA","CB",86,"23"],["에드몽 탑소바","레버쿠젠","BUNDESLIGA","CB",84,"27"],["겔라 두에","레버쿠젠","BUNDESLIGA","RB",83,"24"],["이브라힘 마자","레버쿠젠","BUNDESLIGA","AM",86,"20"],["말릭 틸먼","레버쿠젠","BUNDESLIGA","AM",83,"24"],["크리스티앙 코파네","레버쿠젠","BUNDESLIGA","ST",84,"20"],["아폰수 모레이라","레버쿠젠","BUNDESLIGA","LW",83,"21"],["웨스턴 매케니","유벤투스","SERIEA","CM",82,"28"],["파프 마타르 사르","유벤투스","SERIEA","CM",81,"24"],["케난 일디즈","유벤투스","SERIEA","LW",86,"21"],["닉 볼테마데","유벤투스","SERIEA","ST",84,"24"],["랑달 콜로 무아니","유벤투스","SERIEA","ST",84,"27"],["브레메르","유벤투스","SERIEA","CB",84,"29"],["피에르 칼룰루","유벤투스","SERIEA","CB",83,"26"],["로이드 켈리","유벤투스","SERIEA","CB",82,"28"],["마이크 메냥","AC 밀란","SERIEA","GK",87,"31"],["크리스천 풀리식","AC 밀란","SERIEA","RW",85,"28"],["스트라히냐 파블로비치","AC 밀란","SERIEA","CB",84,"25"],["마리오 힐라","AC 밀란","SERIEA","CB",83,"26"],["코니 더빈터르","AC 밀란","SERIEA","CB",82,"24"],["아르돈 야샤리","AC 밀란","SERIEA","DM",81,"24"],["알파조 시세","AC 밀란","SERIEA","AM",81,"20"],["곤살루 하무스","AC 밀란","SERIEA","ST",86,"25"],["알레산드로 부온조르노","나폴리","SERIEA","CB",84,"27"],["조반니 디 로렌초","나폴리","SERIEA","RB",84,"33"],["스타니슬라우 로보트카","나폴리","SERIEA","DM",84,"31"],["스콧 맥토미니","나폴리","SERIEA","CM",86,"29"],["케빈 더 브라위너","나폴리","SERIEA","AM",88,"35"],["라스무스 호일룬","나폴리","SERIEA","ST",85,"23"],["샘 뵈케마","나폴리","SERIEA","CB",80,"27"],["알리송 산투스","나폴리","SERIEA","LW",83,"24"],["레온 고레츠카","아스톤 빌라","EPL","CM",82,"31"],["에밀리아노 부엔디아","아스톤 빌라","EPL","AM",80,"29"],["니콜라 작송","아스톤 빌라","EPL","ST",82,"25"],["스즈키 자이온","아스톤 빌라","EPL","GK",83,"24"],["이안 마트센","아스톤 빌라","EPL","LB",84,"24"],["바르트 페르브뤼헌","브라이턴","EPL","GK",84,"24"],["루카 부슈코비치","브라이턴","EPL","CB",87,"19"],["야신 아야리","브라이턴","EPL","CM",85,"23"],["잭 힌셜우드","브라이턴","EPL","DM",84,"21"],["얀쿠바 민테","브라이턴","EPL","RW",86,"22"],["딘 헨더슨","크리스털 팰리스","EPL","GK",83,"29"],["오네스트 아하노르","크리스털 팰리스","EPL","CB",84,"18"],["애덤 워튼","크리스털 팰리스","EPL","DM",88,"22"],["크빈턴 팀버르","크리스털 팰리스","EPL","CM",82,"25"],["이스마일라 사르","크리스털 팰리스","EPL","RW",85,"28"],["모건 깁스-화이트","노팅엄 포리스트","EPL","AM",84,"26"],["존 빅토르","노팅엄 포리스트","EPL","GK",72,"30"],["무리요","노팅엄 포리스트","EPL","CB",86,"24"],["제임스 매커티","노팅엄 포리스트","EPL","CM",81,"24"],["리암 델랍","노팅엄 포리스트","EPL","ST",84,"23"],["조던 픽퍼드","에버턴","EPL","GK",79,"32"],["재러드 브랜스웨이트","에버턴","EPL","CB",85,"24"],["제임스 가너","에버턴","EPL","DM",86,"25"],["키어넌 듀스버리-홀","에버턴","EPL","AM",84,"28"],["티에르노 배리","에버턴","EPL","ST",84,"24"],["루이스 주니오르","비야레알","LALIGA","GK",78,"25"],["헤나투 베이가","비야레알","LALIGA","CB",83,"23"],["파페 게예","비야레알","LALIGA","CM",84,"27"],["카를로스 마시아","비야레알","LALIGA","CM",80,"18"],["알베르토 모레이로","비야레알","LALIGA","LW",86,"23"],["알바로 바예스","베티스","LALIGA","GK",78,"29"],["나타","베티스","LALIGA","CB",83,"25"],["파쿤도 베르날","베티스","LALIGA","DM",78,"23"],["넬손 데오사","베티스","LALIGA","CM",77,"26"],["압드 에잘줄리","베티스","LALIGA","LW",84,"24"],["알렉스 레미로","레알 소시에다드","LALIGA","GK",77,"31"],["존 마르틴","레알 소시에다드","LALIGA","CB",82,"20"],["존 고로차테기","레알 소시에다드","LALIGA","DM",82,"24"],["루카 수치치","레알 소시에다드","LALIGA","AM",80,"24"],["미켈 오야르사발","레알 소시에다드","LALIGA","ST",82,"29"],["우나이 시몬","아틀레틱","LALIGA","GK",81,"29"],["다니 비비안","아틀레틱","LALIGA","CB",81,"27"],["미켈 하우레기사르","아틀레틱","LALIGA","CM",82,"23"],["오이안 산세트","아틀레틱","LALIGA","AM",82,"26"],["니코 윌리엄스","아틀레틱","LALIGA","LW",84,"24"],["마르턴 판더보르트","라이프치히","BUNDESLIGA","GK",80,"24"],["카스텔로 뤼케바","라이프치히","BUNDESLIGA","CB",86,"23"],["크리스토프 바움가르트너","라이프치히","BUNDESLIGA","AM",84,"27"],["닐 엘 아이나위","라이프치히","BUNDESLIGA","CM",83,"25"],["안토니오 누사","라이프치히","BUNDESLIGA","LW",85,"21"],["데니스 자이멘","슈투트가르트","BUNDESLIGA","GK",78,"20"],["핀 옐치","슈투트가르트","BUNDESLIGA","CB",84,"20"],["안젤로 슈틸러","슈투트가르트","BUNDESLIGA","DM",85,"25"],["빌랄 엘 카누스","슈투트가르트","BUNDESLIGA","AM",84,"22"],["제이미 르웰링","슈투트가르트","BUNDESLIGA","RW",84,"25"],["노아 아투볼루","프랑크푸르트","BUNDESLIGA","GK",80,"24"],["은남디 콜린스","프랑크푸르트","BUNDESLIGA","CB",81,"22"],["잔 우준","프랑크푸르트","BUNDESLIGA","AM",85,"21"],["라파엘 오니에디카","프랑크푸르트","BUNDESLIGA","DM",80,"25"],["요나탄 부르카르트","프랑크푸르트","BUNDESLIGA","ST",83,"26"],["밀레 스빌라르","로마","SERIEA","GK",84,"27"],["웨슬리","로마","SERIEA","RB",84,"23"],["마누 코네","로마","SERIEA","CM",86,"25"],["로드리고 모라","로마","SERIEA","AM",84,"19"],["도니얼 말런","로마","SERIEA","ST",86,"27"],["마르코 카르네세키","아탈란타","SERIEA","GK",83,"26"],["조르조 스칼비니","아탈란타","SERIEA","CB",84,"22"],["이데르송","아탈란타","SERIEA","CM",84,"27"],["샤를 드 케텔라에","아탈란타","SERIEA","AM",84,"25"],["조너선 로","아탈란타","SERIEA","LW",83,"23"],["로베르트 산체스","코모","SERIEA","GK",80,"28"],["하코보 라몬","코모","SERIEA","CB",85,"21"],["니코 파스","코모","SERIEA","AM",88,"22"],["마르틴 바투리나","코모","SERIEA","AM",86,"23"],["아산 디아오","코모","SERIEA","LW",84,"21"],["필리프 쾬","모나코","LIGUE1","GK",71,"28"],["반데르송","모나코","LIGUE1","RB",80,"25"],["라민 카마라","모나코","LIGUE1","CM",86,"22"],["데니스 자카리아","모나코","LIGUE1","DM",82,"29"],["폴러린 발로건","모나코","LIGUE1","ST",86,"25"],["제프리 더 랑어","마르세유","LIGUE1","GK",71,"28"],["티머시 웨아","마르세유","LIGUE1","RB",81,"26"],["피에르에밀 호이비에르","마르세유","LIGUE1","DM",80,"31"],["안젤 고메스","마르세유","LIGUE1","AM",78,"26"],["이고르 파이샹","마르세유","LIGUE1","LW",84,"26"],["도미니크 그라이프","리옹","LIGUE1","GK",77,"29"],["무사 니아카테","리옹","LIGUE1","CB",80,"30"],["타일러 모턴","리옹","LIGUE1","DM",83,"24"],["파벨 슐츠","리옹","LIGUE1","AM",81,"25"],["로이스 오펜다","리옹","LIGUE1","ST",82,"26"],["베르케 외제르","릴","LIGUE1","GK",78,"26"],["나탕 응고이","릴","LIGUE1","CB",82,"23"],["하콘 아르나르 하랄드손","릴","LIGUE1","AM",83,"23"],["응갈라옐 무카우","릴","LIGUE1","DM",80,"22"],["딜란 바크와","릴","LIGUE1","RW",83,"24"],["필리프 예르겐센","스트라스부르","LIGUE1","GK",80,"24"],["카림 쿨리발리","스트라스부르","LIGUE1","CB",83,"19"],["사미르 엘 무라베트","스트라스부르","LIGUE1","CM",81,"21"],["다리우 에수구","스트라스부르","LIGUE1","DM",80,"21"],["호아킨 파니첼리","스트라스부르","LIGUE1","ST",84,"24"],["로뱅 리세르","랑스","LIGUE1","GK",83,"21"],["이스마엘로 가니우","랑스","LIGUE1","CB",83,"21"],["야신 티트라위","랑스","LIGUE1","CM",77,"23"],["안드리야 불라토비치","랑스","LIGUE1","CM",76,"19"],["프라뇨 이바노비치","랑스","LIGUE1","ST",80,"23"],["니코 오라일리","맨체스터 시티","EPL","LB",88,""],["일리망 은디아예","맨체스터 시티","EPL","LW",86,""],["기오르기 마마르다슈빌리","리버풀","EPL","GK",86,""],["제레미 자케","리버풀","EPL","CB",86,""],["조반니 레오니","리버풀","EPL","CB",88,""],["브라들레 바르콜라","리버풀","EPL","LW",88,""],["브루누 기마랑이스","아스널","EPL","CM",86,""],["맥스 다우먼","아스널","EPL","RW",86,""],["마이크 펜더르스","첼시","EPL","GK",82,""],["리바이 콜윌","첼시","EPL","CB",84,""],["조렐 하토","첼시","EPL","LB",84,""],["발렌틴 바르코","첼시","EPL","CM",84,""],["세너 라먼스","맨체스터 유나이티드","EPL","GK",82,""],["에이든 헤븐","맨체스터 유나이티드","EPL","CB",84,""],["디오구 달로","맨체스터 유나이티드","EPL","RB",84,""],["코비 메이누","맨체스터 유나이티드","EPL","CM",82,""],["카를로스 발레바","맨체스터 유나이티드","EPL","DM",86,""],["안드레이 산투스","맨체스터 유나이티드","EPL","DM",82,""],["브라이언 음뵈모","맨체스터 유나이티드","EPL","RW",86,""],["안토닌 킨스키","토트넘","EPL","GK",84,""],["페드로 포로","토트넘","EPL","RB",82,""],["아치 그레이","토트넘","EPL","RB",84,""],["마테우스 페르난데스","토트넘","EPL","CM",86,""],["루카스 베리발","토트넘","EPL","CM",82,""],["사비우","토트넘","EPL","LW",84,""],["오마르 마르무시","토트넘","EPL","ST",82,""],["스벤 보트만","뉴캐슬","EPL","CB",82,""],["루이스 마일리","뉴캐슬","EPL","CM",82,""],["요안 위사","뉴캐슬","EPL","ST",84,""],["마테오 루게리","아스톤 빌라","EPL","LB",82,""],["테일러 하우드-벨리스","아스톤 빌라","EPL","CB",82,""],["매티 캐시","아스톤 빌라","EPL","RB",84,""],["조안 망장비","아스톤 빌라","EPL","AM",84,""],["부바카르 카마라","아스톤 빌라","EPL","DM",82,""],["아마두 오나나","아스톤 빌라","EPL","DM",82,""],["이브라힘 음바예","아스톤 빌라","EPL","RW",82,""],["알레한드로 가르나초","아스톤 빌라","EPL","LW",84,""],["페르디 카디올루","브라이턴","EPL","LB",84,""],["막심 더 카위퍼르","브라이턴","EPL","LB",82,""],["마츠 비퍼르","브라이턴","EPL","RB",80,""],["디에고 고메스","브라이턴","EPL","CM",84,""],["하랄람포스 코스툴라스","브라이턴","EPL","ST",82,""],["조르지뇨 뤼터","브라이턴","EPL","ST",84,""],["비탈리 미콜렌코","에버턴","EPL","LB",82,""],["제이크 오브라이언","에버턴","EPL","RB",84,""],["에인슬리 메이틀랜드나일스","에버턴","EPL","RB",84,""],["헤이든 해크니","에버턴","EPL","DM",82,""],["타일리크 조지","에버턴","EPL","LW",84,""],["브레넌 존슨","에버턴","EPL","RW",82,""],["제이디 캉보","크리스털 팰리스","EPL","CB",82,""],["크리스 리처즈","크리스털 팰리스","EPL","CB",82,""],["타이릭 미첼","크리스털 팰리스","EPL","LB",84,""],["가마다 다이치","크리스털 팰리스","EPL","CM",82,""],["예르겐 스트란드 라르센","크리스털 팰리스","EPL","ST",80,""],["예레미 피노","크리스털 팰리스","EPL","LW",80,""],["우스만 디오만데","노팅엄 포리스트","EPL","CB",80,""],["네코 윌리엄스","노팅엄 포리스트","EPL","LB",84,""],["니콜라 밀렌코비치","노팅엄 포리스트","EPL","CB",82,""],["이브라힘 상가레","노팅엄 포리스트","EPL","DM",82,""],["단 은도이","노팅엄 포리스트","EPL","RW",82,""],["캘럼 허드슨-오도이","노팅엄 포리스트","EPL","LW",80,""],["주안 가르시아","바르셀로나","LALIGA","GK",88,""],["에리크 가르시아","바르셀로나","LALIGA","CB",90,""],["제라르드 마르틴","바르셀로나","LALIGA","CB",90,""],["앤서니 고든","바르셀로나","LALIGA","LW",86,""],["알렉스 그리말도","아틀레티코","LALIGA","LB",86,""],["이강인","아틀레티코","LALIGA","AM",84,""],["아데몰라 루크먼","아틀레티코","LALIGA","LW",84,""],["카를로스 로메로","비야레알","LALIGA","LB",82,""],["산티아고 무리뉴","비야레알","LALIGA","RB",80,""],["로강 코스타","비야레알","LALIGA","CB",80,""],["나탕 살리바","비야레알","LALIGA","CM",80,""],["조르주 미카우타제","비야레알","LALIGA","ST",78,""],["일리아스 아호마시","비야레알","LALIGA","RW",78,""],["발렌틴 고메스","베티스","LALIGA","CB",80,""],["프란 가르시아","베티스","LALIGA","LB",78,""],["앙헬 오르티스","베티스","LALIGA","RB",78,""],["파블로 포르날스","베티스","LALIGA","CM",78,""],["안토니","베티스","LALIGA","RW",78,""],["트로이 패럿","베티스","LALIGA","ST",78,""],["마마두 사르","레알 소시에다드","LALIGA","CB",82,""],["세르히오 고메스","레알 소시에다드","LALIGA","LB",78,""],["존 아람부루","레알 소시에다드","LALIGA","RB",80,""],["베냐트 투리엔테스","레알 소시에다드","LALIGA","CM",80,""],["구보 다케후사","레알 소시에다드","LALIGA","RW",80,""],["안데르 바레네체아","레알 소시에다드","LALIGA","LW",80,""],["에므리크 라포르트","아틀레틱","LALIGA","CB",78,""],["아이토르 파레데스","아틀레틱","LALIGA","CB",78,""],["헤수스 아레소","아틀레틱","LALIGA","RB",78,""],["베냐트 프라도스","아틀레틱","LALIGA","CM",78,""],["이냐키 윌리암스","아틀레틱","LALIGA","ST",76,""],["로베르트 나바로","아틀레틱","LALIGA","RW",78,""],["요나스 우르비히","바이에른","BUNDESLIGA","GK",88,""],["요시프 스타니시치","바이에른","BUNDESLIGA","RB",86,""],["레나르트 카를","바이에른","BUNDESLIGA","AM",86,""],["루이스 디아스","바이에른","BUNDESLIGA","LW",88,""],["다니엘 스벤손","도르트문트","BUNDESLIGA","LB",80,""],["이선 응와네리","도르트문트","BUNDESLIGA","AM",84,""],["사무엘레 이나시오","도르트문트","BUNDESLIGA","SS",84,""],["미겔 구티에레스","레버쿠젠","BUNDESLIGA","LB",82,""],["에키 페르난데스","레버쿠젠","BUNDESLIGA","DM",80,""],["무사 디아비","레버쿠젠","BUNDESLIGA","RW",80,""],["막심 에스테브","라이프치히","BUNDESLIGA","CB",80,""],["다비트 라움","라이프치히","BUNDESLIGA","LB",82,""],["압둘 코네","라이프치히","BUNDESLIGA","CB",82,""],["브라이얀 그루다","라이프치히","BUNDESLIGA","AM",82,""],["호물루","라이프치히","BUNDESLIGA","ST",82,""],["크리스토페르 은쿤쿠","라이프치히","BUNDESLIGA","ST",84,""],["라몬 헨드릭스","슈투트가르트","BUNDESLIGA","CB",82,""],["막시밀리안 미텔슈테트","슈투트가르트","BUNDESLIGA","LB",80,""],["제프 샤보","슈투트가르트","BUNDESLIGA","CB",82,""],["니콜라스 나르타이","슈투트가르트","BUNDESLIGA","CM",82,""],["제난 페이치노비치","슈투트가르트","BUNDESLIGA","ST",82,""],["에르메딘 데미로비치","슈투트가르트","BUNDESLIGA","ST",82,""],["릴리앙 브라시에","프랑크푸르트","BUNDESLIGA","CB",78,""],["로빈 코흐","프랑크푸르트","BUNDESLIGA","CB",78,""],["고스기 게이타","프랑크푸르트","BUNDESLIGA","LB",78,""],["오스카 호일룬","프랑크푸르트","BUNDESLIGA","CM",80,""],["유네스 에브누탈리브","프랑크푸르트","BUNDESLIGA","ST",80,""],["도안 리쓰","프랑크푸르트","BUNDESLIGA","RW",80,""],["제드 스펜스","인터 밀란","SERIEA","RB",86,""],["커티스 존스","인터 밀란","SERIEA","CM",86,""],["카밀 그라바라","유벤투스","SERIEA","GK",78,""],["혼 루쿠미","유벤투스","SERIEA","CB",80,""],["케프렌 튀랑","유벤투스","SERIEA","CM",80,""],["케림 알라이베고비치","유벤투스","SERIEA","LW",82,""],["다비데 바르테사기","AC 밀란","SERIEA","LB",84,""],["아드리앵 라비오","AC 밀란","SERIEA","CM",82,""],["오마리 허친슨","AC 밀란","SERIEA","RW",80,""],["바냐 밀린코비치사비치","나폴리","SERIEA","GK",82,""],["라파 마린","나폴리","SERIEA","CB",84,""],["브누아 바디아실","나폴리","SERIEA","CB",80,""],["빌리 길모어","나폴리","SERIEA","DM",82,""],["안토니오 베르가라","나폴리","SERIEA","AM",80,""],["노아 랑","나폴리","SERIEA","LW",80,""],["에방 은디카","로마","SERIEA","CB",84,""],["콘스탄티노스 쿨리에라키스","로마","SERIEA","CB",80,""],["레오나르도 발레르디","로마","SERIEA","CB",82,""],["니콜로 피실리","로마","SERIEA","CM",84,""],["마티아스 소울레","로마","SERIEA","RW",80,""],["산티아고 카스트로","로마","SERIEA","ST",82,""],["이사크 히엔","아탈란타","SERIEA","CB",82,""],["로렌초 베르나스코니","아탈란타","SERIEA","LB",78,""],["토마스 크리스텐센","아탈란타","SERIEA","CB",82,""],["라자르 사마르지치","아탈란타","SERIEA","AM",80,""],["니콜라 크르스토비치","아탈란타","SERIEA","ST",80,""],["자코모 라스파도리","아탈란타","SERIEA","SS",80,""],["트레보 찰로바","코모","SERIEA","CB",84,""],["얀 코투","코모","SERIEA","RB",84,""],["카이키","코모","SERIEA","LB",84,""],["막시모 페로네","코모","SERIEA","DM",82,""],["모이스 킨","코모","SERIEA","ST",82,""],["헤수스 로드리게스","코모","SERIEA","LW",82,""],["크리스티앙 마위사","모나코","LIGUE1","CB",80,""],["요르단 테제","모나코","LIGUE1","RB",82,""],["사디부 사네","모나코","LIGUE1","CB",82,""],["마마두 쿨리발리","모나코","LIGUE1","CM",82,""],["마티스 아블린","모나코","LIGUE1","ST",82,""],["마티스 드투르베","모나코","LIGUE1","LW",80,""],["나이프 아게르드","마르세유","LIGUE1","CB",76,""],["시제이 이건-라일리","마르세유","LIGUE1","CB",80,""],["이메르송","마르세유","LIGUE1","LB",80,""],["히마드 압델리","마르세유","LIGUE1","AM",78,""],["아민 구이리","마르세유","LIGUE1","ST",76,""],["케일리안 압달라","마르세유","LIGUE1","RW",76,""],["자카리 아테카메","리옹","LIGUE1","RB",76,""],["아브넬","리옹","LIGUE1","LB",78,""],["루벤 클라위베르트","리옹","LIGUE1","CB",76,""],["마스 비스트루프","리옹","LIGUE1","CM",78,""],["나카무라 게이토","리옹","LIGUE1","LW",78,""],["어니스트 누아마","리옹","LIGUE1","RW",76,""],["알레스산드루","릴","LIGUE1","CB",80,""],["티아구 산토스","릴","LIGUE1","RB",78,""],["로맹 페로","릴","LIGUE1","LB",78,""],["마우리츠 켸르고르","릴","LIGUE1","CM",80,""],["우에다 아야세","릴","LIGUE1","ST",80,""],["함자 이가만","릴","LIGUE1","ST",80,""],["이스마엘 두쿠레","스트라스부르","LIGUE1","CB",78,""],["루카스 회스베르","스트라스부르","LIGUE1","CB",82,""],["오소","스트라스부르","LIGUE1","LB",78,""],["디오구 소자","스트라스부르","LIGUE1","DM",80,""],["마르시알 가도","스트라스부르","LIGUE1","LW",80,""],["제심 야신","스트라스부르","LIGUE1","RW",80,""],["삼손 바이두","랑스","LIGUE1","CB",78,""],["장클레르 토디보","랑스","LIGUE1","CB",80,""],["킬리안 안토니오","랑스","LIGUE1","CB",76,""],["메지안 메슬루브","랑스","LIGUE1","AM",76,""],["오드손 에두아르","랑스","LIGUE1","ST",76,""],["플로리안 소토카","랑스","LIGUE1","ST",76,""],["다니엘 무뇨스","리버풀","EPL","RB",85,""],["리오 은구모하","리버풀","EPL","LW",82,""],["루이스 쿠마스","리버풀","EPL","ST",80,""],["제임스 매코널","리버풀","EPL","DM",80,""]];
 const OPP={"맨체스터 시티":{"l":"EPL","o":88,"xi":[["잔루이지 돈나룸마","GK"],["마크 게히","CB"],["요슈코 그바르디올","LB"],["니코 오라일리","LB"],["후벵 디아스","CB"],["엘리엇 앤더슨","DM"],["엔소 페르난데스","CM"],["라얀 셰르키","AM"],["앙투안 세메뇨","RW"],["제레미 도쿠","LW"],["일리망 은디아예","LW"]]},"리버풀":{"l":"EPL","o":88,"xi":[["기오르기 마마르다슈빌리","GK"],["제레미 자케","CB"],["밀로시 케르케즈","LB"],["제레미 프림퐁","RB"],["조반니 레오니","CB"],["도미니크 소보슬라이","AM"],["플로리안 비르츠","AM"],["라이언 흐라번베르흐","DM"],["브라들레 바르콜라","LW"],["알렉산데르 이사크","ST"],["위고 에키티케","ST"]]},"아스널":{"l":"EPL","o":88,"xi":[["다비드 라야","GK"],["윌리엄 살리바","CB"],["가브리엘","CB"],["유리언 팀버르","RB"],["리카르도 칼라피오리","LB"],["데클런 라이스","CM"],["마르틴 외데고르","AM"],["브루누 기마랑이스","CM"],["부카요 사카","RW"],["카이 하베르츠","ST"],["맥스 다우먼","RW"]]},"첼시":{"l":"EPL","o":86,"xi":[["마이크 펜더르스","GK"],["막상스 라크루아","CB"],["리스 제임스","RB"],["리바이 콜윌","CB"],["조렐 하토","LB"],["콜 파머","AM"],["모이세스 카이세도","DM"],["발렌틴 바르코","CM"],["모건 로저스","LW"],["주앙 페드루","ST"],["이스테방","RW"]]},"맨체스터 유나이티드":{"l":"EPL","o":86,"xi":[["세너 라먼스","GK"],["리산드로 마르티네스","CB"],["레니 요로","CB"],["에이든 헤븐","CB"],["디오구 달로","RB"],["코비 메이누","CM"],["카를로스 발레바","DM"],["안드레이 산투스","DM"],["브라이언 음뵈모","RW"],["마테우스 쿠냐","ST"],["베냐민 셰슈코","ST"]]},"토트넘":{"l":"EPL","o":85,"xi":[["안토닌 킨스키","GK"],["얀 파울 판헤케","CB"],["미키 판 더 펜","CB"],["페드로 포로","RB"],["아치 그레이","RB"],["산드로 토날리","DM"],["마테우스 페르난데스","CM"],["루카스 베리발","CM"],["사비우","LW"],["오마르 마르무시","ST"],["모하메드 쿠두스","RW"]]},"뉴캐슬":{"l":"EPL","o":85,"xi":[["루카시 호르니체크","GK"],["루이스 홀","LB"],["말릭 티아우","CB"],["티노 리브라멘투","RB"],["스벤 보트만","CB"],["니코 곤살레스","DM"],["제이컵 램지","CM"],["루이스 마일리","CM"],["마티아스 페르난데스-파르도","ST"],["바주마나 투레","LW"],["요안 위사","ST"]]},"아스톤 빌라":{"l":"EPL","o":84,"xi":[["스즈키 자이온","GK"],["이안 마트센","LB"],["마테오 루게리","LB"],["테일러 하우드-벨리스","CB"],["매티 캐시","RB"],["조안 망장비","AM"],["부바카르 카마라","DM"],["아마두 오나나","DM"],["이브라힘 음바예","RW"],["니콜라 작송","ST"],["알레한드로 가르나초","LW"]]},"브라이턴":{"l":"EPL","o":84,"xi":[["바르트 페르브뤼헌","GK"],["루카 부슈코비치","CB"],["페르디 카디올루","LB"],["막심 더 카위퍼르","LB"],["마츠 비퍼르","RB"],["야신 아야리","CM"],["잭 힌셜우드","DM"],["디에고 고메스","CM"],["얀쿠바 민테","RW"],["하랄람포스 코스툴라스","ST"],["조르지뇨 뤼터","ST"]]},"에버턴":{"l":"EPL","o":83,"xi":[["조던 픽퍼드","GK"],["재러드 브랜스웨이트","CB"],["비탈리 미콜렌코","LB"],["제이크 오브라이언","RB"],["에인슬리 메이틀랜드나일스","RB"],["제임스 가너","DM"],["키어넌 듀스버리-홀","AM"],["헤이든 해크니","DM"],["티에르노 배리","ST"],["타일리크 조지","LW"],["브레넌 존슨","RW"]]},"크리스털 팰리스":{"l":"EPL","o":84,"xi":[["딘 헨더슨","GK"],["오네스트 아하노르","CB"],["제이디 캉보","CB"],["크리스 리처즈","CB"],["타이릭 미첼","LB"],["애덤 워튼","DM"],["크빈턴 팀버르","CM"],["가마다 다이치","CM"],["이스마일라 사르","RW"],["예르겐 스트란드 라르센","ST"],["예레미 피노","LW"]]},"노팅엄 포리스트":{"l":"EPL","o":83,"xi":[["존 빅토르","GK"],["무리요","CB"],["우스만 디오만데","CB"],["네코 윌리엄스","LB"],["니콜라 밀렌코비치","CB"],["모건 깁스-화이트","AM"],["제임스 매커티","CM"],["이브라힘 상가레","DM"],["리암 델랍","ST"],["단 은도이","RW"],["캘럼 허드슨-오도이","LW"]]},"레알 마드리드":{"l":"LALIGA","o":89,"xi":[["티보 쿠르투아","GK"],["딘 하위선","CB"],["마르크 쿠쿠레야","LB"],["트렌트 알렉산더-아놀드","RB"],["알바로 카레라스","LB"],["주드 벨링엄","AM"],["아르다 귈러","AM"],["페데리코 발베르데","CM"],["킬리안 음바페","ST"],["비니시우스 주니오르","LW"],["얀 디오망데","RW"]]},"바르셀로나":{"l":"LALIGA","o":89,"xi":[["주안 가르시아","GK"],["파우 쿠바르시","CB"],["쥘 쿤데","RB"],["에리크 가르시아","CB"],["제라르드 마르틴","CB"],["페드리","CM"],["페르민 로페스","AM"],["로드리","DM"],["라민 야말","RW"],["앤서니 고든","LW"],["하피냐","ST"]]},"아틀레티코":{"l":"LALIGA","o":85,"xi":[["얀 오블락","GK"],["마르크 푸빌","CB"],["크리스티안 로메로","CB"],["다비트 한츠코","CB"],["알렉스 그리말도","LB"],["파블로 바리오스","CM"],["모르텐 율만","DM"],["이강인","AM"],["훌리안 알바레스","ST"],["알렉스 바에나","LW"],["아데몰라 루크먼","LW"]]},"비야레알":{"l":"LALIGA","o":82,"xi":[["루이스 주니오르","GK"],["헤나투 베이가","CB"],["카를로스 로메로","LB"],["산티아고 무리뉴","RB"],["로강 코스타","CB"],["파페 게예","CM"],["카를로스 마시아","CM"],["나탕 살리바","CM"],["알베르토 모레이로","LW"],["조르주 미카우타제","ST"],["일리아스 아호마시","RW"]]},"베티스":{"l":"LALIGA","o":80,"xi":[["알바로 바예스","GK"],["나타","CB"],["발렌틴 고메스","CB"],["프란 가르시아","LB"],["앙헬 오르티스","RB"],["파쿤도 베르날","DM"],["넬손 데오사","CM"],["파블로 포르날스","CM"],["압드 에잘줄리","LW"],["안토니","RW"],["트로이 패럿","ST"]]},"레알 소시에다드":{"l":"LALIGA","o":81,"xi":[["알렉스 레미로","GK"],["존 마르틴","CB"],["마마두 사르","CB"],["세르히오 고메스","LB"],["존 아람부루","RB"],["존 고로차테기","DM"],["루카 수치치","AM"],["베냐트 투리엔테스","CM"],["미켈 오야르사발","ST"],["구보 다케후사","RW"],["안데르 바레네체아","LW"]]},"아틀레틱":{"l":"LALIGA","o":79,"xi":[["우나이 시몬","GK"],["다니 비비안","CB"],["에므리크 라포르트","CB"],["아이토르 파레데스","CB"],["헤수스 아레소","RB"],["미켈 하우레기사르","CM"],["오이안 산세트","AM"],["베냐트 프라도스","CM"],["니코 윌리엄스","LW"],["이냐키 윌리암스","ST"],["로베르트 나바로","RW"]]},"바이에른":{"l":"BUNDESLIGA","o":88,"xi":[["요나스 우르비히","GK"],["다요 우파메카노","CB"],["나타니엘 브라운","LB"],["알폰소 데이비스","LB"],["요시프 스타니시치","RB"],["알렉산다르 파블로비치","DM"],["자말 무시알라","AM"],["레나르트 카를","AM"],["미하엘 올리세","RW"],["루이스 디아스","LW"],["해리 케인","ST"]]},"도르트문트":{"l":"BUNDESLIGA","o":84,"xi":[["그레고어 코벨","GK"],["니코 슐로터베크","CB"],["조안 가두","CB"],["율리안 리에르손","RB"],["다니엘 스벤손","LB"],["펠릭스 은메차","CM"],["조브 벨링엄","CM"],["이선 응와네리","AM"],["막시밀리안 바이어","ST"],["세루 기라시","ST"],["사무엘레 이나시오","SS"]]},"레버쿠젠":{"l":"BUNDESLIGA","o":83,"xi":[["마르크 플레컨","GK"],["저렐 콴사","CB"],["에드몽 탑소바","CB"],["겔라 두에","RB"],["미겔 구티에레스","LB"],["이브라힘 마자","AM"],["말릭 틸먼","AM"],["에키 페르난데스","DM"],["크리스티앙 코파네","ST"],["아폰수 모레이라","LW"],["무사 디아비","RW"]]},"라이프치히":{"l":"BUNDESLIGA","o":83,"xi":[["마르턴 판더보르트","GK"],["카스텔로 뤼케바","CB"],["막심 에스테브","CB"],["다비트 라움","LB"],["압둘 코네","CB"],["크리스토프 바움가르트너","AM"],["닐 엘 아이나위","CM"],["브라이얀 그루다","AM"],["안토니오 누사","LW"],["호물루","ST"],["크리스토페르 은쿤쿠","ST"]]},"슈투트가르트":{"l":"BUNDESLIGA","o":82,"xi":[["데니스 자이멘","GK"],["핀 옐치","CB"],["라몬 헨드릭스","CB"],["막시밀리안 미텔슈테트","LB"],["제프 샤보","CB"],["안젤로 슈틸러","DM"],["빌랄 엘 카누스","AM"],["니콜라스 나르타이","CM"],["제이미 르웰링","RW"],["제난 페이치노비치","ST"],["에르메딘 데미로비치","ST"]]},"프랑크푸르트":{"l":"BUNDESLIGA","o":81,"xi":[["노아 아투볼루","GK"],["은남디 콜린스","CB"],["릴리앙 브라시에","CB"],["로빈 코흐","CB"],["고스기 게이타","LB"],["잔 우준","AM"],["라파엘 오니에디카","DM"],["오스카 호일룬","CM"],["요나탄 부르카르트","ST"],["유네스 에브누탈리브","ST"],["도안 리쓰","RW"]]},"인터 밀란":{"l":"SERIEA","o":86,"xi":[["주제프 마르티네스","GK"],["알레산드로 바스토니","CB"],["얀 비세크","CB"],["페데리코 디마르코","LB"],["제드 스펜스","RB"],["니콜로 바렐라","CM"],["페타르 수치치","CM"],["커티스 존스","CM"],["라우타로 마르티네스","ST"],["마르퀴스 튀람","ST"],["피오 에스포지토","ST"]]},"유벤투스":{"l":"SERIEA","o":83,"xi":[["카밀 그라바라","GK"],["브레메르","CB"],["피에르 칼룰루","CB"],["로이드 켈리","CB"],["혼 루쿠미","CB"],["케프렌 튀랑","CM"],["웨스턴 매케니","CM"],["파프 마타르 사르","CM"],["케난 일디즈","LW"],["닉 볼테마데","ST"],["케림 알라이베고비치","LW"]]},"AC 밀란":{"l":"SERIEA","o":83,"xi":[["마이크 메냥","GK"],["스트라히냐 파블로비치","CB"],["마리오 힐라","CB"],["코니 더빈터르","CB"],["다비데 바르테사기","LB"],["아르돈 야샤리","DM"],["알파조 시세","AM"],["아드리앵 라비오","CM"],["곤살루 하무스","ST"],["크리스천 풀리식","RW"],["오마리 허친슨","RW"]]},"나폴리":{"l":"SERIEA","o":83,"xi":[["바냐 밀린코비치사비치","GK"],["알레산드로 부온조르노","CB"],["샘 뵈케마","CB"],["라파 마린","CB"],["브누아 바디아실","CB"],["스콧 맥토미니","CM"],["빌리 길모어","DM"],["안토니오 베르가라","AM"],["라스무스 호일룬","ST"],["알리송 산투스","LW"],["노아 랑","LW"]]},"로마":{"l":"SERIEA","o":84,"xi":[["밀레 스빌라르","GK"],["웨슬리","RB"],["에방 은디카","CB"],["콘스탄티노스 쿨리에라키스","CB"],["레오나르도 발레르디","CB"],["마누 코네","CM"],["로드리고 모라","AM"],["니콜로 피실리","CM"],["도니얼 말런","ST"],["마티아스 소울레","RW"],["산티아고 카스트로","ST"]]},"아탈란타":{"l":"SERIEA","o":82,"xi":[["마르코 카르네세키","GK"],["조르조 스칼비니","CB"],["이사크 히엔","CB"],["로렌초 베르나스코니","LB"],["토마스 크리스텐센","CB"],["이데르송","CM"],["샤를 드 케텔라에","AM"],["라자르 사마르지치","AM"],["조너선 로","LW"],["니콜라 크르스토비치","ST"],["자코모 라스파도리","SS"]]},"코모":{"l":"SERIEA","o":84,"xi":[["로베르트 산체스","GK"],["하코보 라몬","CB"],["트레보 찰로바","CB"],["얀 코투","RB"],["카이키","LB"],["니코 파스","AM"],["마르틴 바투리나","AM"],["막시모 페로네","DM"],["아산 디아오","LW"],["모이스 킨","ST"],["헤수스 로드리게스","LW"]]},"PSG":{"l":"LIGUE1","o":89,"xi":[["마트베이 사포노프","GK"],["윌리안 파초","CB"],["누누 멘데스","LB"],["아슈라프 하키미","RB"],["일리야 자바르니","CB"],["비티냐","DM"],["주앙 네베스","CM"],["와렌 자이르에므리","CM"],["흐비차 크바라츠헬리아","LW"],["데지레 두에","RW"],["우스만 뎀벨레","ST"]]},"모나코":{"l":"LIGUE1","o":82,"xi":[["필리프 쾬","GK"],["반데르송","RB"],["크리스티앙 마위사","CB"],["요르단 테제","RB"],["사디부 사네","CB"],["라민 카마라","CM"],["데니스 자카리아","DM"],["마마두 쿨리발리","CM"],["폴러린 발로건","ST"],["마티스 아블린","ST"],["마티스 드투르베","LW"]]},"마르세유":{"l":"LIGUE1","o":79,"xi":[["제프리 더 랑어","GK"],["티머시 웨아","RB"],["나이프 아게르드","CB"],["시제이 이건-라일리","CB"],["이메르송","LB"],["피에르에밀 호이비에르","DM"],["안젤 고메스","AM"],["히마드 압델리","AM"],["이고르 파이샹","LW"],["아민 구이리","ST"],["케일리안 압달라","RW"]]},"리옹":{"l":"LIGUE1","o":80,"xi":[["도미니크 그라이프","GK"],["무사 니아카테","CB"],["자카리 아테카메","RB"],["아브넬","LB"],["루벤 클라위베르트","CB"],["타일러 모턴","DM"],["파벨 슐츠","AM"],["마스 비스트루프","CM"],["로이스 오펜다","ST"],["나카무라 게이토","LW"],["어니스트 누아마","RW"]]},"릴":{"l":"LIGUE1","o":80,"xi":[["베르케 외제르","GK"],["나탕 응고이","CB"],["알레스산드루","CB"],["티아구 산토스","RB"],["로맹 페로","LB"],["하콘 아르나르 하랄드손","AM"],["응갈라옐 무카우","DM"],["마우리츠 켸르고르","CM"],["딜란 바크와","RW"],["우에다 아야세","ST"],["함자 이가만","ST"]]},"스트라스부르":{"l":"LIGUE1","o":81,"xi":[["필리프 예르겐센","GK"],["카림 쿨리발리","CB"],["이스마엘 두쿠레","CB"],["루카스 회스베르","CB"],["오소","LB"],["사미르 엘 무라베트","CM"],["다리우 에수구","DM"],["디오구 소자","DM"],["호아킨 파니첼리","ST"],["마르시알 가도","LW"],["제심 야신","RW"]]},"랑스":{"l":"LIGUE1","o":79,"xi":[["로뱅 리세르","GK"],["이스마엘로 가니우","CB"],["삼손 바이두","CB"],["장클레르 토디보","CB"],["킬리안 안토니오","CB"],["야신 티트라위","CM"],["안드리야 불라토비치","CM"],["메지안 메슬루브","AM"],["프라뇨 이바노비치","ST"],["오드손 에두아르","ST"],["플로리안 소토카","ST"]]}};
+
+const CUP_T=[
+{id:'L01',s:'73/74',n:'바이에른 뮌헨',sn:'바이에른',ovr:87,star:['게르트 뮐러','프란츠 베켄바워','울리 회네스'],story:'아틀레티코와 1-1, 재경기 4-0. 뮐러·베켄바워의 유럽 3연패가 시작된 해.',xi:[['제프 마이어','GK'],['요니 한센','RB'],['한스게오르크 슈바르첸베크','CB'],['프란츠 베켄바워','CB'],['파울 브라이트너','LB'],['라이너 초벨','CM'],['유프 카펠만','CM'],['프란츠 로트','CM'],['코니 토르텐손','RW'],['울리 회네스','LW'],['게르트 뮐러','CF']]},
+{id:'L02',s:'88/89',n:'AC 밀란',sn:'밀란',ovr:90,star:['마르코 판 바스턴','뤼트 휠릿','프랑코 바레시'],story:'스테아우아를 4-0으로. 반 바스턴·굴리트·레이카르트의 밀란.',xi:[['조반니 갈리','GK'],['마우로 타소티','RB'],['파올로 말디니','LB'],['안젤로 콜롬보','RM'],['알레산드로 코스타쿠르타','CB'],['프랑코 바레시','CB'],['로베르토 도나도니','LM'],['프랑크 레이카르트','CM'],['마르코 판 바스턴','CF'],['뤼트 휠릿','AM'],['카를로 안첼로티','CM']]},
+{id:'L03',s:'92/93',n:'마르세유',sn:'마르세유',ovr:84,star:['디디에 데샹','아베디 펠레','파비앵 바르테즈'],story:'챔스 첫 프랑스 우승. 바르테즈와 데샹이 밀란을 1-0으로 눌렀다.',xi:[['파비앵 바르테즈','GK'],['조슬랭 앙글로마','RB'],['에리크 디 메코','LB'],['바질 볼리','SW'],['프랑크 소제','CM'],['마르셀 드사이','CB'],['장자크 에데리에','CM'],['알렌 복시치','CF'],['루디 푈러','LF'],['아베디 펠레','RF'],['디디에 데샹','CM']]},
+{id:'L04',s:'94/95',n:'아약스',sn:'아약스',ovr:85,star:['야리 리트마넨','에드가르 다비츠','마르크 오버르마르스'],story:'판 할의 젊은 아약스가 밀란을 1-0으로. 다비즈·리트마넨·오버마르스.',xi:[['에드빈 판 데르 사르','GK'],['마이컬 레이저허르','RB'],['다니 블린트','CB'],['프랑크 레이카르트','DM'],['프랑크 더 부르','LB'],['클라렌스 세이도르프','RM'],['피니디 조지','RF'],['에드가르 다비츠','LM'],['로날트 더 부르','CF'],['야리 리트마넨','AM'],['마르크 오버르마르스','LF']]},
+{id:'L05',s:'96/97',n:'도르트문트',sn:'도르트문트',ovr:85,star:['마티아스 자머','안드레아스 묄러','카를하인츠 리들레'],story:'리들레의 두 골로 유벤투스를 3-1. 도르트문트의 첫 빅이어.',xi:[['슈테판 클로스','GK'],['마티아스 자머','SW'],['위르겐 콜러','CB'],['마르틴 크레','CB'],['슈테판 로이터','RWB'],['외르크 하인리히','LWB'],['폴 램버트','CM'],['파울루 소자','CM'],['안드레아스 묄러','AM'],['카를하인츠 리들레','CF'],['스테판 샤퓌자','CF']]},
+{id:'L06',s:'97/98',n:'레알 마드리드',sn:'레알',ovr:86,star:['라울 곤살레스','페르난도 레돈도','프레드라그 미야토비치'],story:'32년 만의 7번째 빅이어. 미야토비치의 한 골로 유벤투스를 1-0.',xi:[['보도 일그너','GK'],['크리스티안 파누치','RB'],['마누엘 산치스','CB'],['페르난도 이에로','CB'],['호베르투 카를루스','LB'],['크리스티앙 카랑뵈','DM'],['페르난도 레돈도','DM'],['클라렌스 세이도르프','CM'],['페르난도 모리엔테스','AM'],['프레드라그 미야토비치','AM'],['라울 곤살레스','CF']]},
+{id:'L07',s:'98/99',n:'맨체스터 유나이티드',sn:'맨유',ovr:88,star:['데이비드 베컴','페테르 슈마이켈','라이언 긱스'],story:'캄프누의 두 골과 인저리타임. 프리미어리그·FA컵·챔스 트레블.',xi:[['페테르 슈마이켈','GK'],['게리 네빌','RB'],['로니 욘센','CB'],['야프 스탐','CB'],['데니스 어윈','LB'],['라이언 긱스','RM'],['데이비드 베컴','CM'],['니키 버트','CM'],['예스페르 블롬크비스트','LM'],['드와이트 요크','CF'],['앤디 콜','CF']]},
+{id:'L08',s:'01/02',n:'레알 마드리드',sn:'레알',ovr:89,star:['지네딘 지단','루이스 피구','라울 곤살레스'],story:'지단의 발리로 레버쿠젠을 2-1. 9번째 빅이어.',xi:[['세사르 산체스','GK'],['미첼 살가도','RB'],['페르난도 이에로','CB'],['이반 엘게라','CB'],['호베르투 카를루스','LB'],['클로드 마켈렐레','DM'],['루이스 피구','RM'],['산티아고 솔라리','LM'],['지네딘 지단','AM'],['라울 곤살레스','CF'],['페르난도 모리엔테스','CF']]},
+{id:'L09',s:'02/03',n:'AC 밀란',sn:'밀란',ovr:88,star:['파올로 말디니','알레산드로 네스타','안드리 셰우첸코'],story:'올드 트래퍼드 승부차기 3-2. 네스타·말디니·피를로의 6번째 빅이어.',xi:[['지다','GK'],['알레산드로 코스타쿠르타','RB'],['알레산드로 네스타','CB'],['파올로 말디니','CB'],['카하 칼라제','LB'],['젠나로 가투소','RM'],['안드레아 피를로','CM'],['클라렌스 세이도르프','LM'],['후이 코스타','AM'],['안드리 셰우첸코','CF'],['필리포 인차기','CF']]},
+{id:'L10',s:'03/04',n:'FC 포르투',sn:'포르투',ovr:83,star:['데쿠','마니시','히카르두 카르발류'],story:'무리뉴의 포르투가 모나코를 3-0으로. 데쿠와 데를레이의 2004년.',xi:[['비토르 바이아','GK'],['파울루 페헤이라','RB'],['조르즈 코스타','CB'],['히카르두 카르발류','CB'],['누누 발렌트','LB'],['코스티냐','DM'],['페드루 멘드스','CM'],['마니시','CM'],['데쿠','AM'],['카를루스 아우베르투','CF'],['데를레이','CF']]},
+{id:'L11',s:'04/05',n:'리버풀',sn:'리버풀',ovr:86,star:['스티븐 제라드','샤비 알론소','예지 두데크'],story:'0-3에서 3-3, 승부차기 3-2. 이스탄불의 기적과 제라드의 헤더.',xi:[['예지 두데크','GK'],['스티브 피넌','RB'],['제이미 캐러거','CB'],['사미 휘피애','CB'],['지미 트라오레','LB'],['샤비 알론소','DM'],['루이스 가르시아','RM'],['스티븐 제라드','CM'],['욘 아르네 리세','LM'],['해리 큐얼','SS'],['밀란 바로시','CF']]},
+{id:'L12',s:'05/06',n:'바르셀로나',sn:'바르사',ovr:89,star:['호나우지뉴','사뮈엘 에토','카를레스 푸욜'],story:'10명 아스날을 후반 막판 두 골로 뒤집었다. 2번째 빅이어.',xi:[['빅토르 발데스','GK'],['올레게르','RB'],['라파엘 마르케스','CB'],['카를레스 푸욜','CB'],['지오바니 판 브롱크호르스트','LB'],['에드미우송 고메스','DM'],['데쿠','CM'],['마르크 판 보멀','CM'],['뤼도비크 지윌리','RW'],['호나우지뉴','LW'],['사뮈엘 에토','CF']]},
+{id:'L13',s:'06/07',n:'AC 밀란',sn:'밀란',ovr:88,star:['카카','안드레아 피를로','파올로 말디니'],story:'아테네에서 리버풀을 2-1로. 카카와 인차기의 복수전.',xi:[['지다','GK'],['마시모 오도','RB'],['알레산드로 네스타','CB'],['파올로 말디니','CB'],['마레크 얀쿨로프스키','LB'],['젠나로 가투소','RM'],['안드레아 피를로','CM'],['마시모 암브로시니','CM'],['클라렌스 세이도르프','LM'],['카카','SS'],['필리포 인차기','CF']]},
+{id:'L14',s:'07/08',n:'맨체스터 유나이티드',sn:'맨유',ovr:89,star:['크리스티아누 호날두','웨인 루니','네마냐 비디치'],story:'모스크바의 비, 승부차기 6-5. 호날두·루니의 3번째 빅이어.',xi:[['에드빈 판 데르 사르','GK'],['웨스 브라운','RB'],['리오 퍼디난드','CB'],['네마냐 비디치','CB'],['파트리스 에브라','LB'],['오언 하그리브스','RM'],['폴 스콜스','CM'],['마이클 캐릭','CM'],['크리스티아누 호날두','LM'],['웨인 루니','CF'],['카를로스 테베스','CF']]},
+{id:'L15',s:'08/09',n:'바르셀로나',sn:'바르사',ovr:90,star:['리오넬 메시','차비 에르난데스','안드레스 이니에스타'],story:'로마에서 맨유를 2-0으로. 6관왕을 완성한 과르디올라의 첫 해.',xi:[['빅토르 발데스','GK'],['카를레스 푸욜','RB'],['야야 투레','CB'],['제라르드 피케','CB'],['시우비뉴','LB'],['세르히오 부스케츠','DM'],['차비 에르난데스','CM'],['안드레스 이니에스타','CM'],['리오넬 메시','RW'],['티에리 앙리','LW'],['사뮈엘 에토','CF']]},
+{id:'L16',s:'09/10',n:'인테르',sn:'인테르',ovr:87,star:['디에고 밀리토','베슬리 스네이더르','하비에르 사네티'],story:'바이에른을 2-0으로. 밀리토의 두 골과 무리뉴의 트레블.',xi:[['줄리우 세자르','GK'],['마이콩','RB'],['루시우','CB'],['왈테르 사무엘','CB'],['크리스티안 키부','LB'],['하비에르 사네티','CM'],['에스테반 캄비아소','CM'],['베슬리 스네이더르','AM'],['사뮈엘 에토','RF'],['디에고 밀리토','CF'],['고란 판데프','LF']]},
+{id:'L17',s:'10/11',n:'바르셀로나',sn:'바르사',ovr:91,star:['리오넬 메시','차비 에르난데스','안드레스 이니에스타'],story:'웸블리에서 맨유를 3-1로. 메시·사비·이니에스타의 티키타카.',xi:[['빅토르 발데스','GK'],['다니 아우베스','RB'],['하비에르 마스체라노','CB'],['제라르드 피케','CB'],['에리크 아비달','LB'],['세르히오 부스케츠','DM'],['차비 에르난데스','CM'],['안드레스 이니에스타','CM'],['다비드 비야','RF'],['리오넬 메시','CF'],['페드로','LF']]},
+{id:'L18',s:'11/12',n:'첼시',sn:'첼시',ovr:84,star:['디디에 드로그바','프랭크 램퍼드','페트르 체흐'],story:'뮌헨 원정 승부차기 4-3. 디 마테오의 첼시가 첫 빅이어.',xi:[['페트르 체흐','GK'],['조제 보싱와','RB'],['다비드 루이스','CB'],['게리 케이힐','CB'],['애슐리 콜','LB'],['존 오비 미켈','DM'],['프랭크 램퍼드','CM'],['살로몽 칼루','RW'],['후안 마타','AM'],['라이언 버트런드','LW'],['디디에 드로그바','CF']]},
+{id:'L19',s:'12/13',n:'바이에른 뮌헨',sn:'바이에른',ovr:89,star:['아르연 로번','프랑크 리베리','마누엘 노이어'],story:'도르트문트와의 웸블리 결승 2-1. 로번의 결승골과 트레블.',xi:[['마누엘 노이어','GK'],['필리프 람','RB'],['제롬 보아텡','CB'],['단치','CB'],['데이비드 알라바','LB'],['하비 마르티네스','CM'],['바스티안 슈바인슈타이거','CM'],['아르연 로번','RW'],['토마스 뮐러','AM'],['프랑크 리베리','LW'],['마리오 만주키치','CF']]},
+{id:'L20',s:'13/14',n:'레알 마드리드',sn:'레알',ovr:90,star:['크리스티아누 호날두','세르히오 라모스','루카 모드리치'],story:'리스본에서 4-1. 라모스의 추가시간 헤더로 열린 라 데시마.',xi:[['이케르 카시야스','GK'],['다니 카르바할','RB'],['라파엘 바란','CB'],['세르히오 라모스','CB'],['파비우 코엔트랑','LB'],['루카 모드리치','RM'],['사미 케디라','CM'],['앙헬 디 마리아','LM'],['가레스 베일','RF'],['카림 벤제마','CF'],['크리스티아누 호날두','LF']]},
+{id:'L21',s:'14/15',n:'바르셀로나',sn:'바르사',ovr:91,star:['리오넬 메시','루이스 수아레스','네이마르'],story:'베를린에서 유벤투스를 3-1로. MSN의 두 번째 트레블.',xi:[['마르크-안드레 테어 슈테겐','GK'],['다니 아우베스','RB'],['제라르드 피케','CB'],['하비에르 마스체라노','CB'],['조르디 알바','LB'],['이반 라키티치','CM'],['세르히오 부스케츠','CM'],['안드레스 이니에스타','CM'],['리오넬 메시','RF'],['루이스 수아레스','CF'],['네이마르','LF']]},
+{id:'L22',s:'16/17',n:'유벤투스',sn:'유벤투스',ovr:87,star:['잔루이지 부폰','레오나르도 보누치','파울로 디발라'],story:'카디프 결승에서 레알에 1-4. 부폰의 세 번째 준우승.',xi:[['잔루이지 부폰','GK'],['안드레아 바르찰리','CB'],['레오나르도 보누치','CB'],['조르조 키엘리니','CB'],['다니 아우베스','RM'],['미랄렘 퍄니치','CM'],['사미 케디라','CM'],['알레스 산드루','LM'],['파울로 디발라','AM'],['곤살로 이과인','CF'],['마리오 만주키치','CF']]},
+{id:'L23',s:'16/17',n:'레알 마드리드',sn:'레알',ovr:90,star:['크리스티아누 호날두','루카 모드리치','세르히오 라모스'],story:'카디프에서 유벤투스를 4-1로. 챔스 2연패, 12번째 빅이어.',xi:[['케일로르 나바스','GK'],['다니 카르바할','RB'],['세르히오 라모스','CB'],['라파엘 바란','CB'],['마르셀루','LB'],['카제미루','DM'],['토니 크로스','CM'],['루카 모드리치','CM'],['이스코','RF'],['카림 벤제마','CF'],['크리스티아누 호날두','LF']]},
+{id:'L24',s:'17/18',n:'레알 마드리드',sn:'레알',ovr:90,star:['크리스티아누 호날두','루카 모드리치','세르히오 라모스'],story:'키예프에서 리버풀을 3-1로. 챔스 시대 첫 3연패.',xi:[['케일로르 나바스','GK'],['다니 카르바할','RB'],['라파엘 바란','CB'],['세르히오 라모스','CB'],['마르셀루','LB'],['카제미루','DM'],['루카 모드리치','CM'],['토니 크로스','CM'],['이스코','AM'],['카림 벤제마','CF'],['크리스티아누 호날두','CF']]},
+{id:'L25',s:'18/19',n:'리버풀',sn:'리버풀',ovr:89,star:['모하메드 살라','버질 판 데이크','알리송'],story:'마드리드에서 토트넘을 2-0으로. 리그는 승점 97 준우승(맨시티 98).',xi:[['알리송','GK'],['트렌트 알렉산더아널드','RB'],['조엘 마티프','CB'],['버질 판 데이크','CB'],['앤드루 로버트슨','LB'],['조던 헨더슨','CM'],['파비뉴','CM'],['조르지니오 베이날뒴','CM'],['모하메드 살라','RW'],['호베르투 피르미누','CF'],['사디오 마네','LW']]},
+{id:'L26',s:'19/20',n:'바이에른 뮌헨',sn:'바이에른',ovr:90,star:['로베르트 레반도프스키','토마스 뮐러','마누엘 노이어'],story:'리스본에서 PSG를 1-0으로. 6관왕을 완성한 플릭의 바이에른.',xi:[['마누엘 노이어','GK'],['요주아 키미히','RB'],['제롬 보아텡','CB'],['데이비드 알라바','CB'],['알폰소 데이비스','LB'],['티아고 알칸타라','CM'],['레온 고레츠카','CM'],['세르주 그나브리','RW'],['토마스 뮐러','AM'],['킹슬레 코망','LW'],['로베르트 레반도프스키','CF']]},
+{id:'L27',s:'20/21',n:'첼시',sn:'첼시',ovr:86,star:['은골로 캉테','에두아르 멘디','카이 하베르츠'],story:'포르투에서 맨시티를 1-0으로. 하베르츠의 결승골, 두 번째 빅이어.',xi:[['에두아르 멘디','GK'],['세사르 아스필리쿠에타','CB'],['치아구 시우바','CB'],['안토니오 뤼디거','CB'],['리스 제임스','RWB'],['벤 칠웰','LWB'],['조르지뉴','CM'],['은골로 캉테','CM'],['카이 하베르츠','AM'],['메이슨 마운트','AM'],['티모 베르너','CF']]},
+{id:'L28',s:'21/22',n:'레알 마드리드',sn:'레알',ovr:89,star:['카림 벤제마','티보 쿠르투아','루카 모드리치'],story:'파리에서 리버풀을 1-0으로. 쿠르투아의 선방과 14번째 빅이어.',xi:[['티보 쿠르투아','GK'],['다니 카르바할','RB'],['에데르 밀리탕','CB'],['데이비드 알라바','CB'],['페를랑 멘디','LB'],['루카 모드리치','CM'],['카제미루','CM'],['토니 크로스','CM'],['페데리코 발베르데','RF'],['카림 벤제마','CF'],['비니시우스 주니오르','LF']]},
+{id:'L29',s:'22/23',n:'맨체스터 시티',sn:'맨시티',ovr:90,star:['엘링 홀란','케빈 더 브라위너','로드리'],story:'이스탄불에서 인테르를 1-0으로. 로드리의 결승골과 트레블.',xi:[['에데르송','GK'],['마누엘 아칸지','CB'],['후벵 디아스','CB'],['나탄 아케','CB'],['존 스톤스','DM'],['로드리','DM'],['베르나르두 실바','RW'],['케빈 더 브라위너','AM'],['일카이 귄도안','AM'],['잭 그릴리시','LW'],['엘링 홀란','CF']]},
+{id:'L30',s:'24/25',n:'PSG',sn:'PSG',ovr:88,star:['우스만 뎀벨레','비티냐','아슈라프 하키미'],story:'뮌헨에서 인테르를 5-0으로. PSG의 첫 빅이어, 결승 최다 골 차.',xi:[['잔루이지 돈나룸마','GK'],['아슈라프 하키미','RB'],['마르키뉴스','CB'],['윌리안 파초','CB'],['누누 멘드스','LB'],['주앙 네베스','CM'],['비티냐','CM'],['파비안 루이스','CM'],['데지레 두에','RF'],['우스만 뎀벨레','CF'],['흐비차 크바라츠헬리아','LF']]},
+{id:'L31',s:'03/04',n:'아스날',sn:'아스날',ovr:88,star:['티에리 앙리','데니스 베르흐캄프','파트리크 비에라'],story:'26승 12무 0패 90점. 38경기 무패로 리그를 제패한 인빈시블스.',xi:[['옌스 레만','GK'],['로랑','RB'],['콜로 투레','CB'],['솔 캠벨','CB'],['애슐리 콜','LB'],['프레디 융베리','RM'],['파트리크 비에라','CM'],['지우베르투 시우바','CM'],['로베르 피레스','LM'],['데니스 베르흐캄프','SS'],['티에리 앙리','CF']]},
+{id:'L32',s:'11/12',n:'맨체스터 시티',sn:'맨시티',ovr:87,star:['세르히오 아궤로','다비드 실바','뱅상 콩파니'],story:'28승 5무 5패 89점. 94분 아구에로의 극장골로 44년 만의 리그 우승.',xi:[['조 하트','GK'],['파블로 사발레타','RB'],['뱅상 콩파니','CB'],['졸리언 레스콧','CB'],['가엘 클리시','LB'],['사미르 나스리','RM'],['야야 투레','CM'],['개러스 배리','CM'],['다비드 실바','LM'],['카를로스 테베스','SS'],['세르히오 아궤로','CF']]},
+{id:'L33',s:'15/16',n:'레스터 시티',sn:'레스터',ovr:82,star:['제이미 바디','리야드 마레즈','은골로 캉테'],story:'23승 12무 3패 81점. 5000분의 1 확률을 뒤집은 레스터의 동화.',xi:[['카스페르 슈마이켈','GK'],['대니 심슨','RB'],['웨스 모건','CB'],['로베르트 후트','CB'],['크리스티안 푹스','LB'],['리야드 마레즈','RM'],['대니 드링크워터','CM'],['은골로 캉테','CM'],['마크 올브라이턴','LM'],['오카자키 신지','SS'],['제이미 바디','CF']]},
+{id:'L34',s:'23/24',n:'레버쿠젠',sn:'레버쿠젠',ovr:86,star:['플로리안 비르츠','알렉스 그리말도','그라니트 자카'],story:'28승 6무 0패 90점. 분데스리가 첫 무패 우승, DFB-포칼까지 더블.',xi:[['루카스 흐라데츠키','GK'],['오딜롱 코수누','CB'],['요나탄 타','CB'],['에드몽 탑소바','CB'],['제레미 프림퐁','RWB'],['그라니트 자카','CM'],['로베르트 안드리히','CM'],['알렉스 그리말도','LWB'],['요나스 호프만','AM'],['플로리안 비르츠','AM'],['파트리크 시크','CF']]}
+];
 
 /* ================= DRAFT XI 26/27 ================= */
 'use strict';
@@ -802,8 +917,14 @@ const MODES = {
   normal:{name:'일반전', ic:'⚔️', coins:[260,110,55], desc:'유럽 5대 리그 클럽과 믹스 팀이 번갈아 상대합니다.'},
   friendly:{name:'친선전', ic:'🤝', coins:[180,80,40], desc:'리그와 난이도를 직접 골라 가볍게 붙습니다.'},
   invite:{name:'친선전', ic:'⚔️', coins:[180,80,40], desc:'친구가 보낸 임대 스쿼드와 한 판.'},
-  ranked:{name:'AI 랭킹전', ic:'🏆', coins:[420,160,80], desc:'레이팅이 오르면 더 센 상대가 기다립니다.'}
+  ranked:{name:'AI 랭킹전', ic:'🏆', coins:[420,160,80], desc:'레이팅이 오르면 더 센 상대가 기다립니다.'},
+  cup:{name:'레전드 컵', ic:'🏆', coins:[0,0,0], desc:'레전드 시즌 팀을 골라 16강·32강 토너먼트를 치릅니다.'}
 };
+/* 레전드 컵 라운드 이름 · 라운드별 코인 */
+const CUP_ROUNDS = {32:['32강','16강','8강','4강','결승'], 16:['16강','8강','4강','결승']};
+const CUP_COINS = {5:240, 4:340, 3:470, 2:680, 1:1600};
+const CUP_GRP = {GK:'GK', SW:'DF', RB:'DF', CB:'DF', LB:'DF', RWB:'DF', LWB:'DF', DM:'MF', CM:'MF', AM:'MF', RM:'MF', LM:'MF',
+  RW:'FW', LW:'FW', RF:'FW', LF:'FW', CF:'FW', ST:'FW', SS:'FW'};
 /* 포지션별 영구 버프 — Lv 상한 없음 */
 const BUF = [
   {k:'GK', name:'GK 버프', ic:'🧤', desc:'골키퍼 전 스탯 · 선방·반사까지', ex:'GK 임대 선수 능력치'},
@@ -959,7 +1080,8 @@ function freshState(){
     record:{w:0,d:0,l:0}, rank:{r:1000,w:0,d:0,l:0},
     best:{ovr:0,name:''}, bestTeam:{ovr:0,f:''}, recent:[],
     q:freshQuests(), drain:{day:'', used:0}, grow:{i:null, lv:0, prot:false, last:null, best:0, idx:0, list:[]},
-    duel:{w:0,d:0,l:0,r:1000}, squadInfo:null, tactic:'balance'};
+    duel:{w:0,d:0,l:0,r:1000}, squadInfo:null, tactic:'balance',
+    cup:null, cups:[], cupRec:{n:0,w:0,l:0}};
 }
 function sanitize(s){
   if(!s || typeof s !== 'object' || !s.code) return null;
@@ -1018,6 +1140,41 @@ function sanitize(s){
   if(!s.grow.last || typeof s.grow.last !== 'object') s.grow.last = null;
   else s.grow.last.lv = s.grow.lv;
   if(Array.isArray(s.squad)) s.squad.forEach(x => { if(x && typeof x === 'object') x.c = Math.max(-2, Math.min(2, Math.round(+x.c || 0))); });
+  /* 레전드 컵 — 진행 중 대회와 우승 기록 */
+  s.cupRec = (s.cupRec && typeof s.cupRec === 'object') ? s.cupRec : {n:0,w:0,l:0};
+  ['n','w','l'].forEach(k => { s.cupRec[k] = Math.max(0, Math.round(+s.cupRec[k] || 0)); });
+  s.cups = Array.isArray(s.cups) ? s.cups.filter(x => x && typeof x === 'object').slice(0, 30).map(x => ({
+    at: Math.round(+x.at || 0), size: x.size === 16 ? 16 : 32, team: String(x.team || ''), ovr: Math.max(0, Math.round(+x.ovr || 0)),
+    opp: String(x.opp || ''), me: Math.max(0, Math.round(+x.me || 0)), op: Math.max(0, Math.round(+x.op || 0)),
+    pens: String(x.pens || ''), mvp: String(x.mvp || ''), coins: Math.max(0, Math.round(+x.coins || 0))
+  })) : [];
+  if(s.cup && typeof s.cup === 'object'){
+    const c = s.cup;
+    const sz = c.size === 16 ? 16 : 32;
+    c.size = sz; c.totals = Math.round(Math.log(sz) / Math.log(2));
+    c.my = String(c.my || '');
+    c.round = clamp(Math.round(+c.round || 0), 0, c.totals - 1);
+    c.coins = Math.max(0, Math.round(+c.coins || 0));
+    c.done = !!c.done;
+    c.result = (c.result === 'champion' || c.result === 'out') ? c.result : null;
+    const names = CUP_ROUNDS[sz];
+    c.rounds = Array.isArray(c.rounds) ? c.rounds.filter(r => r && Array.isArray(r.ties)).map((r, i) => ({
+      name: names[i] || String(r.name || ''),
+      ties: r.ties.filter(t => t && t.a && t.b).map(t => ({
+        a: String(t.a), b: String(t.b),
+        sa: (typeof t.sa === 'number' && isFinite(t.sa)) ? t.sa : null,
+        sb: (typeof t.sb === 'number' && isFinite(t.sb)) ? t.sb : null,
+        win: (t.win === t.a || t.win === t.b) ? String(t.win) : null,
+        pens: (typeof t.pens === 'string') ? t.pens.slice(0, 9) : null,
+        mine: !!t.mine, forfeit: !!t.forfeit
+      }))
+    })) : [];
+    if(!c.my || !c.rounds.length || !c.rounds[0].ties.length) s.cup = null;
+    else {
+      if(c.round > c.rounds.length - 1) c.round = c.rounds.length - 1;
+      if(!c.done && !c.rounds[c.round].ties.some(t => t.a === c.my || t.b === c.my)) s.cup = null;
+    }
+  } else s.cup = null;
   return s;
 }
 function load(){
@@ -1465,9 +1622,371 @@ function opponentFor(mode){
   return null;
 }
 
+
+/* ---------- 레전드 컵 (11대11 시즌 토너먼트) ---------- */
+function cupRoundNames(size){ return CUP_ROUNDS[size === 16 ? 16 : 32]; }
+function cupById(id){ for(const t of CUP_T) if(t.id === id) return t; return null; }
+function cupLabel(id, short){ const t = cupById(id); if(!t) return '—'; return t.s + ' ' + (short ? t.sn : t.n); }
+function cupShuffle(a){ const r = a.slice(); for(let i = r.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); const x = r[i]; r[i] = r[j]; r[j] = x; } return r; }
+function cupOffer(n){ return cupShuffle(CUP_T.map(t => t.id)).slice(0, n || 3); }
+function cupPlOvr(t, i){
+  const role = t.xi[i][1];
+  const off = {GK:-1, SW:-2, CB:-3, LB:-2, RB:-2, RWB:-2, LWB:-2, DM:-1, CM:1, AM:2, RM:1, LM:1, LW:2, RW:2, RF:2, LF:2, CF:3, ST:3, SS:2}[role];
+  const h = (hashOf(t.id + ':' + i) % 5) - 2;
+  return clamp(Math.round(t.ovr + (off == null ? 0 : off) + h), 62, 99);
+}
+function cupRoster(t){ return t.xi.map((p, i) => ({name:p[0], role:p[1], ovr:cupPlOvr(t, i)})); }
+function cupSide(t){
+  const e = cupRoster(t), avg = a => a.length ? a.reduce((s, v) => s + v, 0) / a.length : 60;
+  const gk = e.filter(x => cupGrp(x.role) === 'GK')[0];
+  const df = e.filter(x => cupGrp(x.role) === 'DF'), mf = e.filter(x => cupGrp(x.role) === 'MF'), fw = e.filter(x => cupGrp(x.role) === 'FW');
+  return {ovr:t.ovr, att:avg(fw.map(x => x.ovr)), mid:avg(mf.map(x => x.ovr)),
+    def:avg(df.map(x => x.ovr)) * 0.78 + (gk ? gk.ovr : 60) * 0.22, cond:0, entries:e, syn:0, name:t.s + ' ' + t.n};
+}
+function cupGrp(role){ return CUP_GRP[role] || grp(role); }
+function cupOpp(t, round){
+  const s = cupSide(t);
+  return {club:t.s + ' ' + t.n, league:'LEGEND', base:t.ovr, att:s.att + 0.6, mid:s.mid, def:s.def + 0.4,
+    xi:t.xi.map(p => [p[0], p[1]]), legend:t.id, ai:aiProfile(Math.min(9, 2 + (round || 0)))};
+}
+function cupStart(myId, size){
+  const t = cupById(myId); if(!t) return;
+  const n = size === 16 ? 16 : 32;
+  const rest = cupShuffle(CUP_T.map(x => x.id).filter(id => id !== myId)).slice(0, n - 1);
+  const field = cupShuffle([myId].concat(rest));
+  const ties = [];
+  for(let i = 0; i < field.length; i += 2) ties.push({a:field[i], b:field[i + 1], sa:null, sb:null, win:null, pens:null});
+  S.cup = {size:n, totals:Math.round(Math.log(n) / Math.log(2)), my:myId, round:0,
+    rounds:[{name:cupRoundNames(n)[0], ties}], done:false, result:null, coins:0, at:Date.now()};
+  U.cupSel = null; U.cupR = 0;
+  save(); U.tab = 'cup'; render();
+  toast('🏆 ' + n + '강 시작 · ' + t.s + ' ' + t.n);
+}
+function cupMyTie(){
+  const c = S.cup; if(!c || c.done) return null;
+  const rd = c.rounds[c.round]; if(!rd) return null;
+  return rd.ties.filter(t => t.a === c.my || t.b === c.my)[0] || null;
+}
+function cupMyOpp(){ const t = cupMyTie(); if(!t || !S.cup) return null; return cupById(t.a === S.cup.my ? t.b : t.a); }
+function cupPlay(){
+  const c = S.cup; if(!c || c.done) return;
+  const tie = cupMyTie(); if(!tie) return;
+  const myT = cupById(c.my), opT = cupById(tie.a === c.my ? tie.b : tie.a);
+  if(!myT || !opT) return;
+  const side = cupSide(myT);
+  startMatch('cup', cupOpp(opT, c.round), {team:side, myName:myT.s + ' ' + myT.n, roster:side.entries, round:cupRoundNames(c.size)[c.round]});
+}
+function cupSimTie(t){
+  if(t.win) return;
+  const A = cupById(t.a), B = cupById(t.b);
+  if(!A && !B) return;
+  if(!A || !B){ t.win = A ? t.a : t.b; t.sa = A ? 3 : 0; t.sb = B ? 3 : 0; return; }
+  const d = clamp((A.ovr - B.ovr) * 0.55, -9, 9);
+  const ga = Math.max(0, Math.round(1.15 + d * 0.16 + rnd(-0.9, 0.9)));
+  const gb = Math.max(0, Math.round(1.15 - d * 0.16 + rnd(-0.9, 0.9)));
+  t.sa = ga; t.sb = gb;
+  if(ga === gb){
+    const pw = clamp(0.5 + (A.ovr - B.ovr) * 0.02, 0.34, 0.66);
+    const Awin = Math.random() < pw;
+    t.pens = Awin ? '5-4' : '4-5';
+    t.win = Awin ? t.a : t.b;
+  } else t.win = ga > gb ? t.a : t.b;
+}
+function cupResolveRound(c){
+  const rd = c.rounds[c.round]; if(!rd) return;
+  rd.ties.forEach(t => { if(!t.win) cupSimTie(t); });
+  if(c.round < c.totals - 1 && !c.rounds[c.round + 1]){
+    const ties = [];
+    for(let i = 0; i < rd.ties.length; i += 2) ties.push({a:rd.ties[i].win, b:rd.ties[i + 1] ? rd.ties[i + 1].win : null, sa:null, sb:null, win:null, pens:null});
+    c.rounds.push({name:cupRoundNames(c.size)[c.round + 1], ties});
+  }
+}
+function cupSimRest(c){
+  while(c.round < c.totals - 1){ cupResolveRound(c); c.round += 1; }
+  cupResolveRound(c);
+}
+function cupCoins(remaining, gd){ return (CUP_COINS[clamp(remaining, 1, 5)] || 200) + (gd > 0 ? gd * 30 : 0); }
+function cupExitCoins(remaining){ return Math.round((CUP_COINS[clamp(remaining, 1, 5)] || 200) * 0.25); }
+function penShoot(M){
+  const d = (M.t.ovr - M.opp.base) * 0.012;
+  const myP = clamp(0.72 + d, 0.55, 0.88), opP = clamp(0.72 - d, 0.55, 0.88);
+  let me = 0, op = 0;
+  for(let i = 0; i < 5; i++){ if(Math.random() < myP) me++; if(Math.random() < opP) op++; }
+  let guard = 0;
+  while(me === op && guard < 40){ if(Math.random() < myP) me++; if(Math.random() < opP) op++; guard++; }
+  if(me === op){ me++; }
+  return {me, op};
+}
+function cupWin(M, c, tie){
+  const myT = cupById(c.my), opT = cupById(tie.a === c.my ? tie.b : tie.a);
+  const rec = {at:Date.now(), size:c.size, team: myT ? myT.s + ' ' + myT.n : '', ovr: myT ? myT.ovr : 0,
+    opp: opT ? opT.s + ' ' + opT.n : '', me:M.me, op:M.op, pens: M.pens ? M.pens.me + '-' + M.pens.op : '',
+    mvp: M.mvp ? M.mvp.name : '', coins: c.coins || 0};
+  S.cups = [rec].concat(S.cups || []).slice(0, 30);
+  if(!S.cupRec) S.cupRec = {n:0, w:0, l:0};
+  c.done = true; c.result = 'champion';
+}
+function finishCupMatch(M){
+  const c = S.cup;
+  if(!c || c.done){ U.match = null; U.tab = 'cup'; render(); return; }
+  const rd = c.rounds[c.round];
+  const tie = rd ? rd.ties.filter(t => t.a === c.my || t.b === c.my)[0] : null;
+  if(!tie){ U.match = null; U.tab = 'cup'; render(); return; }
+  const myA = tie.a === c.my;
+  let pens = null, res;
+  if(M.me === M.op){ pens = penShoot(M); res = pens.me > pens.op ? 'w' : 'l'; }
+  else res = M.me > M.op ? 'w' : 'l';
+  tie.sa = myA ? M.me : M.op; tie.sb = myA ? M.op : M.me;
+  tie.pens = pens ? (myA ? pens.me + '-' + pens.op : pens.op + '-' + pens.me) : null;
+  tie.win = res === 'w' ? c.my : (myA ? tie.b : tie.a);
+  tie.mine = true;
+  M.pens = pens; M.res = res;
+  M.mvp = pickMVP(M);
+  const remaining = c.totals - c.round;
+  M.coins = res === 'w' ? cupCoins(remaining, Math.abs(M.me - M.op)) : cupExitCoins(remaining);
+  S.coins += M.coins; c.coins = (c.coins || 0) + M.coins;
+  if(!S.cupRec) S.cupRec = {n:0, w:0, l:0};
+  S.cupRec.n += 1; S.cupRec[res] = (S.cupRec[res] || 0) + 1;
+  ensureQuests(); questAdd('game', 1); if(res === 'w') questAdd('win', 1);
+  if(res === 'w' && c.round >= c.totals - 1) cupWin(M, c, tie);
+  else if(res === 'w'){ cupResolveRound(c); c.round += 1; }
+  else { cupResolveRound(c); cupSimRest(c); c.done = true; c.result = 'out'; }
+  save(); paintHud(); renderCupResult(M);
+}
+function cupForfeit(){
+  const c = S.cup, M = U.match;
+  if(M && M.timer) clearInterval(M.timer);
+  if(!c || c.done){ U.match = null; U.tab = 'cup'; render(); return; }
+  const rd = c.rounds[c.round];
+  const tie = rd ? rd.ties.filter(t => t.a === c.my || t.b === c.my)[0] : null;
+  if(tie){ tie.win = tie.a === c.my ? tie.b : tie.a; tie.forfeit = true; tie.mine = true; }
+  if(!S.cupRec) S.cupRec = {n:0, w:0, l:0};
+  S.cupRec.n += 1; S.cupRec.l += 1;
+  if(M) M.over = true;
+  cupResolveRound(c); cupSimRest(c); c.done = true; c.result = 'out';
+  U.match = null; U.tab = 'cup'; save(); render(); toast('레전드 컵 기권');
+}
+function cupTieRow(t){
+  const wA = t.win && t.win === t.a, wB = t.win && t.win === t.b;
+  const c = S.cup;
+  const mine = c && (t.a === c.my || t.b === c.my);
+  const live = mine && c && !c.done && c.rounds[c.round] && c.rounds[c.round].ties.indexOf(t) >= 0 && !t.win;
+  return `<div class="tie ${mine ? 'mine' : ''} ${live ? 'live' : ''}">
+    <div class="tr ${wA ? 'w' : ''} ${t.a === c.my ? 'me' : ''}"><span class="nm">${esc(cupLabel(t.a, true))}</span><b>${t.sa == null ? '' : t.sa}</b></div>
+    <div class="tr ${wB ? 'w' : ''} ${t.b === c.my ? 'me' : ''}"><span class="nm">${esc(cupLabel(t.b, true))}</span><b>${t.sb == null ? '' : t.sb}</b></div>
+    ${t.forfeit ? '<div class="tf">몰수</div>' : t.pens ? `<div class="tf">승부차기 ${esc(t.pens)}</div>` : (!t.win ? '<div class="tf wait">예정</div>' : '')}
+  </div>`;
+}
+function cupPathRows(c){
+  const rows = [];
+  for(let i = 0; i < c.rounds.length; i++){
+    const t = c.rounds[i].ties.filter(x => x.a === c.my || x.b === c.my)[0];
+    if(!t) continue;
+    const myA = t.a === c.my, opp = cupLabel(myA ? t.b : t.a, true);
+    const won = t.win === c.my, lost = t.win && t.win !== c.my;
+    const sc = t.sa == null ? '' : (myA ? t.sa + ':' + t.sb : t.sb + ':' + t.sa);
+    rows.push(`<div class="pr ${won ? 'w' : lost ? 'l' : 'now'}"><span class="rd">${c.rounds[i].name}</span>
+      <span class="op">${esc(opp)}</span><span class="sc">${t.forfeit ? '몰수' : sc || 'vs'}${t.pens && !t.forfeit ? ' · PK ' + esc(t.pens) : ''}</span></div>`);
+  }
+  return rows.join('');
+}
+function cupXiHTML(t){
+  const e = cupRoster(t);
+  return `<div class="xi">${e.map(x => `<div class="xr"><span class="ps">${esc(x.role)}</span><span class="nm">${esc(x.name)}</span><b>${x.ovr}</b></div>`).join('')}</div>`;
+}
+function kstLabel(ts){
+  try{ const d = new Date(+ts + KST_OFF); return d.toISOString().slice(0, 10).replace(/-/g, '.') + ' ' + d.toISOString().slice(11, 16); }
+  catch(e){ return ''; }
+}
+function cupTrophyRow(r){
+  return `<div class="trop"><div class="ic">🏆</div><div class="tx">
+    <b>${esc(r.team || '')}</b>
+    <span>${r.size}강 우승 · 결승 ${r.me}:${r.op}${r.pens ? ' (PK ' + esc(r.pens) + ')' : ''} vs ${esc(r.opp || '')}</span>
+    <small>${kstLabel(r.at)} · MVP ${esc(r.mvp || '—')} · +${fmt(r.coins || 0)}C</small>
+  </div></div>`;
+}
+function openCupHistory(){
+  const cups = S.cups || [], rec = S.cupRec || {n:0, w:0, l:0};
+  $('#sheet').innerHTML = `<div class="grab"></div>
+    <div class="eyebrow">LEGEND CUP · TROPHY</div>
+    <div style="font-size:16px;font-weight:900;letter-spacing:-.03em;margin-top:3px">우승 트로피 ${cups.length}개</div>
+    <div class="muted" style="margin-top:5px">대회 ${rec.n}회 · ${rec.w}승 ${rec.l}패. 90분 무승부는 승부차기로 결판납니다.</div>
+    <div class="stack" style="margin-top:12px">${cups.length ? cups.map(cupTrophyRow).join('') : '<div class="tiny">아직 우승 기록이 없습니다. 레전드 컵에 도전해 보세요.</div>'}</div>
+    <button class="btn dark wide" style="margin-top:12px" data-act="close-sheet">닫기</button>`;
+  $('#sheetHost').classList.add('on');
+}
+function openMenuSheet(){
+  const n = claimCount(), cups = (S.cups || []).length;
+  $('#sheet').innerHTML = `<div class="grab"></div>
+    <div class="eyebrow">MENU</div>
+    <div style="font-size:16px;font-weight:900;letter-spacing:-.03em;margin-top:3px">전체 메뉴</div>
+    <div class="muted" style="margin-top:5px">버프·퀘스트·랭킹·트로피 기록·백업은 여기서 엽니다.</div>
+    <div class="mrows">
+      <button class="mrow" data-act="menu-upgrade"><span class="mi">⚡</span><span class="mt"><b>버프 강화</b><span>포지션 · 팀컬러 · 선수별 Lv</span></span><span class="go">›</span></button>
+      <button class="mrow" data-act="menu-quest"><span class="mi">📋</span><span class="mt"><b>퀘스트</b><span>일일 · 주간 · 도전 과제</span></span>${n ? `<span class="mb">${n > 9 ? '9+' : n}</span>` : '<span class="go">›</span>'}</button>
+      <button class="mrow" data-act="menu-ranking"><span class="mi">🏅</span><span class="mt"><b>랭킹 · 전적</b><span>11대11 랭킹 · 1대1 · 공유</span></span><span class="go">›</span></button>
+      <button class="mrow" data-act="cup-history"><span class="mi">🏆</span><span class="mt"><b>레전드 컵 트로피</b><span>${cups ? '우승 ' + cups + '회 기록' : '아직 우승 기록이 없습니다'}</span></span><span class="go">›</span></button>
+      <button class="mrow" data-act="menu-backup"><span class="mi">💾</span><span class="mt"><b>백업 · 불러오기</b><span>JSON으로 저장하거나 복원</span></span><span class="go">›</span></button>
+      <button class="mrow" data-act="menu-reset"><span class="mi">🗑</span><span class="mt"><b>전체 초기화</b><span>코인 · 전적 · 트로피까지 삭제</span></span><span class="go">›</span></button>
+    </div>
+    <button class="btn dark wide" style="margin-top:12px" data-act="close-sheet">닫기</button>`;
+  $('#sheetHost').classList.add('on');
+}
+function cupPickHTML(){
+  const sel = U.cupSel || {size:32, offers:cupOffer(3)};
+  U.cupSel = sel;
+  const cands = sel.offers.map(cupById).filter(Boolean);
+  return `<div class="eyebrow">LEGEND CUP · ${sel.size}강</div>
+    <h2 class="title">출전할 팀을 고르세요</h2>
+    <div class="tiny" style="margin-top:3px">레전드 ${CUP_T.length}팀 중 랜덤 3팀입니다. 고른 팀의 베스트 11로 대회를 칩니다.</div>
+    <div class="pick3" style="margin-top:11px">
+      ${cands.map(t => `<div class="cupick">
+        <div class="hd"><i>${esc(t.s)}</i><b>${esc(t.n)}</b></div>
+        <div class="ov">${t.ovr}</div>
+        <div class="st">${esc(t.story)}</div>
+        <div class="stars">${t.star.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>
+        <button class="go" data-act="cup-pick" data-id="${t.id}">이 팀으로 출전 →</button>
+      </div>`).join('')}
+    </div>
+    <div class="sect stack">
+      <button class="btn dark wide" data-act="cup-reroll">🔄 다른 3팀 보기</button>
+      <button class="btn dark wide" data-act="cup-cancel">돌아가기</button>
+    </div>`;
+}
+function cupDoneHTML(){
+  const c = S.cup, myT = cupById(c.my);
+  if(!myT){ S.cup = null; save(); return cupIntroHTML(); }
+  const champ = c.result === 'champion';
+  const ft = c.rounds[c.rounds.length - 1];
+  const finalTie = ft && ft.ties[0];
+  const champT = finalTie ? cupById(finalTie.win) : null;
+  let exitRound = '';
+  for(let i = 0; i < c.rounds.length; i++){
+    const t = c.rounds[i].ties.filter(x => x.a === c.my || x.b === c.my)[0];
+    if(t && t.win && t.win !== c.my) exitRound = c.rounds[i].name;
+  }
+  return `<div class="eyebrow">LEGEND CUP · ${c.size}강</div>
+    <h2 class="title">🏆 레전드 컵</h2>
+    <div style="margin-top:10px" class="${champ ? 'cuptro' : 'cupcard'}">
+      ${champ ? `<div class="ic">🏆</div><div class="tx"><b>${esc(myT.s + ' ' + myT.n)} 우승</b>
+        <span>${c.size}강 ${c.totals}라운드 전승 · 보상 +${fmt(c.coins || 0)}C</span>
+        <small>우승 트로피 ${(S.cups || []).length}개</small></div>`
+      : `<div class="lc">💔</div><div class="tx"><b>${esc(myT.s + ' ' + myT.n)} · ${esc(exitRound || c.rounds[c.round].name)} 탈락</b>
+        <span>대회 우승 ${esc(champT ? champT.s + ' ' + champT.n : '—')} · 보상 +${fmt(c.coins || 0)}C</span></div>`}
+    </div>
+    <div class="sect"><div class="sect-h"><div class="eyebrow g">내 대진</div><div class="tiny">${c.size}강</div></div>
+      <div class="path">${cupPathRows(c)}</div></div>
+    <div class="sect"><div class="sect-h"><div class="eyebrow g">최종 라운드</div><div class="tiny">${ft ? ft.ties.length + '경기' : ''}</div></div>
+      <div class="chips" style="margin-bottom:8px">${c.rounds.map((r, i) => `<button class="chip ${(U.cupR == null ? c.rounds.length - 1 : U.cupR) === i ? 'on' : ''}" data-act="cup-round" data-r="${i}">${r.name}</button>`).join('')}</div>
+      <div class="ties">${(c.rounds[(U.cupR == null ? c.rounds.length - 1 : U.cupR)] || ft).ties.map(cupTieRow).join('')}</div></div>
+    <div class="sect stack">
+      <button class="btn primary wide" data-act="cup-new">새 대회 도전</button>
+      <div class="row" style="gap:6px">
+        <button class="btn dark sm" style="flex:1" data-act="cup-history">🏆 트로피 기록</button>
+        <button class="btn dark sm" style="flex:1" data-act="go-stadium">경기장으로</button>
+      </div>
+    </div>`;
+}
+function cupIntroHTML(){
+  const cups = S.cups || [], rec = S.cupRec || {n:0, w:0, l:0};
+  return `<div class="eyebrow">LEGEND CUP · 11 VS 11</div>
+    <h2 class="title">🏆 레전드 컵</h2>
+    <section class="hero" style="margin-top:10px">
+      <div class="eyebrow">SEASON CLASSICS</div>
+      <h2>레전드 시즌 팀으로<br><em>토너먼트 우승</em></h2>
+      <p>레전드 ${CUP_T.length}팀 중 랜덤 3팀을 제안받아 하나를 고릅니다. 그 팀의 실제 베스트 11로 16강 또는 32강을 뚫고 결승까지. 드래프트 없이 전술만 바꿔 치릅니다.</p>
+      <div class="facts"><span class="fact">레전드 팀 <b>${CUP_T.length}개</b></span><span class="fact">최대 <b>5경기</b></span><span class="fact">우승 <b>1,600C+</b></span></div>
+    </section>
+    <div class="sect stack">
+      <button class="btn primary wide" data-act="cup-open" data-size="32">32강 대회 · 레전드 31팀</button>
+      <button class="btn dark wide" data-act="cup-open" data-size="16">16강 대회 · 랜덤 15팀</button>
+      <div class="tiny" style="text-align:center">고른 팀의 베스트 11로 결승까지 같은 팀으로 뜁니다</div>
+    </div>
+    <div class="sect"><div class="grid2">
+      <div class="gcard"><span>레전드 컵 우승</span><b>${cups.length}</b><small>${cups.length ? '트로피 ' + cups.length + '개' : '도전 기록 없음'}</small></div>
+      <div class="gcard"><span>대회 전적</span><b>${rec.w}-${rec.l}</b><small>${rec.n}경기 · 무승부 없음</small></div>
+    </div></div>
+    ${cups.length ? `<div class="sect"><div class="sect-h"><div class="eyebrow g">RECENT TROPHY</div><button class="chip" data-act="cup-history">전체 기록</button></div>${cupTrophyRow(cups[0])}</div>` : ''}`;
+}
+function cupHTML(){
+  const c = S.cup;
+  if(!c){ return U.cupSel ? cupPickHTML() : cupIntroHTML(); }
+  if(c.done) return cupDoneHTML();
+  const myT = cupById(c.my);
+  if(!myT){ S.cup = null; save(); return cupIntroHTML(); }
+  const opT = cupMyOpp(), names = cupRoundNames(c.size);
+  const view = clamp(U.cupR == null ? c.round : U.cupR, 0, c.rounds.length - 1);
+  const rd = c.rounds[view] || c.rounds[c.round];
+  const side = cupSide(myT);
+  return `<div class="eyebrow">LEGEND CUP · ${c.size}강 · ${c.round + 1}/${c.totals} 라운드</div>
+    <h2 class="title">🏆 ${esc(myT.s + ' ' + myT.n)}</h2>
+    <div class="tiny" style="margin-top:3px">OVR ${myT.ovr} · 전술만 바꿔 결승까지</div>
+    ${opT ? `<div class="cupvs" style="margin-top:10px">
+      <div class="between"><span class="eyebrow">${names[c.round]} · 다음 상대</span><span class="tag amber">OVR ${opT.ovr}</span></div>
+      <div class="ttl"><i>${esc(opT.s)}</i>${esc(opT.n)}</div>
+      <div class="st">${esc(opT.story)}</div>
+      <div class="stars">${opT.star.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>
+      <button class="btn primary wide" data-act="cup-play">${names[c.round]} 경기 시작 →</button>
+    </div>` : ''}
+    <div class="sect">
+      <div class="sect-h"><div class="eyebrow g">내 베스트 11</div><div class="tiny">${esc(c.my === '' ? '' : 'OVR ' + myT.ovr)}</div></div>
+      ${cupXiHTML(myT)}
+    </div>
+    <div class="sect">
+      <div class="sect-h"><div class="eyebrow g">대진표</div><div class="tiny">${esc(names[view])} · ${rd.ties.filter(t => t.win).length}/${rd.ties.length}경기 종료</div></div>
+      <div class="chips" style="margin-bottom:8px">${names.map((n, i) => `<button class="chip ${view === i ? 'on' : ''}" data-act="cup-round" data-r="${i}" ${i >= c.rounds.length ? 'disabled' : ''}>${n}</button>`).join('')}</div>
+      <div class="ties">${rd.ties.map(cupTieRow).join('')}</div>
+    </div>
+    <div class="sect">
+      <div class="sect-h"><div class="eyebrow g">내 대진</div><div class="tiny">${c.coins ? '+' + fmt(c.coins) + 'C' : '우승까지 ' + c.totals + '경기'}</div></div>
+      <div class="path">${cupPathRows(c)}</div>
+    </div>
+    <div class="sect"><button class="btn dark wide" data-act="cup-abandon">대회 포기</button></div>`;
+}
+function renderCupResult(M){
+  const c = S.cup, names = c ? cupRoundNames(c.size) : [];
+  const win = (M.res || 'w') === 'w';
+  const champ = c && c.result === 'champion';
+  const rdName = M.roundName || (c && c.result !== 'champion' && c.round >= 0 ? names[Math.min(c.round, names.length - 1)] : '결승') || '결승';
+  const myT = c ? cupById(c.my) : null;
+  const opT = M.opp ? cupById(M.opp.legend) : null;
+  const label = champ ? '우승' : win ? '승리' : '탈락';
+  const cls = champ ? 'amber' : win ? 'lime' : 'red';
+  const nxt = (win && !champ && c) ? cupMyOpp() : null;
+  const title = champ ? '레전드 컵 정상' : win ? (rdName + ' 통과') : (rdName + '에서 멈춤');
+  $('#main').innerHTML = `
+    <div class="result">
+      <div class="rb">
+        <div class="rbtop"><span class="tag ${cls}">${label}</span><h3>${title}</h3></div>
+        <div class="fs">${M.me}<i>:</i>${M.op}</div>
+        ${M.pens ? `<div class="rpen">승부차기 <b>${M.pens.me}-${M.pens.op}</b> ${M.pens.me > M.pens.op ? '승' : '패'}</div>` : ''}
+        <div class="rteam"><b>${esc(myT ? myT.s + ' ' + myT.n : '내 팀')}</b><span>vs</span><b>${esc(opT ? opT.s + ' ' + opT.n : (M.opp ? M.opp.club : '—'))}</b></div>
+      </div>
+      <div class="rewards">
+        <div><span>획득 코인</span><b class="up">+${fmt(M.coins)}</b></div>
+        <div><span>${champ ? '우승 트로피' : win ? '다음 라운드' : '보유 코인'}</span><b>${champ ? (S.cups || []).length + '<small>개</small>' : win && nxt ? esc(nxt.sn) : fmt(S.coins)}</b></div>
+      </div>
+      <div class="rh"><span>득점 타임라인</span><span>점유 ${M.poss}% · 슈팅 ${M.shotsMe}-${M.shotsOp}</span></div>
+      ${goalsCard(M)}
+      <div class="rh"><span>오늘의 MVP</span><span>${esc(tacTag(M.tac))}</span></div>
+      ${mvpCard(M)}
+      <div class="racts">
+        <button class="btn primary wide" data-act="cup-next">${champ ? '대진표 · 우승 기록 보기' : win ? '다음 라운드' + (nxt ? ' · ' + esc(nxt.sn) : '') + ' →' : '대진표 보기'}</button>
+        <div class="row" style="gap:6px">
+          <button class="btn dark sm" style="flex:1" data-act="cup-new">새 대회 도전</button>
+          <button class="btn dark sm" style="flex:1" data-act="go-stadium">경기장으로</button>
+        </div>
+      </div>
+      ${c ? `<div class="rh"><span>${esc(rdName)}</span><span>${c.size}강 · ${c.totals}라운드</span></div>
+      <div class="path">${cupPathRows(c)}</div>` : ''}
+    </div>
+    <div class="rfoot">보유 코인 ${fmt(S.coins)} · 레전드 컵 ${(S.cups || []).length}회 우승</div>`;
+}
+
 /* ---------- match simulation ---------- */
 function startMatch(mode, opp, opts){
-  const t = teamStats();
+  const custom = (opts && opts.team) ? opts.team : null;
+  const t = custom || teamStats();
   if(!t){ toast('먼저 드래프트로 스쿼드를 만드세요'); U.tab='squad'; render(); return; }
   let team = t, drain = 0;
   if(opts && opts.drain){
@@ -1483,17 +2002,18 @@ function startMatch(mode, opp, opts){
   const tacKey = S.tactic || 'balance';
   team = applyTactic(team, tacKey);
   U.match = {mode, opp, t: team, f:S.formation, info:S.squadInfo, drain, tac:tacKey, min:0, me:0, op:0, ev:[], shotsMe:0, shotsOp:0, poss:50,
-    over:false, timer:null, goals:[], rating:0, coins:0, diff:U.friendly.diff || 0};
+    over:false, timer:null, goals:[], rating:0, coins:0, diff:U.friendly.diff || 0,
+    myName:(opts && opts.myName) || '임대 XI', roster:(opts && opts.roster) || null, roundName:(opts && opts.round) || ''};
   if(mode === 'friendly'){
     const d = U.friendly.diff;
     U.match.opp.att += d; U.match.opp.mid += d; U.match.opp.def += d;
   }
-  U.match.chemi = synergyOf(S.squad);
+  U.match.chemi = custom ? {club:'', n:0, total:11, add:0, label:'', need:0} : synergyOf(S.squad);
   if(U.match.chemi.add){
     pushEvent({type:'chemi', mm:"0'", cls:'big',
       text:'같은 클럽 ' + U.match.chemi.n + '명 · ' + U.match.chemi.label + ' 발동! 이번 경기 임대 XI 전체 OVR +' + U.match.chemi.add});
   }
-  U.tab = 'stadium';
+  U.tab = (mode === 'cup') ? 'cup' : 'stadium';
   renderMatchScreen();
   U.match.timer = setInterval(matchTick, TICK_MS);
 }
@@ -1560,9 +2080,23 @@ function startHalftime(M){
     paintMatch();
   }, HALF_MS);
 }
-function scoreText(M){ return '임대 XI ' + M.me + ' - ' + M.op + ' ' + M.opp.club; }
+const myName = M => (M && M.myName) ? M.myName : '임대 XI';
+function leagueText(M){
+  const l = M && M.opp ? M.opp.league : '';
+  return l === 'MIX' ? '믹스 팀' : l === 'INVITE' ? '친구 초대 팀' : l === 'LEGEND' ? '레전드 시즌 팀' : (LG[l] || l || '');
+}
+function scoreText(M){ return myName(M) + ' ' + M.me + ' - ' + M.op + ' ' + M.opp.club; }
 function attackerName(M, side){
   if(side === 'me'){
+    if(M && M.roster && M.roster.length){
+      const pool = [];
+      M.roster.forEach(x => {
+        const g = cupGrp(x.role);
+        const base = g === 'FW' ? 5 : g === 'MF' ? 3 : g === 'DF' ? 1 : 0;
+        for(let k = 0; k < base; k++) pool.push(x);
+      });
+      return pool.length ? pick(pool).name : M.roster[0].name;
+    }
     const e = squadEntries();
     const pool = [];
     e.forEach(x => {
@@ -1578,8 +2112,14 @@ function attackerName(M, side){
 }
 function mateName(M, side, scorer){
   if(side === 'me'){
+    if(M && M.roster && M.roster.length){
+      const e = M.roster.filter(x => x.name !== scorer && cupGrp(x.role) !== 'GK');
+      return e.length ? pick(e).name : '';
+    }
     const e = squadEntries().filter(x => P[x.inst.i][0] !== scorer && x.role !== 'GK');
-    return e.length ? P[pick(e).inst.i][0] : '';
+    if(!e.length) return '';
+    const mate = pick(e);
+    return P[mate.inst.i][0];
   }
   const xi = M.opp.xi.filter(p => p[1] !== 'GK' && p[0] !== scorer);
   return xi.length ? pick(xi)[0] : '';
@@ -1662,6 +2202,7 @@ function finishMatch(){
   const M = U.match; if(!M || M.over) return;
   M.over = true;
   clearInterval(M.timer); M.timer = null;
+  if(M.mode === 'cup'){ finishCupMatch(M); return; }
   const res = M.me > M.op ? 'w' : M.me === M.op ? 'd' : 'l';
   const base = MODES[M.mode].coins[res === 'w' ? 0 : res === 'd' ? 1 : 2];
   const gd = Math.abs(M.me - M.op);
@@ -1704,16 +2245,18 @@ function pickMVP(M){
   if(!M) return null;
   const tally = {};
   (M.goals || []).forEach(g => { if(g.side === 'me') tally[g.name] = (tally[g.name] || 0) + 1; });
-  const e = squadEntries();
+  const e = (M.roster && M.roster.length)
+    ? M.roster.map(x => ({name:x.name, role:x.role, ovr:x.ovr, c:0}))
+    : squadEntries().map(x => ({name:P[x.inst.i][0], role:x.role, ovr:ovrOf(x.inst), c:(x.c || 0)}));
   if(!e.length) return null;
   const gd = M.me - M.op;
   let best = null;
   e.forEach(x => {
-    const nm = P[x.inst.i][0];
-    const goals = tally[nm] || 0;
-    const fit = x.role === 'FW' ? 1 : grp(x.role) === 'MF' ? 0.6 : 0.3;
-    const sc = ovrOf(x.inst) * 0.5 + (x.c || 0) * 2.8 + goals * 14 + gd * 1.4 + fit * 3 + Math.random() * 3;
-    if(!best || sc > best.sc) best = {name:nm, role:x.role, ovr:ovrOf(x.inst), goals, c:x.c || 0, sc};
+    const goals = tally[x.name] || 0;
+    const g = cupGrp(x.role);
+    const fit = g === 'FW' ? 1 : g === 'MF' ? 0.6 : 0.3;
+    const sc = x.ovr * 0.5 + (x.c || 0) * 2.8 + goals * 14 + gd * 1.4 + fit * 3 + Math.random() * 3;
+    if(!best || sc > best.sc) best = {name:x.name, role:x.role, ovr:x.ovr, goals, c:x.c || 0, sc};
   });
   if(!best) return null;
   let rating = 6.4 + best.goals * 1.1 + (best.c || 0) * 0.25 + (gd > 0 ? 0.6 : gd < 0 ? -0.4 : 0) + Math.min(1.2, (best.ovr - 70) * 0.025);
@@ -2205,7 +2748,10 @@ function popFx(text){
 }
 function render(){
   paintHud();
-  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === U.tab));
+  document.querySelectorAll('.tab').forEach(b => {
+    const k = b.dataset.tab;
+    b.classList.toggle('on', k === 'menu' ? ['upgrade','quest','ranking'].indexOf(U.tab) >= 0 : k === U.tab);
+  });
   if(U.match) return;
   const m = $('#main');
   m.className = '';
@@ -2214,6 +2760,7 @@ function render(){
   else if(U.tab === 'upgrade') m.innerHTML = buffHTML();
   else if(U.tab === 'quest') m.innerHTML = questHTML();
   else if(U.tab === 'grow') m.innerHTML = growHTML();
+  else if(U.tab === 'cup') m.innerHTML = cupHTML();
   else m.innerHTML = rankingHTML();
   m.scrollTop = 0;
   paintBadge();
@@ -2722,13 +3269,13 @@ function renderMatchScreen(){
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
   $('#main').innerHTML = `
     <div class="between" style="margin-bottom:9px">
-      <div><div class="eyebrow">${MODES[M.mode].name}${M.drain ? ' · 전력 흡수' : ''}</div>
-      <div class="tiny" style="margin-top:2px">${esc(M.opp.league === 'MIX' ? '믹스 팀' : M.opp.league === 'INVITE' ? '친구 초대 팀' : (LG[M.opp.league]||M.opp.league))} · 상대 OVR ${Math.round(M.opp.base)}</div></div>
+      <div class="eyebrow">${MODES[M.mode].name}${M.roundName ? ' · ' + esc(M.roundName) : ''}${M.drain ? ' · 전력 흡수' : ''}</div>
+      <div class="tiny" style="margin-top:2px">${esc(leagueText(M))} · 상대 OVR ${Math.round(M.opp.base)}</div></div>
       <button class="chip" data-act="skip">⏩ 바로 결과</button>
     </div>
     <div class="board">
       <div class="tm">
-        <div class="side"><div class="n">임대 XI</div><div class="o">OVR ${M.t.ovr}</div></div>
+        <div class="side"><div class="n">${esc(myName(M))}</div><div class="o">OVR ${M.t.ovr}</div></div>
         <div class="sc"><b id="mMe">0</b><i>:</i><b id="mOp">0</b></div>
         <div class="side r"><div class="n">${esc(M.opp.club)}</div><div class="o">OVR ${Math.round(M.opp.base)}</div></div>
       </div>
@@ -2800,7 +3347,7 @@ function renderResult(){
       <div class="rb">
         <div class="rbtop"><span class="tag ${cls}">${label}</span><h3>${title}</h3></div>
         <div class="fs">${M.me}<i>:</i>${M.op}</div>
-        <div class="rteam"><b>임대 XI</b><span>vs</span><b>${esc(M.opp.club)}</b></div>
+        <div class="rteam"><b>${esc(myName(M))}</b><span>vs</span><b>${esc(M.opp.club)}</b></div>
         ${M.chemi && M.chemi.add ? `<div class="rchem">${M.chemi.label} +${M.chemi.add} · ${esc(M.chemi.club)} ${M.chemi.n}명</div>` : ''}
       </div>
       <div class="rewards">
@@ -2832,7 +3379,7 @@ function goalsCard(M){
   const rows = g.map(x => `<div class="gline ${x.side === 'me' ? 'me' : 'op'}">
       <span class="mm">${esc(x.mm)}</span><span class="dot"></span>
       <span class="nm">${esc(x.name)}</span>
-      <span class="tm">${x.side === 'me' ? '임대 XI' : esc(M.opp.club)}</span>
+      <span class="tm">${x.side === 'me' ? esc(myName(M)) : esc(M.opp.club)}</span>
     </div>`).join('');
   const hint = g.length > 4 ? `<div class="gmore">${g.length}골 · 목록 안에서 스크롤</div>` : '';
   return `<div class="glist">${rows}</div>${hint}`;
@@ -2843,7 +3390,7 @@ function reportCard(M){
   if(!pick3.length) return '<div class="rep"><div class="ln"><span class="tx">득점 없이 경기가 끝났습니다. 다음 판에서 다시 노려봅니다.</span></div></div>';
   return `<div class="rep">${pick3.map(e => `<div class="ln goal">
       <span class="mm">${esc(e.mm)}</span>
-      <span class="tx"><b style="font-size:9px;letter-spacing:.05em;${e.side === 'me' ? 'color:var(--lime)' : 'color:#ff9c8c'}">${e.side === 'me' ? '임대 XI' : esc(M.opp.club)}</b> · ${esc(e.text)}</span>
+      <span class="tx"><b style="font-size:9px;letter-spacing:.05em;${e.side === 'me' ? 'color:var(--lime)' : 'color:#ff9c8c'}">${e.side === 'me' ? esc(myName(M)) : esc(M.opp.club)}</b> · ${esc(e.text)}</span>
     </div>`).join('')}</div>`;
 }
 function mvpCard(M){
@@ -3191,6 +3738,7 @@ function shareText(){
     + '총 버프 Lv ' + fmt(totalBuf()) + ' · ' + bufLine() + '\n'
     + '최고 팀 OVR ' + tOvr + (S.bestTeam.f ? ' (' + S.bestTeam.f + ')' : '') + '\n'
     + (S.grow && S.grow.best ? '최고 강화 +' + S.grow.best + '강' + (S.grow.best >= 10 ? ' 🥇' : '') + '\n' : '')
+    + '레전드 컵 ' + ((S.cups || []).length) + '회 우승' + (S.cupRec && S.cupRec.n ? ' (' + S.cupRec.w + '승 ' + S.cupRec.l + '패)' : '') + '\n'
     + '11대11 경기 ' + S.matches + '회 · 승률 ' + wr + '%\n'
     + '키우기 1대1 ' + duelRecordText() + ' · 레이팅 ' + duelRec().r;
 }
@@ -3221,6 +3769,13 @@ function rankingHTML(){
       <div class="gcard"><span>최고 강화</span><b>+${Math.round((S.grow && S.grow.best) || 0)}</b><small>${(S.grow && S.grow.best >= 10) ? '🥇 명예 배지' : '키우기 최고 기록'}</small></div>
     </div>
     <div class="sect">
+      <div class="sect-h"><div class="eyebrow g">레전드 컵</div><button class="chip" data-act="cup-history">트로피 기록</button></div>
+      <div class="grid2">
+        <div class="gcard"><span>우승</span><b>${(S.cups || []).length}</b><small>32강 · 16강 합산</small></div>
+        <div class="gcard"><span>대회 전적</span><b>${(S.cupRec || {w:0,l:0}).w}-${(S.cupRec || {w:0,l:0}).l}</b><small>${(S.cupRec || {n:0}).n}경기 · 무승부 없음</small></div>
+      </div>
+    </div>
+    <div class="sect">
       <div class="sect-h"><div class="eyebrow g">키우기 1 VS 1</div><div class="tiny">임대 드래프트와 별개 기록</div></div>
       <div class="grid2">
         <div class="gcard"><span>1대1 레이팅</span><b>${fmt(duelRec().r)}</b><small>${tierOf(duelRec().r).n}</small></div>
@@ -3243,6 +3798,7 @@ function rankingHTML(){
 
 /* ---------- events ---------- */
 document.addEventListener('click', ev => {
+  if(ev.target && ev.target.id === 'sheetHost'){ $('#sheetHost').classList.remove('on'); return; }
   const el = ev.target.closest('[data-act]');
   if(!el) return;
   const act = el.dataset.act;
@@ -3350,7 +3906,9 @@ document.addEventListener('click', ev => {
     startDraft();
   }
   else if(act === 'quit-match'){
-    if(U.match && !U.match.over) openConfirm('중계를 나갈까요?', '진행 중인 경기는 기록되지 않습니다.', '나가기', 'confirm-quit');
+    if(U.match && !U.match.over && U.match.mode === 'cup')
+      openConfirm('레전드 컵에서 기권할까요?', '진행 중인 경기는 몰수패가 되고 대회가 끝납니다.', '기권', 'confirm-cup-forfeit');
+    else if(U.match && !U.match.over) openConfirm('중계를 나갈까요?', '진행 중인 경기는 기록되지 않습니다.', '나가기', 'confirm-quit');
     else { U.match = null; U.tab='stadium'; render(); }
   }
   else if(act === 'confirm-quit'){
@@ -3358,6 +3916,23 @@ document.addEventListener('click', ev => {
     if(U.match && U.match.timer) clearInterval(U.match.timer);
     U.match = null; U.tab='stadium'; render();
   }
+  else if(act === 'confirm-cup-forfeit'){ $('#sheetHost').classList.remove('on'); cupForfeit(); }
+  else if(act === 'cup-open'){ U.match = null; U.cupSel = {size:(+el.dataset.size === 16 ? 16 : 32), offers:cupOffer(3)}; U.tab = 'cup'; render(); }
+  else if(act === 'cup-reroll'){ U.cupSel = {size:(U.cupSel && U.cupSel.size === 16 ? 16 : 32), offers:cupOffer(3)}; render(); }
+  else if(act === 'cup-cancel'){ U.cupSel = null; render(); }
+  else if(act === 'cup-pick'){ const o = U.cupSel; if(o) cupStart(el.dataset.id, o.size); }
+  else if(act === 'cup-play'){ cupPlay(); }
+  else if(act === 'cup-round'){ U.cupR = +el.dataset.r; render(); }
+  else if(act === 'cup-next'){ U.match = null; U.cupR = (S.cup && !S.cup.done) ? S.cup.round : null; U.tab = 'cup'; render(); }
+  else if(act === 'cup-new'){ U.match = null; S.cup = null; U.cupSel = null; U.cupR = 0; U.tab = 'cup'; save(); render(); }
+  else if(act === 'cup-abandon'){ openConfirm('레전드 컵을 포기할까요?', '진행 중인 대진이 사라집니다. 코인과 우승 기록은 남습니다.', '포기', 'confirm-cup-abandon'); }
+  else if(act === 'confirm-cup-abandon'){ $('#sheetHost').classList.remove('on'); U.match = null; S.cup = null; U.cupSel = null; U.cupR = 0; U.tab = 'cup'; save(); render(); toast('레전드 컵 포기'); }
+  else if(act === 'cup-history'){ openCupHistory(); }
+  else if(act === 'menu-upgrade'){ closeSheetNav('upgrade'); }
+  else if(act === 'menu-quest'){ closeSheetNav('quest'); }
+  else if(act === 'menu-ranking'){ closeSheetNav('ranking'); }
+  else if(act === 'menu-backup'){ openBackupSheet(); }
+  else if(act === 'menu-reset'){ openConfirm('전체 초기화', '스쿼드, 코인, 전적, 트로피, 식별코드까지 모두 지워집니다.', '모두 지우기', 'confirm-reset'); }
   else if(act === 'quit-result'){ U.match = null; U.tab='stadium'; render(); }
   else if(act === 'buf'){ buyBuf(el.dataset.k, +el.dataset.n); }
   else if(act === 'buf-seg'){ const k = el.dataset.k; if(k !== (U.bufSeg || 'pos')){ U.bufSeg = k; render(); } }
@@ -3395,10 +3970,19 @@ document.addEventListener('input', ev => {
   const host = document.getElementById('bufList');
   if(host) host.innerHTML = bufListRows();
 });
-document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {  if(U.match && !U.match.over){ toast('경기 중에는 이동할 수 없습니다'); return; }
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
+  if(U.match && !U.match.over){ toast('경기 중에는 이동할 수 없습니다'); return; }
+  const k = b.dataset.tab;
+  if(k === 'menu'){ openMenuSheet(); return; }
+  $('#sheetHost').classList.remove('on');
   U.match = null;
-  U.tab = b.dataset.tab; render();
+  U.tab = k; render();
 }));
+function closeSheetNav(k){
+  $('#sheetHost').classList.remove('on');
+  if(U.match && U.match.timer) clearInterval(U.match.timer);
+  U.match = null; U.tab = k; render();
+}
 $('#codePill').addEventListener('click', () => {
   copyText('#' + S.code).then(()=>toast('식별코드 복사됨'), ()=>toast('#' + S.code));
 });
