@@ -107,6 +107,13 @@ main::-webkit-scrollbar{display:none}
 .honor.top{background:linear-gradient(100deg,rgba(255,224,120,.3),rgba(255,160,60,.12));border-color:rgba(255,224,120,.75);
   box-shadow:0 0 18px rgba(255,200,70,.25);color:#fff3c4}
 
+/* ---------- 1대1 ---------- */
+.duelhead{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center}
+.dsid{min-width:0}
+.dsid .nm{font-size:12px;font-weight:800;letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dsid.r{text-align:right}
+.duelhead .sc{display:flex;align-items:baseline;gap:5px;padding:0 4px}
+
 /* ---------- 키우기 보관함 ---------- */
 .groster{display:flex;gap:6px;overflow-x:auto;padding:9px 0 3px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .groster::-webkit-scrollbar{display:none}
@@ -945,6 +952,24 @@ function parseInvite(hash){
         lv: isFinite(x[3]) ? Math.max(0, Math.min(99, x[3])) : 0})), b};
   }catch(e){ return null; }
 }
+function aceInviteURL(){
+  const cur = growCur();
+  if(!cur) return '';
+  const inst = {i:cur.i, b:baseOvrOf(cur.i), lv:growLv(), c:0};
+  const payload = {v:1, k:'grow1v1', c:S.code, i:cur.i, lv:growLv(), o:Math.round(ovrOf(inst))};
+  return location.origin + location.pathname + '#ace=' + b64e(JSON.stringify(payload));
+}
+function parseAceInvite(hash){
+  const m = String(hash || '').match(/[#&?]ace=([A-Za-z0-9_-]+)/);
+  if(!m) return null;
+  try{
+    const o = JSON.parse(b64d(m[1]));
+    if(!o || !(o.i >= 0 && o.i < P.length)) return null;
+    const lv = Math.max(0, Math.min(GROW_MAX, Math.round(+o.lv || 0)));
+    return {code:String(o.c || '').replace(/\D/g, '').slice(0, 6) || '000000', i:o.i, name:P[o.i][0],
+      role:posOf(o.i), lv, ovr:Math.max(40, Math.min(140, Math.round(+o.o || 0))), cond:0};
+  }catch(e){ return null; }
+}
 function copyInvite(){
   const url = inviteURL();
   if(!url){ toast('임대 스쿼드가 있을 때 초대 링크를 만들 수 있습니다'); return; }
@@ -1369,6 +1394,225 @@ function pickMVP(M){
   return {...best, rating};
 }
 
+/* ---------- 키우기 1대1 대결 ---------- */
+function aceInst(){ const c = growCur(); return c ? {i:c.i, b:baseOvrOf(c.i), lv:growLv(), c:0} : null; }
+function duelPickOpp(target, skip){
+  let best = null;
+  for(let k = 0; k < 90; k++){
+    const i = Math.floor(Math.random() * P.length);
+    if(skip != null && i === skip) continue;
+    const base = baseOvrOf(i), d = Math.abs(base - target);
+    if(!best || d < best.d) best = {i, d, base};
+    if(d <= 1) break;
+  }
+  const lv = clamp(Math.round((target - best.base) / GROW_STEP), 0, 12);
+  return {i:best.i, name:P[best.i][0], role:posOf(best.i), lv, ovr:Math.max(40, Math.round(best.base + lv * GROW_STEP)), cond:0};
+}
+function duelScore(M){ return M.a.name + ' ' + M.me + ' : ' + M.op + ' ' + M.b.name; }
+function startDuel(kind){
+  const cur = growCur();
+  if(!cur){ toast('먼저 키울 선수를 뽑으세요'); return; }
+  if(kind === 'invite' && !U.ace){ toast('받은 1대1 초대가 없습니다'); return; }
+  const a = {i:cur.i, name:P[cur.i][0], role:posOf(cur.i), lv:growLv(), ovr:Math.round(ovrOf(aceInst())), cond:0};
+  let b;
+  if(kind === 'invite') b = {...U.ace};
+  else {
+    const target = a.ovr + (kind === 'ranked' ? clamp((tierOf(S.rank.r).idx - 2) * 3, -10, 14) : 0) + Math.round(Math.random() * 6 - 3);
+    b = duelPickOpp(target, cur.i);
+  }
+  U.match = {duel:true, kind:kind || 'normal', a, b, me:0, op:0, min:0, half:false, over:false,
+    ev:[], goals:[], shotsMe:0, shotsOp:0, poss:50, timer:null, coins:0, ratingDelta:0};
+  U.tab = 'grow';
+  renderDuelScreen();
+  U.match.timer = setInterval(duelTick, TICK_MS);
+}
+function duelTick(){
+  const M = U.match; if(!M || !M.duel || M.over || M.half) return;
+  M.min += 5;
+  if(M.min === 45){
+    pushEvent({type:'half', mm:"45'", text:'전반 종료 · ' + duelScore(M) + '. 1대1 승부는 후반에 갈립니다.', cls:'half'});
+    startDuelHalf(M); paintDuel(); return;
+  }
+  if(M.min >= 90){ finishDuel(); return; }
+  duelMinute(M); paintDuel();
+}
+function startDuelHalf(M){
+  M.half = true;
+  if(M.timer) clearInterval(M.timer);
+  M.timer = null;
+  setTimeout(() => {
+    if(!U.match || U.match !== M || M.over) return;
+    M.half = false;
+    if(M.min < 45) M.min = 45;
+    pushEvent({type:'info', mm:"46'", text:'후반 시작 · ' + duelScore(M) + '. ' + (M.me > M.op ? '한 골 더 앞서갑니다.' : M.me === M.op ? '한 번의 1대1이 승부를 가릅니다.' : '뒤집으려면 지금부터 몰아붙여야 합니다.'), cls:'big'});
+    M.timer = setInterval(duelTick, TICK_MS);
+    paintDuel();
+  }, HALF_MS);
+}
+function duelMinute(M){
+  const A = M.a, B = M.b;
+  const d = A.ovr - B.ovr;
+  const pA = clamp(0.5 + d * 0.022, 0.22, 0.78);
+  M.poss = Math.round(M.poss * 0.8 + pA * 100 * 0.2);
+  const mine = Math.random() < pA;
+  const at = mine ? A : B, df = mine ? B : A;
+  const gp = clamp(0.2 + (mine ? d : -d) * 0.013, 0.07, 0.42);
+  const mm = M.min + "'";
+  const side = mine ? 'me' : 'op';
+  if(Math.random() < gp){
+    if(mine) M.me++; else M.op++;
+    M.goals.push({mm, min:M.min, side, name:at.name});
+    if(mine) M.shotsMe++; else M.shotsOp++;
+    pushEvent({type:'goal', side, mm, score:duelScore(M), cls:'goal', text:pickV([
+      at.name + ', 1대1 드리블 돌파! ' + df.name + '을(를) 완전히 벗겨내고 골망을 흔듭니다.',
+      at.name + ', 중거리 슛이 골문 구석에 정확히 꽂힙니다!',
+      at.name + ', 스텝오버 페인트로 ' + df.name + '의 타이밍을 뺏고 밀어 넣습니다!',
+      at.name + ', 문전 1대1 경합에서 몸싸움을 이겨내고 왼발로 마무리!',
+      at.name + ', 칩샷! 키를 뛰어넘겨 골문 안으로 떨어집니다.'
+    ])});
+    return;
+  }
+  const r = Math.random();
+  if(r < 0.32){
+    if(mine) M.shotsMe++; else M.shotsOp++;
+    pushEvent({type:'shot', side, mm, text:pickV([
+      at.name + '의 감아차기, 골대를 살짝 벗어납니다.',
+      at.name + ', 1대1 돌파 후 슈팅! 골대 위로 뜹니다.',
+      at.name + '의 중거리포를 ' + df.name + '이(가) 몸으로 막아냅니다.',
+      at.name + '의 발리슛, 옆그물을 흔듭니다.'
+    ])});
+  } else if(r < 0.5){
+    if(mine) M.shotsMe++; else M.shotsOp++;
+    pushEvent({type:'shot', side, mm, text:pickV([
+      at.name + '의 슛을 골키퍼가 몸을 날려 쳐냅니다!',
+      at.name + '의 감아차기를 골키퍼가 손끝으로 걷어냅니다.',
+      at.name + ', 결정적인 순간의 슈팅이 골키퍼 정면으로.'
+    ])});
+  } else if(r < 0.72){
+    pushEvent({type:'info', side, mm, text:pickV([
+      '1대1 맞대결 · ' + at.name + '이(가) ' + df.name + ' 앞에서 볼을 지켜냅니다.',
+      '중원에서 1대1 경합 · ' + at.name + '이(가) 먼저 볼을 따냅니다.',
+      df.name + '의 압박이 거세집니다. ' + at.name + '이(가) 백힐로 빠져나갑니다.',
+      '볼 소유권이 계속 바뀝니다. 두 선수의 1대1 승부가 이어집니다.'
+    ])});
+  } else {
+    pushEvent({type:'info', side, mm, text:pickV([
+      at.name + '의 크로스가 수비에 막혀 코너킥. 문전 1대1 경합이 펼쳐집니다.',
+      at.name + ', 1대1 돌파를 시도하지만 ' + df.name + '의 태클에 끊깁니다.',
+      '주심이 파울을 선언합니다. 프리킥 한 번이 승부를 가를 수 있습니다.',
+      df.name + '이(가) 볼을 끊고 역습 1대1로 전환합니다!'
+    ])});
+  }
+}
+function renderDuelScreen(){
+  const M = U.match;
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  $('#main').innerHTML = `
+    <div class="between" style="margin-bottom:9px">
+      <div><div class="eyebrow">1 VS 1 · ${M.kind === 'ranked' ? 'AI 랭킹' : M.kind === 'invite' ? '친구 초대' : '일반'}</div>
+      <div class="tiny" style="margin-top:2px">키운 선수 한 명이 그대로 맞붙습니다</div></div>
+      <button class="chip" data-act="duel-skip">⏩ 바로 결과</button>
+    </div>
+    <div class="board">
+      <div class="duelhead">
+        <div class="dsid"><div class="nm" id="dNameA">${esc(M.a.name)}</div><div class="tiny">${M.a.role} · +${M.a.lv}강 · OVR ${M.a.ovr}</div></div>
+        <div class="sc"><b id="dMe">0</b><i>:</i><b id="dOp">0</b></div>
+        <div class="dsid r"><div class="nm" id="dNameB">${esc(M.b.name)}</div><div class="tiny">${M.b.role} · +${M.b.lv}강 · OVR ${M.b.ovr}</div></div>
+      </div>
+      <div class="clock"><span class="live">1 vs 1</span><span class="m" id="dMin">0'</span><span class="tiny" id="dHalf">전반</span><span class="tiny" id="dPoss">점유 50%</span></div>
+      <div class="mbar"><i id="dBar" style="width:0%"></i></div>
+    </div>
+    <div class="sect-h" style="margin-top:14px"><div class="eyebrow g">1 VS 1 COMMENTARY</div><div class="tiny" id="dCount">0</div></div>
+    <div class="ticker" id="tkHost"></div>
+    <div class="sect"><button class="btn dark wide" data-act="quit-duel">대결 나가기</button></div>`;
+  paintDuel();
+  M.ev.slice().reverse().forEach(ev => addTick(ev, true));
+}
+function paintDuel(){
+  const M = U.match; if(!M || !M.duel) return;
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('dMe', M.me); set('dOp', M.op);
+  set('dMin', M.half ? 'HT' : M.min + "'");
+  set('dHalf', M.half ? '하프타임' : (M.min <= 45 ? '전반' : '후반'));
+  set('dPoss', '점유 ' + M.poss + '%');
+  set('dCount', M.ev.length + '개');
+  const bar = document.getElementById('dBar'); if(bar) bar.style.width = clamp(M.min / 90 * 100, 0, 100) + '%';
+}
+function finishDuel(){
+  const M = U.match; if(!M || !M.duel || M.over) return;
+  M.over = true;
+  clearInterval(M.timer); M.timer = null;
+  const res = M.me > M.op ? 'w' : M.me === M.op ? 'd' : 'l';
+  const base = M.kind === 'ranked' ? (res === 'w' ? 260 : res === 'd' ? 90 : 40) : (res === 'w' ? 190 : res === 'd' ? 70 : 30);
+  const gd = Math.abs(M.me - M.op);
+  M.coins = base + (res === 'w' ? gd * 20 : 0);
+  if(M.kind === 'ranked'){
+    const delta = res === 'w' ? Math.round(clamp(16 + (M.b.ovr - M.a.ovr) * 1.2, 8, 40))
+      : res === 'd' ? 2 : -Math.round(clamp(8 + (M.a.ovr - M.b.ovr) * 0.6, 4, 20));
+    M.ratingDelta = delta;
+    S.rank.r = Math.max(0, S.rank.r + delta);
+    S.rank[res] = (S.rank[res] || 0) + 1;
+  }
+  S.coins += M.coins;
+  S.record[res] = (S.record[res] || 0) + 1;
+  S.matches = (S.matches || 0) + 1;
+  ensureQuests(); questAdd('game', 1);
+  if(M.kind === 'ranked') questAdd('ranked', 1);
+  if(res === 'w') questAdd('win', 1);
+  save(); paintHud(); renderDuelResult();
+}
+function renderDuelResult(){
+  const M = U.match;
+  const res = M.me > M.op ? 'w' : M.me === M.op ? 'd' : 'l';
+  const label = res === 'w' ? '승리' : res === 'd' ? '무승부' : '패배';
+  const cls = res === 'w' ? 'lime' : res === 'd' ? 'sky' : 'red';
+  const winner = res === 'l' ? M.b : M.a;
+  const wGoals = res === 'l' ? M.op : M.me;
+  const rating = Math.round((6.4 + wGoals * 1.2 + (res === 'w' ? 0.9 : res === 'd' ? 0.2 : -0.4) + Math.min(1, Math.max(0, (winner.ovr - 70) * 0.02))) * 10) / 10;
+  const line = side => (M.goals || []).filter(g => g.side === side)
+    .map(g => `<div class="bsrow"><span class="mm">${esc(g.mm)}</span><span class="nm">${esc(g.name)}</span></div>`).join('') || '<div class="bsrow empty"><span class="nm">득점 없음</span></div>';
+  $('#main').innerHTML = `
+    <div class="result">
+      <div class="rb">
+        <span class="tag ${cls}">${label}</span>
+        <h3>${res === 'w' ? '1대1 완승' : res === 'd' ? '막상막하' : '한 수 아래'}</h3>
+        <div class="fs">${M.me} : ${M.op}</div>
+        <div class="tiny">${esc(M.a.name)} vs ${esc(M.b.name)}</div>
+      </div>
+      <div class="rewards">
+        <div><span>획득 코인</span><b class="up">+${fmt(M.coins)}</b></div>
+        <div><span>${M.kind === 'ranked' ? '레이팅' : '점유율'}</span>
+          ${M.kind === 'ranked'
+            ? `<b class="${M.ratingDelta >= 0 ? 'up' : 'dn'}">${M.ratingDelta >= 0 ? '+' : ''}${M.ratingDelta} <span style="font-size:10px;color:var(--dim)">→ ${S.rank.r}</span></b>`
+            : `<b>${M.poss}% <span style="font-size:10px;color:var(--dim)">점유</span></b>`}</div>
+      </div>
+      <div class="hr"></div>
+      <div class="between"><span class="eyebrow g">1대1 스코어보드</span><span class="tiny">OVR ${M.a.ovr} vs ${M.b.ovr}</span></div>
+      <div class="boxscore">
+        <div class="bscol"><div class="bshead mine">${esc(M.a.name)} <b>${M.me}</b></div>${line('me')}</div>
+        <div class="bscol"><div class="bshead theirs">${esc(M.b.name)} <b>${M.op}</b></div>${line('op')}</div>
+      </div>
+      <div class="hr"></div>
+      <div class="eyebrow g" style="margin-bottom:8px">오늘의 MVP</div>
+      <div class="mvp">
+        <div class="mvpic">★</div>
+        <div style="min-width:0;flex:1">
+          <div class="nm">${esc(winner.name)}</div>
+          <div class="tiny" style="margin-top:2px">${winner.role} · +${winner.lv}강 · OVR ${winner.ovr} · ${wGoals}골</div>
+        </div>
+        <div class="mvpr"><b>${rating.toFixed(1)}</b><small>RATING</small></div>
+      </div>
+      <div class="stack" style="margin-top:12px">
+        <button class="btn primary wide" data-act="duel-again" data-mode="${M.kind}">한 판 더</button>
+        <div class="row" style="gap:8px">
+          <button class="btn dark" style="flex:1" data-act="duel-goto-grow">🔨 키우기로</button>
+          <button class="btn dark" style="flex:1" data-act="quit-duel">경기장으로</button>
+        </div>
+      </div>
+    </div>
+    <div class="tiny" style="text-align:center;margin-top:12px">보유 코인 ${fmt(S.coins)} · 랭킹전 ${S.rank.w}승 ${S.rank.d}무 ${S.rank.l}패</div>`;
+}
+
 /* ---------- rendering: shell ---------- */
 function paintHud(){
   $('#coinVal').textContent = fmt(S.coins);
@@ -1754,11 +1998,9 @@ function doGrowMatch(mode){
   else startMatch('normal', opponentFor('normal'));
 }
 function copyGrowInvite(){
-  const g = buildGrowSquad();
-  if(!g){ toast('먼저 키울 선수를 뽑으세요'); return; }
-  const url = inviteURL(g.squad, g.f);
-  if(!url){ toast('초대 링크를 만들 수 없습니다'); return; }
-  copyText(url).then(() => toast('키우기 초대 링크를 복사했습니다'), () => toast('복사 실패'));
+  const url = aceInviteURL();
+  if(!url){ toast('먼저 키울 선수를 뽑으세요'); return; }
+  copyText(url).then(() => toast('1대1 초대 링크를 복사했습니다'), () => toast('복사 실패'));
 }
 
 /* ---------- JSON 백업 ---------- */
@@ -2200,13 +2442,13 @@ function growHTML(){
   <div class="card" style="padding:6px 13px;margin-top:11px">${rows}</div>
   <div class="tiny" style="margin-top:9px;line-height:1.6">성공하면 +${GROW_STEP}씩 능력치가 오릅니다. 보호카드 없이 실패하면 0강으로 초기화, 켜고 실패하면 55% 유지 · 45%는 1~7강 하락.</div>
   <div class="sect stack">
-    <div class="sect-h"><div class="eyebrow g">키운 선수로 대결</div><div class="tiny">팀 OVR에 바로 반영</div></div>
+    <div class="sect-h"><div class="eyebrow g">키운 선수로 1대1 대결</div><div class="tiny">이 선수 혼자 맞붙습니다</div></div>
     <div class="row" style="gap:8px">
-      <button class="btn dark" style="flex:1" data-act="grow-match" data-mode="normal">⚔️ 일반전</button>
-      <button class="btn dark" style="flex:1" data-act="grow-match" data-mode="ranked">🏆 랭킹전</button>
+      <button class="btn dark" style="flex:1" data-act="grow-duel" data-mode="normal">⚔️ 1대1 일반</button>
+      <button class="btn dark" style="flex:1" data-act="grow-duel" data-mode="ranked">🏆 1대1 랭킹</button>
     </div>
-    <button class="btn dark wide" data-act="grow-match" data-mode="invite" ${U.invite?'':'disabled'}>🤝 친구 초대 대결${U.invite ? ' · #' + esc(U.invite.code) : ' (받은 초대 없음)'}</button>
-    <button class="btn dark wide" data-act="grow-invite">🔗 이 선수로 초대 링크 복사</button>
+    <button class="btn dark wide" data-act="grow-duel" data-mode="invite" ${U.ace?'':'disabled'}>🤝 친구 1대1 초대${U.ace ? ' · ' + esc(U.ace.name) + ' +' + U.ace.lv + '강' : ' (받은 1대1 초대 없음)'}</button>
+    <button class="btn dark wide" data-act="grow-invite">🔗 이 선수로 1대1 초대 링크 복사</button>
     <button class="btn dark wide" data-act="grow-pick">🎲 새 선수 뽑기 (보관함 ${roster.length}/${GROW_SLOTS})</button>
   </div>`;
 }
@@ -2332,6 +2574,21 @@ document.addEventListener('click', ev => {
   else if(act === 'confirm-grow-pick'){ $('#sheetHost').classList.remove('on'); growPickNew(); }
   else if(act === 'grow-try'){ growAttempt(); }
   else if(act === 'grow-prot'){ if(S.grow){ S.grow.prot = !S.grow.prot; save(); renderGrow(true); } }
+  else if(act === 'grow-duel'){ startDuel(el.dataset.mode); }
+  else if(act === 'duel-skip'){
+    const m = U.match; if(!m || !m.duel || m.over) return;
+    clearInterval(m.timer); m.timer = null; m.half = false;
+    while(m.min < 90 && !m.over){
+      m.min += 5;
+      if(m.min >= 90){ finishDuel(); return; }
+      if(m.min === 45){ pushEvent({type:'half', mm:"45'", text:'전반 종료 · ' + duelScore(m) + '.', cls:'half'}); continue; }
+      duelMinute(m);
+    }
+    paintDuel();
+  }
+  else if(act === 'duel-again'){ const k = el.dataset.mode || 'normal'; U.match = null; startDuel(k); }
+  else if(act === 'duel-goto-grow'){ U.match = null; U.tab = 'grow'; render(); }
+  else if(act === 'quit-duel'){ if(U.match && U.match.timer) clearInterval(U.match.timer); U.match = null; U.tab = 'grow'; render(); }
   else if(act === 'grow-match'){ growMatch(el.dataset.mode); }
   else if(act === 'confirm-grow'){ $('#sheetHost').classList.remove('on'); const m = PEND_GROW; PEND_GROW = null; if(m) doGrowMatch(m); }
   else if(act === 'grow-invite'){ copyGrowInvite(); }
@@ -2426,9 +2683,10 @@ document.addEventListener('keydown', e => { if((e.ctrlKey||e.metaKey) && ['+','-
 
 /* ---------- boot ---------- */
 U.invite = parseInvite(typeof location !== 'undefined' ? location.hash : '');
+U.ace = parseAceInvite(typeof location !== 'undefined' ? location.hash : '');
 if(U.invite) toast('초대 대결 도착 · #' + U.invite.code);
 if(typeof window !== 'undefined' && window.addEventListener){
-  window.addEventListener('hashchange', () => { U.invite = parseInvite(location.hash); render(); });
+  window.addEventListener('hashchange', () => { U.invite = parseInvite(location.hash); U.ace = parseAceInvite(location.hash); render(); });
 }
 paintHud();
 render();
