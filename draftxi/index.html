@@ -109,12 +109,142 @@ main::-webkit-scrollbar{display:none}
 .honor.top{background:linear-gradient(100deg,rgba(255,224,120,.3),rgba(255,160,60,.12));border-color:rgba(255,224,120,.75);
   box-shadow:0 0 18px rgba(255,200,70,.25);color:#fff3c4}
 
-/* ---------- 1대1 ---------- */
-.duelhead{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center}
-.dsid{min-width:0}
-.dsid .nm{font-size:12px;font-weight:800;letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dsid.r{text-align:right}
-.duelhead .sc{display:flex;align-items:baseline;gap:5px;padding:0 4px}
+/* ---------- 1대1 턴제 배틀 ---------- */
+main.duel{padding:10px 12px calc(8px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:7px;overflow:hidden}
+.dh{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 1px;min-height:30px}
+.dh-l{flex:1 1 auto;min-width:0}
+.dh .eyebrow{font-size:9px;letter-spacing:.13em;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dh .tiny{margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dh .chip{flex:0 0 auto;height:28px;padding:0 9px;font-size:10.5px}
+.dh .chip:active{transform:scale(.97)}
+
+.stage{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:6px;padding:8px 8px 7px;
+  border-radius:16px;border:1px solid #24402f;overflow:hidden;
+  background:radial-gradient(120% 78% at 50% 44%,#16291f 0%,#0d1814 58%,#0a120e 100%)}
+.arena{position:relative;flex:1 1 auto;min-height:0}
+.arena:before{content:"";position:absolute;left:50%;top:50%;width:226px;height:226px;transform:translate(-50%,-50%);
+  border-radius:50%;border:1px solid rgba(205,249,95,.09);box-shadow:0 0 0 24px rgba(205,249,95,.022),0 0 0 54px rgba(205,249,95,.012)}
+.vsmark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;
+  font-family:var(--mono);font-size:15px;font-weight:900;letter-spacing:.18em;color:rgba(205,249,95,.22)}
+.arena:after{content:"";position:absolute;left:4%;right:4%;bottom:9%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.13),transparent)}
+.fighter{position:absolute;z-index:2;display:flex;flex-direction:column;align-items:center;gap:1px}
+.fighter .av{position:relative;width:68px;height:68px;border-radius:50%;display:grid;place-items:center;font-size:29px;line-height:1;
+  background:radial-gradient(circle at 34% 26%,#2c4c39,#0d1b15 74%);border:2px solid #43724f;
+  box-shadow:0 10px 20px rgba(0,0,0,.5),inset 0 0 20px rgba(205,249,95,.1);animation:bob 3.4s ease-in-out infinite}
+.fighter .av b{position:absolute;right:-8px;bottom:-2px;height:17px;min-width:23px;padding:0 4px;border-radius:9px;
+  display:grid;place-items:center;font-family:var(--mono);font-size:9px;font-weight:900;
+  background:#0b1a12;border:1px solid #46774f;color:var(--lime)}
+.fighter.op{right:2px;top:0}
+.fighter.op .av{border-color:#6d463b;background:radial-gradient(circle at 34% 26%,#4a2f28,#170f0c 74%);
+  box-shadow:0 10px 20px rgba(0,0,0,.5),inset 0 0 20px rgba(255,120,90,.1);animation-delay:-1.7s}
+.fighter.op .av b{border-color:#7d4f42;color:#ffb59f;background:#1a0f0c}
+.fighter.me{left:2px;bottom:0}
+.fighter .lb{font-size:8.5px;font-weight:900;letter-spacing:.02em;color:#c3d8cb;text-shadow:0 1px 4px #000;white-space:nowrap}
+.fighter.op .lb{color:#e6c3b9}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.fighter.act .av{animation:lunge .42s ease}
+@keyframes lunge{0%{transform:none}45%{transform:translateX(var(--lx,9px)) scale(1.06)}100%{transform:none}}
+.fighter.op.act .av{--lx:-9px}
+.fighter.hit .av{animation:hit .44s ease}
+@keyframes hit{0%,100%{transform:none}18%{transform:translateX(-6px) rotate(-4deg)}38%{transform:translateX(5px) rotate(3deg)}58%{transform:translateX(-4px)}78%{transform:translateX(3px)}}
+.pop2{position:absolute;left:50%;top:6px;margin-left:-28px;width:56px;text-align:center;z-index:6;
+  font-family:var(--mono);font-size:19px;font-weight:900;letter-spacing:-.05em;color:#ff9c86;
+  text-shadow:0 2px 10px rgba(0,0,0,.85);opacity:0;pointer-events:none}
+.pop2.mine{color:var(--lime)}
+.pop2.on{animation:popup .82s ease-out forwards}
+@keyframes popup{0%{opacity:0;transform:translateY(6px) scale(.82)}22%{opacity:1;transform:translateY(-2px) scale(1.1)}68%{opacity:1;transform:translateY(-14px) scale(1)}100%{opacity:0;transform:translateY(-24px) scale(.95)}}
+
+.bcard{flex:0 0 auto;width:calc(100% - 30px);padding:6px 9px 7px;border-radius:11px;
+  border:1px solid #2c4a3a;background:linear-gradient(120deg,rgba(17,31,25,.97),rgba(11,21,17,.94))}
+.bcard.op{align-self:flex-end;border-color:#5a3a31}
+.bcard.me{align-self:flex-start;border-color:#3d6a3a}
+.bcard .pc-h{display:flex;align-items:center;gap:5px;min-width:0}
+.bcard .pc-side{flex:0 0 auto;font-size:7.5px;font-weight:900;letter-spacing:.1em;padding:1px 4px;border-radius:4px;
+  background:rgba(255,255,255,.07);color:#9db4a8}
+.bcard.me .pc-side{color:var(--lime);background:rgba(205,249,95,.13)}
+.bcard.op .pc-side{color:#ffb3a3;background:rgba(255,120,90,.13)}
+.bcard .pc-n{font-size:12.5px;font-weight:900;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bcard .pc-ovr{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:800;color:var(--lime)}
+.bcard.op .pc-ovr{color:#ffb59f}
+.bcard .pc-m{display:flex;align-items:center;gap:4px;margin:1px 0 4px;font-size:8.5px;color:var(--sub);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bcard .pc-m b{color:#cfe3d6}
+.bcard .pc-m .lv{color:var(--amber);font-family:var(--mono);font-weight:800}
+.bcard .pc-m .st{margin-left:auto;flex:0 0 auto;font-size:7.5px;font-weight:900;letter-spacing:.02em;color:var(--sky)}
+.bcard .hp{height:7px;border-radius:4px;background:#16261e;border:1px solid #22392d;overflow:hidden}
+.bcard .hp i{display:block;height:100%;width:100%;border-radius:3px;
+  background:linear-gradient(90deg,#5fd35a,#a9f06a);transition:width .5s cubic-bezier(.25,.9,.3,1),background .3s}
+.bcard.warn .hp i{background:linear-gradient(90deg,#f0b23c,#ffd479)}
+.bcard.low .hp i{background:linear-gradient(90deg,#ff6f52,#ff4d3d);animation:hpwarn .9s infinite}
+@keyframes hpwarn{50%{opacity:.55}}
+.bcard .pc-hp{display:flex;justify-content:space-between;gap:6px;margin-top:2px;
+  font-family:var(--mono);font-size:9px;font-weight:800;color:var(--sub)}
+.bcard .pc-hp b{color:var(--ink);font-weight:800}
+.bcard.low .pc-hp b{color:#ff8f7a}
+
+.turnbar{flex:0 0 auto;display:flex;align-items:center;gap:7px}
+.turnbar .tb{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;font-weight:800;letter-spacing:.06em;color:var(--lime)}
+.turnbar .tb small{color:var(--dim);font-size:8.5px;letter-spacing:0}
+.tbseg{flex:1 1 auto;display:flex;gap:2px;min-width:0}
+.tbseg i{flex:1 1 0;height:3px;border-radius:2px;background:#1e3327}
+.tbseg i.on{background:#3f6a44}
+.tbseg i.now{background:var(--lime);box-shadow:0 0 6px rgba(205,249,95,.5)}
+.chip.auto{flex:0 0 auto;height:26px;padding:0 8px;font-size:10px}
+.chip.auto.on{background:rgba(205,249,95,.16);border-color:rgba(205,249,95,.6);color:var(--lime)}
+
+.moves{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mv{display:flex;align-items:center;gap:7px;padding:7px 8px;min-width:0;border-radius:11px;
+  border:1px solid var(--line2);background:linear-gradient(150deg,#15241d,#0e1a15);text-align:left;
+  transition:transform .08s,border-color .15s}
+.mv:active{transform:scale(.975);border-color:var(--lime)}
+.mv .ic{flex:0 0 auto;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:13px;
+  background:rgba(205,249,95,.1);border:1px solid rgba(205,249,95,.22)}
+.mv .tx{flex:1 1 auto;min-width:0}
+.mv .tx b{display:block;font-size:10.5px;font-weight:900;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mv .tx small{display:block;font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mv.sig{border-color:#6a4a2a;background:linear-gradient(150deg,#2a1f14,#150f0b)}
+.mv.sig .ic{background:rgba(255,180,58,.13);border-color:rgba(255,180,58,.35)}
+.mv.sig .tx b{color:#ffd79a}
+.mv.sig .tx small{color:#c39a63}
+.mv:disabled{opacity:.42}
+.mv:disabled .ic{border-color:var(--line2);background:rgba(255,255,255,.04)}
+
+.blog{flex:0 0 auto;height:92px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;padding:6px 7px;
+  border-radius:11px;border:1px solid var(--line);background:rgba(9,17,14,.8);
+  scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.blog::-webkit-scrollbar{display:none}
+.bl{display:flex;gap:6px;align-items:flex-start;animation:blin .22s ease-out}
+@keyframes blin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.bl .t{flex:0 0 auto;width:18px;font-family:var(--mono);font-size:8px;font-weight:800;color:var(--dim);padding-top:2px}
+.bl .x{flex:1 1 auto;min-width:0;font-size:10px;line-height:1.42;color:#c7dbcf;letter-spacing:-.01em}
+.bl .x b{color:var(--ink);font-weight:900}
+.bl .x em{font-style:normal;display:inline-block;margin-left:3px;padding:0 4px;border-radius:4px;
+  font-size:8px;font-weight:900;letter-spacing:0;background:rgba(205,249,95,.14);color:var(--lime)}
+.bl .d{flex:0 0 auto;font-family:var(--mono);font-size:10.5px;font-weight:900;color:#ff8f7a;padding-top:1px}
+.bl.crit .x em{background:rgba(255,180,58,.18);color:var(--amber)}
+.bl.crit .d{color:#ffb43a}
+.bl.eff .x em{background:rgba(99,215,255,.16);color:var(--sky)}
+.bl.miss .x{color:#8fa79b}
+.bl.miss .x em{background:rgba(255,255,255,.08);color:var(--sub)}
+.bl.heal .x em{background:rgba(120,230,140,.16);color:#8ef0a6}
+.bl.start .x{color:#eaffc4;font-weight:800}
+
+.result .hpres{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px}
+.hpres > div{padding:6px 8px;border-radius:9px;background:rgba(255,255,255,.03);border:1px solid var(--line);min-width:0}
+.hpres span{display:block;font-size:8px;letter-spacing:.1em;color:var(--dim);font-weight:800;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hpres b{display:block;font-family:var(--mono);font-size:12.5px;margin-top:1px;letter-spacing:-.03em;white-space:nowrap}
+.hpres .bar{height:4px;border-radius:2px;background:#1b2f24;margin-top:4px;overflow:hidden;padding:0;border:0}
+.hpres .bar i{display:block;height:4px;border-radius:2px;background:linear-gradient(90deg,#5fd35a,#a9f06a)}
+.hpres .bar.low i{background:linear-gradient(90deg,#ff6f52,#ff4d3d)}
+.hpres .bar.mid i{background:linear-gradient(90deg,#f0b23c,#ffd479)}
+.result .dstats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.dstats div{padding:6px 8px;border-radius:9px;background:rgba(255,255,255,.03);border:1px solid var(--line);min-width:0}
+.dstats span{display:block;font-size:8px;letter-spacing:.1em;color:var(--dim);font-weight:800}
+.dstats b{display:block;font-family:var(--mono);font-size:14px;margin-top:1px;letter-spacing:-.03em}
+.dstats small{display:block;font-size:8.5px;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ---------- 키우기 보관함 ---------- */
 .groster{display:flex;gap:6px;overflow-x:auto;padding:9px 0 3px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -189,7 +319,7 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .prog i.on{background:var(--lime)}
 .prog i.now{background:var(--amber)}
 
-.mini{position:relative;border-radius:14px;overflow:hidden;border:1px solid #1b4531;height:158px;
+.mini{position:relative;border-radius:14px;overflow:hidden;border:1px solid #1b4531;height:142px;
   background:repeating-linear-gradient(0deg,#113326 0 19px,#0e2c21 19px 38px)}
 .mini .line{position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,255,255,.13)}
 .mini .circ{position:absolute;left:50%;top:50%;width:54px;height:54px;border:1px solid rgba(255,255,255,.13);border-radius:50%;transform:translate(-50%,-50%)}
@@ -201,21 +331,22 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .mini .mdot.n{border-color:var(--amber);color:var(--amber);box-shadow:0 0 0 3px rgba(255,180,58,.16);animation:pulse 1.4s infinite}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 2px rgba(255,180,58,.18)}50%{box-shadow:0 0 0 6px rgba(255,180,58,.05)}}
 
-.picks{display:flex;flex-direction:column;gap:9px;margin-top:11px}
-.pick{position:relative;display:flex;align-items:center;gap:11px;padding:11px 11px 11px 12px;border-radius:14px;text-align:left;
+.picks{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.pick{position:relative;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 11px;border-radius:13px;text-align:left;
   border:1px solid var(--line);background:linear-gradient(100deg,#12201a,#0d1814);transition:transform .09s,border-color .15s}
 .pick:active{transform:scale(.985);border-color:var(--lime)}
 .pick .ovr{flex:0 0 auto;width:46px;text-align:center}
-.pick .ovr b{display:block;font-family:var(--mono);font-size:25px;font-weight:800;line-height:1;letter-spacing:-.06em}
+.pick .ovr b{display:block;font-family:var(--mono);font-size:23px;font-weight:800;line-height:1;letter-spacing:-.06em}
 .pick .ovr small{display:block;font-size:8px;letter-spacing:.12em;color:var(--dim);margin-top:2px;font-weight:800}
 .pick .who{flex:1 1 auto;min-width:0}
-.pick .nm{font-size:13.5px;font-weight:900;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pick .cl{font-size:10px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pick .bars{display:flex;gap:3px;margin-top:7px}
+.pick .nm{display:flex;align-items:baseline;gap:4px;font-size:12.5px;font-weight:900;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick .nm .cond{flex:0 0 auto;font-size:10px;font-weight:900;letter-spacing:0}
+.pick .cl{font-size:9.5px;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick .bars{display:flex;gap:3px;margin-top:5px}
 .pick .bars i{display:block;height:3px;flex:1;border-radius:2px;background:#20362b;overflow:hidden}
 .pick .bars i s{display:block;height:100%;background:var(--lime);text-decoration:none}
-.pick .rt{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
-.pick .go{width:26px;height:26px;border-radius:8px;background:var(--card3);display:grid;place-items:center;color:var(--lime);font-size:13px;font-weight:900}
+.pick .rt{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.pick .go{width:23px;height:23px;border-radius:7px;background:var(--card3);display:grid;place-items:center;color:var(--lime);font-size:12px;font-weight:900}
 .pick .pos{position:absolute;top:-1px;right:56px;font-size:8.5px;font-weight:900;letter-spacing:.06em;color:var(--dim)}
 .pick.off .ovr b{color:var(--amber)}
 
@@ -304,7 +435,7 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .tk.big .tx{font-weight:800;color:var(--ink)}
 .tk.half{background:#101d17}
 
-.result{padding:12px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(170deg,#15261c,#0b1512)}
+.result{padding:11px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(170deg,#15261c,#0b1512)}
 .result .rb{display:flex;flex-direction:column;align-items:center;gap:1px;padding:1px 0 9px}
 .result .rbtop{display:flex;align-items:center;gap:7px;min-width:0}
 .result .rb .tag{font-size:9.5px;height:18px}
@@ -320,10 +451,13 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .rewards b{display:block;font-family:var(--mono);font-size:14.5px;margin-top:1px;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rewards b small{font-size:9px;color:var(--dim);letter-spacing:0}
 .rewards b.up{color:var(--lime)}.rewards b.dn{color:var(--red)}
-.result .rh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:11px 0 6px;font-size:9px;letter-spacing:.14em;font-weight:800;color:var(--lime);text-transform:uppercase}
+.result .rh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:9px 0 5px;font-size:9px;letter-spacing:.14em;font-weight:800;color:var(--lime);text-transform:uppercase}
 .result .rh span:last-child{color:var(--dim);letter-spacing:0;font-size:9.5px;text-transform:none;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:58%}
 .result .boxscore{margin-top:0}
-.glist{display:flex;flex-direction:column;gap:3px}
+.glist{display:flex;flex-direction:column;gap:3px;max-height:116px;overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-right:1px}
+.glist::-webkit-scrollbar{display:none}
+.gmore{margin-top:4px;text-align:right;font-size:8.5px;font-weight:800;letter-spacing:.01em;color:var(--dim)}
 .gline{display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:8px;background:rgba(255,255,255,.028);border:1px solid #16281f;min-width:0}
 .gline .mm{flex:0 0 auto;width:23px;font-family:var(--mono);font-size:9px;font-weight:800;color:var(--dim)}
 .gline .dot{flex:0 0 auto;width:5px;height:5px;border-radius:50%;background:var(--dim)}
@@ -659,6 +793,7 @@ const CARE = {
 const TICK_MS = 380, HALF_MS = 2600;
 /* 선수 키우기 (0~+15강) */
 const GROW_MAX = 15, PROT_COST = 500, GROW_STEP = 2, GROW_SLOTS = 11;
+const DRAFT_OPTS = 5;   /* 슬롯마다 제시하는 후보 수 */
 const GROW_T = [
   {cost:300, p:95},{cost:450, p:90},{cost:650, p:85},{cost:900, p:78},{cost:1200, p:70},
   {cost:1600, p:62},{cost:2100, p:55},{cost:2700, p:48},{cost:3400, p:42},{cost:4200, p:36},
@@ -901,10 +1036,10 @@ function sampleOptions(f, slotIdx, taken){
   const near = all.filter(i => NEAR[role].includes(posOf(i)));
   const group = all.filter(i => grp(posOf(i)) === grp(role));
   const chosen = [];
-  pickBiased(exact, 3 - chosen.length, chosen);
-  if(chosen.length < 3) pickBiased(near, 3 - chosen.length, chosen);
-  if(chosen.length < 3) pickBiased(group, 3 - chosen.length, chosen);
-  return chosen.slice(0,3).map(i => ({i, b: rollBase(i), c: rollCond()}));
+  pickBiased(exact, DRAFT_OPTS - chosen.length, chosen);
+  if(chosen.length < DRAFT_OPTS) pickBiased(near, DRAFT_OPTS - chosen.length, chosen);
+  if(chosen.length < DRAFT_OPTS) pickBiased(group, DRAFT_OPTS - chosen.length, chosen);
+  return chosen.slice(0, DRAFT_OPTS).map(i => ({i, b: rollBase(i), c: rollCond()}));
 }
 function pickBiased(list, k, out){
   const pool = list.filter(i => !out.includes(i));
@@ -1450,8 +1585,45 @@ function pickMVP(M){
   return {...best, rating};
 }
 
-/* ---------- 키우기 1대1 대결 ---------- */
+/* ---------- 키우기 1대1 · 턴제 배틀 ---------- */
+const DUEL_MAX_TURN = 20;   /* 최대 턴 */
+const DUEL_STEP = 560;      /* 한 수 간격(ms) */
+const DUEL_SIG_CD = 3;      /* 각성 필살기 쿨다운(턴) */
+const DUEL_ROLE_IC = {GK:'🧤', DF:'🛡', MF:'🎯', FW:'⚽'};
+const DUEL_HP_MUL = {GK:1.18, DF:1.1, MF:1.0, FW:0.9};
+const DUEL_ATK = {GK:-5, DF:-1, MF:3, FW:6};
+const DUEL_DEF = {GK:8, DF:6, MF:1, FW:-4};
+const DUEL_SPD = {GK:-8, DF:-2, MF:2, FW:8};
+/* 상성 — 공격하는 쪽 포지션 → 수비하는 쪽 포지션 피해 배율 */
+const DUEL_EFF = {
+  FW:{DF:1.2, GK:1.25, MF:1.05, FW:1.0},
+  MF:{DF:1.1, GK:1.05, MF:1.0, FW:1.1},
+  DF:{FW:1.15, MF:1.0, DF:1.0, GK:1.0},
+  GK:{FW:1.0, MF:0.95, DF:1.0, GK:1.0}
+};
+/* 기술 3종 + 각성 필살기 — 포지션마다 손맛이 다르게 */
+const DUEL_SET = {
+  FW:[{n:'전광석화 드리블', ic:'⚡', tag:'돌파', p:24, acc:97, crit:.16},
+      {n:'감아차기 슛', ic:'🌀', tag:'슛', p:31, acc:90, crit:.12},
+      {n:'발리슛', ic:'💥', tag:'슛', p:36, acc:81, crit:.10}],
+  MF:[{n:'스루패스 돌파', ic:'🎯', tag:'돌파', p:25, acc:96, crit:.14},
+      {n:'중거리 포', ic:'🚀', tag:'슛', p:32, acc:88, crit:.11},
+      {n:'전방 압박', ic:'🪤', tag:'압박', p:14, acc:100, crit:.05, foe:{atk:-1}}],
+  DF:[{n:'철벽 태클', ic:'🧱', tag:'태클', p:26, acc:95, crit:.12, self:{def:1}},
+      {n:'몸싸움', ic:'💪', tag:'경합', p:21, acc:97, crit:.10, self:{atk:1}},
+      {n:'세트피스 헤더', ic:'🗿', tag:'슛', p:34, acc:83, crit:.14}],
+  GK:[{n:'펀칭 클리어', ic:'✊', tag:'선방', p:24, acc:96, crit:.12},
+      {n:'역습 롱패스', ic:'📡', tag:'패스', p:30, acc:90, crit:.10},
+      {n:'철벽 방어', ic:'🛡', tag:'방어', p:0, acc:100, crit:0, guard:true, heal:.12}]
+};
+function duelSigPow(x){ return Math.round(38 + clamp(Math.round(x.lv || 0), 0, GROW_MAX) * 2.4); }
 function aceInst(){ const c = growCur(); return c ? {i:c.i, b:baseOvrOf(c.i), lv:growLv(), c:0} : null; }
+function duelMoves(role, lv){
+  const g = grp(role);
+  const base = (DUEL_SET[g] || DUEL_SET.MF).map(m => ({...m}));
+  base.push({n:'각성 필살기', ic:'🔥', tag:'필살', sig:true, p:0, acc:82 + Math.min(8, Math.round(lv || 0)), crit:.2});
+  return base;
+}
 function duelPickOpp(target, skip){
   let best = null;
   for(let k = 0; k < 90; k++){
@@ -1464,7 +1636,18 @@ function duelPickOpp(target, skip){
   const lv = clamp(Math.round((target - best.base) / GROW_STEP), 0, 12);
   return {i:best.i, name:P[best.i][0], role:posOf(best.i), lv, ovr:Math.max(40, Math.round(best.base + lv * GROW_STEP)), cond:0};
 }
-function duelScore(M){ return M.a.name + ' ' + M.me + ' : ' + M.op + ' ' + M.b.name; }
+/* 배틀용 스탯 — HP·공격·수비·스피드 */
+function duelSide(x){
+  const g = grp(x.role);
+  const ovr = clamp(Math.round(x.ovr || 70), 40, 140);
+  const lv = clamp(Math.round(x.lv || 0), 0, GROW_MAX);
+  const max = Math.round((152 + (ovr - 70) * 4.2) * (DUEL_HP_MUL[g] || 1));
+  return {hp:max, max,
+    atk:ovr + (DUEL_ATK[g] || 0) + lv * 1.6,
+    def:ovr + (DUEL_DEF[g] || 0) + lv * 1.6,
+    spd:ovr + (DUEL_SPD[g] || 0),
+    atkMul:1, defMul:1};
+}
 function startDuel(kind){
   const cur = growCur();
   if(!cur){ toast('먼저 키울 선수를 뽑으세요'); return; }
@@ -1476,137 +1659,336 @@ function startDuel(kind){
     const target = a.ovr + (kind === 'ranked' ? clamp((tierOf(duelRec().r).idx - 2) * 3, -10, 14) : 0) + Math.round(Math.random() * 6 - 3);
     b = duelPickOpp(target, cur.i);
   }
-  U.match = {duel:true, kind:kind || 'normal', a, b, me:0, op:0, min:0, half:false, over:false,
-    ev:[], goals:[], shotsMe:0, shotsOp:0, poss:50, timer:null, coins:0, ratingDelta:0};
+  U.match = {duel:true, kind:kind || 'normal', a, b, ms:duelSide(a), os:duelSide(b),
+    turn:1, over:false, busy:false, auto:false,
+    dmgMe:0, dmgOp:0, critMe:0, critOp:0, coins:0, ratingDelta:0, how:'ko',
+    mMoves:duelMoves(a.role, a.lv), oMoves:duelMoves(b.role, b.lv),
+    mCd:[0,0,0,0], oCd:[0,0,0,0]};
   U.tab = 'grow';
   renderDuelScreen();
-  U.match.timer = setInterval(duelTick, TICK_MS);
 }
-function duelTick(){
-  const M = U.match; if(!M || !M.duel || M.over || M.half) return;
-  M.min += 5;
-  if(M.min === 45){
-    pushEvent({type:'half', mm:"45'", text:'전반 종료 · ' + duelScore(M) + '. 1대1 승부는 후반에 갈립니다.', cls:'half'});
-    startDuelHalf(M); paintDuel(); return;
+/* ---------- 계산 ---------- */
+function duelStrike(M, isMe, mv){
+  const A = isMe ? M.a : M.b, B = isMe ? M.b : M.a;
+  const SA = isMe ? M.ms : M.os, SB = isMe ? M.os : M.ms;
+  const out = {miss:false, dmg:0, crit:false, eff:1, lvBonus:1, heal:0, guard:false, buff:''};
+  if(mv.guard){
+    const before = SA.hp;
+    SA.hp = Math.min(SA.max, SA.hp + Math.round(SA.max * (mv.heal || .12)));
+    out.heal = Math.round(SA.hp - before);
+    SA.defMul = clamp(SA.defMul + .12, .7, 1.4);
+    out.guard = true;
+    return out;
   }
-  if(M.min >= 90){ finishDuel(); return; }
-  duelMinute(M); paintDuel();
+  if(mv.self) Object.keys(mv.self).forEach(k => {
+    const v = mv.self[k];
+    if(k === 'atk') SA.atkMul = clamp(SA.atkMul + .12 * v, .7, 1.4);
+    else SA.defMul = clamp(SA.defMul + .12 * v, .7, 1.4);
+  });
+  if(mv.foe) Object.keys(mv.foe).forEach(k => {
+    const v = mv.foe[k];
+    if(k === 'atk') SB.atkMul = clamp(SB.atkMul + .1 * v, .7, 1.4);
+  });
+  const dodge = clamp(.05 + (SB.spd - SA.spd) * .004, .03, .2);
+  const hitChance = clamp((mv.acc || 95) / 100 - dodge, .45, .99);
+  if(Math.random() >= hitChance){ out.miss = true; return out; }
+  const pow = mv.sig ? duelSigPow(A) : mv.p;
+  const atk = SA.atk * SA.atkMul, def = Math.max(1, SB.def * SB.defMul);
+  let dmg = pow * ((atk / (atk + def)) * 2) * rnd(.9, 1.1);
+  out.eff = (DUEL_EFF[grp(A.role)] || {})[grp(B.role)] || 1;
+  dmg *= out.eff;
+  out.lvBonus = 1 + clamp(Math.round(A.lv || 0), 0, GROW_MAX) * .025;
+  dmg *= out.lvBonus;
+  out.crit = Math.random() < (mv.crit || .1);
+  if(out.crit) dmg *= 1.65;
+  out.dmg = Math.max(3, Math.round(dmg));
+  SB.hp = Math.max(0, SB.hp - out.dmg);
+  if(isMe){ M.dmgMe += out.dmg; if(out.crit) M.critMe += 1; }
+  else { M.dmgOp += out.dmg; if(out.crit) M.critOp += 1; }
+  return out;
 }
-function startDuelHalf(M){
-  M.half = true;
-  if(M.timer) clearInterval(M.timer);
-  M.timer = null;
-  setTimeout(() => {
-    if(!U.match || U.match !== M || M.over) return;
-    M.half = false;
-    if(M.min < 45) M.min = 45;
-    pushEvent({type:'info', mm:"46'", text:'후반 시작 · ' + duelScore(M) + '. ' + (M.me > M.op ? '한 골 더 앞서갑니다.' : M.me === M.op ? '한 번의 1대1이 승부를 가릅니다.' : '뒤집으려면 지금부터 몰아붙여야 합니다.'), cls:'big'});
-    M.timer = setInterval(duelTick, TICK_MS);
-    paintDuel();
-  }, HALF_MS);
+function duelAiPick(M, isMe){
+  const SA = isMe ? M.ms : M.os;
+  const moves = isMe ? M.mMoves : M.oMoves;
+  const cd = isMe ? M.mCd : M.oCd;
+  let best = 0, bestSc = -1;
+  moves.forEach((mv, k) => {
+    if(mv.sig && (cd[k] || 0) > 0) return;
+    let sc;
+    if(mv.guard) sc = (SA.hp / SA.max < .42 ? 52 : 10) + Math.random() * 14;
+    else {
+      const p = mv.sig ? duelSigPow(isMe ? M.a : M.b) : mv.p;
+      sc = p * (mv.acc || 95) / 100 + Math.random() * 15;
+      if(mv.foe) sc += 9;
+      if(mv.self) sc += 6;
+      if(mv.sig) sc += 12;
+    }
+    if(sc > bestSc){ bestSc = sc; best = k; }
+  });
+  return best;
 }
-function duelMinute(M){
-  const A = M.a, B = M.b;
-  const d = A.ovr - B.ovr;
-  const pA = clamp(0.5 + d * 0.022, 0.22, 0.78);
-  M.poss = Math.round(M.poss * 0.8 + pA * 100 * 0.2);
-  const mine = Math.random() < pA;
-  const at = mine ? A : B, df = mine ? B : A;
-  const gp = clamp(0.2 + (mine ? d : -d) * 0.013, 0.07, 0.42);
-  const mm = M.min + "'";
-  const side = mine ? 'me' : 'op';
-  if(Math.random() < gp){
-    if(mine) M.me++; else M.op++;
-    M.goals.push({mm, min:M.min, side, name:at.name});
-    if(mine) M.shotsMe++; else M.shotsOp++;
-    pushEvent({type:'goal', side, mm, score:duelScore(M), cls:'goal', text:pickV([
-      at.name + ', 1대1 드리블 돌파! ' + df.name + josa(df.name, '을', '를') + ' 완전히 벗겨내고 골망을 흔듭니다.',
-      at.name + ', 중거리 슛이 골문 구석에 정확히 꽂힙니다!',
-      at.name + ', 스텝오버 페인트로 ' + df.name + '의 타이밍을 뺏고 밀어 넣습니다!',
-      at.name + ', 문전 1대1 경합에서 몸싸움을 이겨내고 왼발로 마무리!',
-      at.name + ', 칩샷! 키를 뛰어넘겨 골문 안으로 떨어집니다.'
-    ])});
-    return;
-  }
-  const r = Math.random();
-  if(r < 0.32){
-    if(mine) M.shotsMe++; else M.shotsOp++;
-    pushEvent({type:'shot', side, mm, text:pickV([
-      at.name + '의 감아차기, 골대를 살짝 벗어납니다.',
-      at.name + ', 1대1 돌파 후 슈팅! 골대 위로 뜹니다.',
-      at.name + '의 중거리포를 ' + df.name + josa(df.name, '이', '가') + ' 몸으로 막아냅니다.',
-      at.name + '의 발리슛, 옆그물을 흔듭니다.'
-    ])});
-  } else if(r < 0.5){
-    if(mine) M.shotsMe++; else M.shotsOp++;
-    pushEvent({type:'shot', side, mm, text:pickV([
-      at.name + '의 슛을 골키퍼가 몸을 날려 쳐냅니다!',
-      at.name + '의 감아차기를 골키퍼가 손끝으로 걷어냅니다.',
-      at.name + ', 결정적인 순간의 슈팅이 골키퍼 정면으로.'
-    ])});
-  } else if(r < 0.72){
-    pushEvent({type:'info', side, mm, text:pickV([
-      '1대1 맞대결 · ' + at.name + josa(at.name, '이', '가') + ' ' + df.name + ' 앞에서 볼을 지켜냅니다.',
-      '중원에서 1대1 경합 · ' + at.name + josa(at.name, '이', '가') + ' 먼저 볼을 따냅니다.',
-      df.name + '의 압박이 거세집니다. ' + at.name + josa(at.name, '이', '가') + ' 백힐로 빠져나갑니다.',
-      '볼 소유권이 계속 바뀝니다. 두 선수의 1대1 승부가 이어집니다.'
-    ])});
-  } else {
-    pushEvent({type:'info', side, mm, text:pickV([
-      at.name + '의 크로스가 수비에 막혀 코너킥. 문전 1대1 경합이 펼쳐집니다.',
-      at.name + ', 1대1 돌파를 시도하지만 ' + df.name + '의 태클에 끊깁니다.',
-      '주심이 파울을 선언합니다. 프리킥 한 번이 승부를 가를 수 있습니다.',
-      df.name + josa(df.name, '이', '가') + ' 볼을 끊고 역습 1대1로 전환합니다!'
-    ])});
-  }
+/* ---------- 화면 ---------- */
+function duelFigHTML(x, side, fast){
+  const g = grp(x.role);
+  return `<div class="fighter ${side}" id="${side === 'me' ? 'bMeFig' : 'bOpFig'}">
+      <div class="av">${DUEL_ROLE_IC[g] || '⚽'}<b>+${Math.round(x.lv || 0)}</b></div>
+      <div class="lb">${esc(x.role)}${fast ? ' · 선공' : ''}</div>
+      <div class="pop2" id="${side === 'me' ? 'bPopMe' : 'bPopOp'}"></div>
+    </div>`;
+}
+function duelCardHTML(x, side){
+  return `<div class="bcard ${side}" id="${side === 'me' ? 'bMeCard' : 'bOpCard'}">
+      <div class="pc-h"><span class="pc-side">${side === 'me' ? 'MY' : 'OPP'}</span>
+        <span class="pc-n" id="${side === 'me' ? 'bMeName' : 'bOpName'}">${esc(x.name)}</span>
+        <span class="pc-ovr" id="${side === 'me' ? 'bMeOvr' : 'bOpOvr'}">OVR ${x.ovr}</span></div>
+      <div class="pc-m"><span>${esc(x.role)}</span>·<span class="lv">+${Math.round(x.lv || 0)}강</span>·
+        <span id="${side === 'me' ? 'bMeClub' : 'bOpClub'}">${esc((P[x.i] && P[x.i][1]) || '')}</span>
+        <span class="st" id="${side === 'me' ? 'bMeSt' : 'bOpSt'}"></span></div>
+      <div class="hp"><i id="${side === 'me' ? 'bMeHp' : 'bOpHp'}"></i></div>
+      <div class="pc-hp"><span>HP</span><b id="${side === 'me' ? 'bMeHpNum' : 'bOpHpNum'}">0 / 0</b></div>
+    </div>`;
 }
 function renderDuelScreen(){
   const M = U.match;
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
-  $('#main').innerHTML = `
-    <div class="between" style="margin-bottom:9px">
-      <div><div class="eyebrow">1 VS 1 · ${M.kind === 'ranked' ? 'AI 랭킹' : M.kind === 'invite' ? '친구 초대' : '일반'}</div>
-      <div class="tiny" style="margin-top:2px">키운 선수 1명 대 상대 1명 · 임대 스쿼드와 별개</div></div>
+  const main = $('#main');
+  main.className = 'duel';
+  main.innerHTML = `
+    <div class="dh">
+      <div class="dh-l">
+        <div class="eyebrow">1 VS 1 · ${M.kind === 'ranked' ? 'AI 랭킹' : M.kind === 'invite' ? '친구 초대' : '일반'}</div>
+        <div class="tiny">${esc(M.a.role)} vs ${esc(M.b.role)} · 턴제 기술 배틀 · 최대 ${DUEL_MAX_TURN}턴</div>
+      </div>
       <button class="chip" data-act="duel-skip">⏩ 바로 결과</button>
     </div>
-    <div class="board">
-      <div class="duelhead">
-        <div class="dsid"><div class="nm" id="dNameA">${esc(M.a.name)}</div><div class="tiny">${M.a.role} · +${M.a.lv}강 · OVR ${M.a.ovr}</div></div>
-        <div class="sc"><b id="dMe">0</b><i>:</i><b id="dOp">0</b></div>
-        <div class="dsid r"><div class="nm" id="dNameB">${esc(M.b.name)}</div><div class="tiny">${M.b.role} · +${M.b.lv}강 · OVR ${M.b.ovr}</div></div>
+    <div class="stage">
+      ${duelCardHTML(M.b, 'op')}
+      <div class="arena">
+        <div class="vsmark">VS</div>
+        ${duelFigHTML(M.a, 'me', M.ms.spd >= M.os.spd)}
+        ${duelFigHTML(M.b, 'op', M.os.spd > M.ms.spd)}
       </div>
-      <div class="clock"><span class="live">1 vs 1</span><span class="m" id="dMin">0'</span><span class="tiny" id="dHalf">전반</span><span class="tiny" id="dPoss">점유 50%</span></div>
-      <div class="mbar"><i id="dBar" style="width:0%"></i></div>
+      ${duelCardHTML(M.a, 'me')}
     </div>
-    <div class="sect-h" style="margin-top:14px"><div class="eyebrow g">1 VS 1 COMMENTARY</div><div class="tiny" id="dCount">0</div></div>
-    <div class="ticker" id="tkHost"></div>
-    <div class="sect"><button class="btn dark wide" data-act="quit-duel">대결 나가기</button></div>`;
+    <div class="turnbar">
+      <span class="tb">TURN <b id="bTurn">1</b><small> / ${DUEL_MAX_TURN}</small></span>
+      <div class="tbseg" id="bSeg"></div>
+      <button class="chip auto" data-act="duel-auto" id="bAuto">자동 진행</button>
+    </div>
+    <div class="moves" id="bMoves"></div>
+    <div class="blog" id="bdLog"></div>
+    <button class="btn dark sm wide" data-act="quit-duel">배틀 나가기</button>`;
+  const seg = document.getElementById('bSeg');
+  if(seg) seg.innerHTML = Array.from({length:DUEL_MAX_TURN}, () => '<i></i>').join('');
+  duelLog(M, 'start', `<b>${esc(M.a.name)}</b> vs <b>${esc(M.b.name)}</b> · 배틀 시작! 기술을 고르세요.`);
   paintDuel();
-  M.ev.slice().reverse().forEach(ev => addTick(ev, true));
+}
+function duelStatusText(st){
+  const a = [];
+  if(st.atkMul > 1.02) a.push('공격↑');
+  else if(st.atkMul < .98) a.push('공격↓');
+  if(st.defMul > 1.02) a.push('방어↑');
+  return a.slice(0, 2).join(' ');
 }
 function paintDuel(){
   const M = U.match; if(!M || !M.duel) return;
+  const pct = (v, m) => clamp(v / Math.max(1, m) * 100, 0, 100);
   const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
-  set('dMe', M.me); set('dOp', M.op);
-  set('dMin', M.half ? 'HT' : M.min + "'");
-  set('dHalf', M.half ? '' : (M.min <= 45 ? '전반' : '후반'));
-  set('dPoss', '점유 ' + M.poss + '%');
-  set('dCount', M.ev.length + '개');
-  const bar = document.getElementById('dBar'); if(bar) bar.style.width = clamp(M.min / 90 * 100, 0, 100) + '%';
+  const sides = [['bOpCard','bOpHp','bOpHpNum','bOpSt', M.os], ['bMeCard','bMeHp','bMeHpNum','bMeSt', M.ms]];
+  sides.forEach(([cardId, barId, numId, stId, st]) => {
+    const p = pct(st.hp, st.max);
+    const card = document.getElementById(cardId);
+    const bar = document.getElementById(barId);
+    if(bar) bar.style.width = p + '%';
+    if(card){
+      card.classList.toggle('low', p <= 25);
+      card.classList.toggle('warn', p > 25 && p <= 52);
+    }
+    set(numId, Math.max(0, Math.round(st.hp)) + ' / ' + st.max);
+    set(stId, duelStatusText(st));
+  });
+  set('bTurn', String(Math.min(M.turn, DUEL_MAX_TURN)));
+  const seg = document.getElementById('bSeg');
+  if(seg) Array.prototype.forEach.call(seg.children, (el, k) => {
+    el.className = k < M.turn - 1 ? 'on' : (k === M.turn - 1 ? 'now' : '');
+  });
+  const autoBtn = document.getElementById('bAuto');
+  if(autoBtn){
+    autoBtn.classList.toggle('on', !!M.auto);
+    autoBtn.textContent = M.auto ? '자동 ⏸' : '자동 진행';
+  }
+  const host = document.getElementById('bMoves');
+  if(host) host.innerHTML = M.mMoves.map((mv, k) => {
+    const cd = M.mCd[k] || 0;
+    const lock = M.busy || M.over || (mv.sig && cd > 0);
+    const sub = mv.sig
+      ? (cd > 0 ? '쿨다운 ' + cd + '턴' : '+' + Math.round(M.a.lv || 0) + '강 · 위력 ' + duelSigPow(M.a) + ' · 명중 ' + mv.acc + '%')
+      : (mv.guard ? mv.tag + ' · HP ' + Math.round((mv.heal || .12) * 100) + '% 회복 · 방어↑'
+        : mv.tag + ' · 위력 ' + mv.p + ' · 명중 ' + mv.acc + '%');
+    return `<button class="mv ${mv.sig ? 'sig' : ''}" data-act="duel-move" data-k="${k}" ${lock ? 'disabled' : ''}>
+        <span class="ic">${mv.ic}</span>
+        <span class="tx"><b>${esc(mv.n)}</b><small>${esc(sub)}</small></span>
+      </button>`;
+  }).join('');
+}
+function duelLog(M, cls, html, dmg){
+  const host = document.getElementById('bdLog');
+  if(!host) return;
+  const el = document.createElement('div');
+  el.className = 'bl ' + (cls || '');
+  el.innerHTML = `<span class="t">T${Math.min(M.turn, DUEL_MAX_TURN)}</span><div class="x">${html}</div>`
+    + (dmg != null ? `<span class="d">${dmg}</span>` : '');
+  host.prepend(el);
+  while(host.children.length > 30) host.lastChild.remove();
+  return el;
+}
+/* 이미 남긴 줄에 판정·데미지를 이어 붙인다 */
+function duelLine(el, cls, html, dmg){
+  if(!el || !el.parentNode) return;
+  if(cls) el.className = 'bl ' + cls;
+  const x = el.querySelector('.x');
+  if(html && x) x.insertAdjacentHTML('beforeend', ' ' + html);
+  if(dmg != null){
+    const sp = document.createElement('span');
+    sp.className = 'd'; sp.textContent = dmg;
+    el.appendChild(sp);
+  }
+}
+function duelPop(id, text, mine){
+  const el = document.getElementById(id); if(!el) return;
+  el.className = 'pop2' + (mine ? ' mine' : '');
+  el.textContent = text;
+  void el.offsetWidth;
+  el.classList.add('on');
+}
+function duelAnim(id, cls){
+  const el = document.getElementById(id); if(!el) return;
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+  setTimeout(() => { if(el) el.classList.remove(cls); }, 480);
+}
+/* ---------- 턴 진행 ---------- */
+function duelAct(M, isMe, idx, done){
+  const A = isMe ? M.a : M.b, B = isMe ? M.b : M.a;
+  const mv = (isMe ? M.mMoves : M.oMoves)[idx];
+  const cd = isMe ? M.mCd : M.oCd;
+  if(!mv){ done && done(); return; }
+  if(mv.sig) cd[idx] = DUEL_SIG_CD;
+  const line = duelLog(M, mv.sig ? 'crit' : '', `<b>${esc(A.name)}</b>의 ${esc(mv.n)}!`);
+  duelAnim(isMe ? 'bMeFig' : 'bOpFig', 'act');
+  setTimeout(() => {
+    if(U.match !== M || M.over) return;
+    const out = duelStrike(M, isMe, mv);
+    const tgt = isMe ? 'bOpFig' : 'bMeFig';
+    if(out.guard){
+      duelPop(isMe ? 'bPopMe' : 'bPopOp', out.heal > 0 ? '+' + out.heal : '방어', true);
+      duelLine(line, 'heal', `<em>방어 성공</em>` + (out.heal > 0 ? ' · HP ' + out.heal + ' 회복 · 방어력 상승' : ''));
+    } else if(out.miss){
+      duelLine(line, 'miss', `<b>${esc(B.name)}</b>${josa(B.name, '이', '가')} 흘려냈다! <em>회피 성공</em>`);
+    } else {
+      const tags = [];
+      if(out.crit) tags.push('<em>급소에 맞았다!</em>');
+      if(out.eff >= 1.15) tags.push('<em>효과가 굉장했다!</em>');
+      else if(out.eff <= .95) tags.push('<em>효과가 별로였다…</em>');
+      if(out.lvBonus >= 1.1) tags.push(`<em>+${Math.round(A.lv || 0)}강 보정</em>`);
+      duelLine(line, out.crit ? 'crit' : out.eff >= 1.15 ? 'eff' : '', tags.join(' '), '-' + out.dmg);
+      duelPop(isMe ? 'bPopOp' : 'bPopMe', '-' + out.dmg, false);
+      duelAnim(tgt, 'hit');
+    }
+    paintDuel();
+  }, 280);
+  setTimeout(() => {
+    if(U.match !== M || M.over) return;
+    done && done();
+  }, DUEL_STEP);
+}
+/* 스피드가 높은 쪽이 먼저 움직인다 */
+function duelFirstSide(M){
+  const a = M.ms.spd + Math.random() * 6, b = M.os.spd + Math.random() * 6;
+  return a >= b ? 'me' : 'op';
+}
+function duelKickOut(M){
+  const who = M.os.hp <= 0 ? M.b : M.a;
+  if(who) duelLog(M, 'crit', `<b>${esc(who.name)}</b> HP 0! <em>K.O.</em>`);
+  paintDuel();
+  setTimeout(() => { if(U.match === M) finishDuel(); }, 700);
+}
+function duelEndTurn(M){
+  M.turn += 1;
+  ['mCd', 'oCd'].forEach(k => M[k].forEach((v, n) => { if(v > 0) M[k][n] = v - 1; }));
+  if(M.turn > DUEL_MAX_TURN){
+    duelLog(M, 'start', `${DUEL_MAX_TURN}턴 종료 · 남은 HP 비율로 판정합니다.`);
+    paintDuel();
+    setTimeout(() => { if(U.match === M) finishDuel(); }, 560);
+    return;
+  }
+  M.busy = false;
+  paintDuel();
+  if(M.auto) setTimeout(() => { if(U.match === M && M.auto && !M.busy) duelPlayerMove(duelAiPick(M, true), true); }, 380);
+}
+function duelPlayerMove(idx, auto){
+  const M = U.match;
+  if(!M || !M.duel || M.over || M.busy) return;
+  const mv = M.mMoves[idx];
+  if(!mv || (mv.sig && (M.mCd[idx] || 0) > 0)) return;
+  M.busy = true;
+  if(!auto) M.auto = false;
+  paintDuel();
+  const oi = duelAiPick(M, false);
+  const order = duelFirstSide(M) === 'me' ? [[true, idx], [false, oi]] : [[false, oi], [true, idx]];
+  const run = k => {
+    if(!U.match || U.match !== M || M.over) return;
+    if(k >= order.length){ duelEndTurn(M); return; }
+    const [isMe, mvIdx] = order[k];
+    duelAct(M, isMe, mvIdx, () => {
+      if(!U.match || U.match !== M || M.over) return;
+      if(M.ms.hp <= 0 || M.os.hp <= 0){ duelKickOut(M); return; }
+      setTimeout(() => run(k + 1), 240);
+    });
+  };
+  run(0);
+}
+function duelSimRest(M){
+  let guard = 0;
+  while(!M.over && guard++ < 120){
+    const order = duelFirstSide(M) === 'me' ? ['me', 'op'] : ['op', 'me'];
+    for(const side of order){
+      const isMe = side === 'me';
+      const k = duelAiPick(M, isMe);
+      const mv = (isMe ? M.mMoves : M.oMoves)[k];
+      if(mv && mv.sig) (isMe ? M.mCd : M.oCd)[k] = DUEL_SIG_CD;
+      duelStrike(M, isMe, mv);
+      if(M.ms.hp <= 0 || M.os.hp <= 0){ finishDuel(); return; }
+    }
+    M.turn += 1;
+    ['mCd', 'oCd'].forEach(k => M[k].forEach((v, n) => { if(v > 0) M[k][n] = v - 1; }));
+    if(M.turn > DUEL_MAX_TURN){ finishDuel(); return; }
+  }
+  finishDuel();
 }
 function finishDuel(){
   const M = U.match; if(!M || !M.duel || M.over) return;
-  M.over = true;
-  clearInterval(M.timer); M.timer = null;
-  const res = M.me > M.op ? 'w' : M.me === M.op ? 'd' : 'l';
+  M.over = true; M.busy = false;
+  const mr = M.ms.hp / Math.max(1, M.ms.max), orr = M.os.hp / Math.max(1, M.os.max);
+  let res;
+  if(M.os.hp <= 0 && M.ms.hp <= 0){ res = 'd'; M.how = 'ko'; }
+  else if(M.os.hp <= 0){ res = 'w'; M.how = 'ko'; }
+  else if(M.ms.hp <= 0){ res = 'l'; M.how = 'ko'; }
+  else {
+    const d = mr - orr;
+    res = d >= .08 ? 'w' : d <= -.08 ? 'l' : 'd';
+    M.how = 'judge';
+  }
+  M.res = res;
   const base = M.kind === 'ranked' ? (res === 'w' ? 260 : res === 'd' ? 90 : 40) : (res === 'w' ? 190 : res === 'd' ? 70 : 30);
-  const gd = Math.abs(M.me - M.op);
-  M.coins = base + (res === 'w' ? gd * 20 : 0);
+  const speed = Math.max(0, DUEL_MAX_TURN - M.turn) * (res === 'w' ? 7 : 2);
+  M.coins = base + speed + (res === 'w' ? Math.round(mr * 120) : 0);
   const d1 = duelRec();
   d1[res] = (d1[res] || 0) + 1;
   if(M.kind === 'ranked'){
     const delta = res === 'w' ? Math.round(clamp(16 + (M.b.ovr - M.a.ovr) * 1.2, 8, 40))
-      : res === 'd' ? 2 : -Math.round(clamp(8 + (M.a.ovr - M.b.ovr) * 0.6, 4, 20));
+      : res === 'd' ? 2 : -Math.round(clamp(8 + (M.a.ovr - M.b.ovr) * .6, 4, 20));
     M.ratingDelta = delta;
     d1.r = Math.max(0, d1.r + delta);
   }
@@ -1617,42 +1999,44 @@ function finishDuel(){
 }
 function renderDuelResult(){
   const M = U.match;
-  const res = M.me > M.op ? 'w' : M.me === M.op ? 'd' : 'l';
+  const res = M.res || 'd';
   const label = res === 'w' ? '승리' : res === 'd' ? '무승부' : '패배';
   const cls = res === 'w' ? 'lime' : res === 'd' ? 'sky' : 'red';
-  const title = res === 'w' ? '1대1 완승' : res === 'd' ? '막상막하' : '한 수 아래';
-  const winner = res === 'l' ? M.b : M.a;
-  const wGoals = res === 'l' ? M.op : M.me;
-  const rating = Math.round((6.4 + wGoals * 1.2 + (res === 'w' ? 0.9 : res === 'd' ? 0.2 : -0.4) + Math.min(1, Math.max(0, (winner.ovr - 70) * 0.02))) * 10) / 10;
-  const line = side => (M.goals || []).filter(g => g.side === side)
-    .map(g => `<div class="bsrow"><span class="mm">${esc(g.mm)}</span><span class="nm">${esc(g.name)}</span></div>`).join('') || '<div class="bsrow empty"><span class="nm">득점 없음</span></div>';
+  const title = res === 'w' ? (M.how === 'ko' ? '완전 제압' : 'HP 판정 승리')
+    : res === 'd' ? (M.how === 'ko' ? '동시 다운' : '판정 무승부')
+    : (M.how === 'ko' ? 'K.O. 패배' : 'HP 판정 패배');
+  const mb = p => clamp(Math.round(p * 100), 0, 100);
+  const mr = mb(M.ms.hp / Math.max(1, M.ms.max)), orr = mb(M.os.hp / Math.max(1, M.os.max));
+  const barCls = v => v <= 25 ? 'low' : v <= 52 ? 'mid' : '';
   const reward2 = M.kind === 'ranked'
     ? `<b class="${M.ratingDelta >= 0 ? 'up' : 'dn'}">${M.ratingDelta >= 0 ? '+' : ''}${M.ratingDelta} <small>→ ${fmt(duelRec().r)}</small></b>`
-    : `<b>${M.poss}<small>%</small></b>`;
-  $('#main').innerHTML = `
+    : `<b>${fmt(duelRec().r)} <small>1대1</small></b>`;
+  const main = $('#main');
+  main.className = '';
+  main.innerHTML = `
     <div class="result">
       <div class="rb">
         <div class="rbtop"><span class="tag ${cls}">${label}</span><h3>${title}</h3></div>
-        <div class="fs">${M.me}<i>:</i>${M.op}</div>
         <div class="rteam"><b>${esc(M.a.name)}</b><span>vs</span><b>${esc(M.b.name)}</b></div>
+        <div class="tiny" style="margin-top:3px">${M.turn > DUEL_MAX_TURN ? DUEL_MAX_TURN + '턴 종료 · ' : ''}총 ${Math.min(M.turn, DUEL_MAX_TURN)}턴 진행</div>
       </div>
-      <div class="rewards">
+      <div class="rh"><span>최종 HP</span><span>${M.how === 'ko' ? 'K.O.' : 'HP 판정'}</span></div>
+      <div class="hpres">
+        <div><span>${esc(M.a.name)}</span><b>${Math.max(0, Math.round(M.ms.hp))} / ${M.ms.max}</b>
+          <div class="bar ${barCls(mr)}"><i style="width:${mr}%"></i></div></div>
+        <div><span>${esc(M.b.name)}</span><b>${Math.max(0, Math.round(M.os.hp))} / ${M.os.max}</b>
+          <div class="bar ${barCls(orr)}"><i style="width:${orr}%"></i></div></div>
+      </div>
+      <div class="rewards" style="margin-top:7px">
         <div><span>획득 코인</span><b class="up">+${fmt(M.coins)}</b></div>
-        <div><span>${M.kind === 'ranked' ? '레이팅' : '점유율'}</span>${reward2}</div>
+        <div><span>레이팅</span>${reward2}</div>
       </div>
-      <div class="rh"><span>1대1 스코어보드</span><span>OVR ${M.a.ovr} vs ${M.b.ovr}</span></div>
-      <div class="boxscore">
-        <div class="bscol"><div class="bshead mine">${esc(M.a.name)} <b>${M.me}</b></div>${line('me')}</div>
-        <div class="bscol"><div class="bshead theirs">${esc(M.b.name)} <b>${M.op}</b></div>${line('op')}</div>
-      </div>
-      <div class="rh"><span>오늘의 MVP</span><span>${M.kind === 'ranked' ? 'AI 랭킹 1대1' : M.kind === 'invite' ? '친구 초대 1대1' : '일반 1대1'}</span></div>
-      <div class="mvp">
-        <div class="mvpic">★</div>
-        <div style="min-width:0;flex:1">
-          <div class="nm">${esc(winner.name)}</div>
-          <div class="tiny" style="margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${winner.role} · +${winner.lv}강 · OVR ${winner.ovr} · ${wGoals}골</div>
-        </div>
-        <div class="mvpr"><b>${rating.toFixed(1)}</b><small>RATING</small></div>
+      <div class="rh"><span>배틀 기록</span><span>OVR ${M.a.ovr} vs ${M.b.ovr}</span></div>
+      <div class="dstats">
+        <div><span>준 데미지</span><b>${fmt(M.dmgMe)}</b><small>크리티컬 ${M.critMe}회</small></div>
+        <div><span>받은 데미지</span><b>${fmt(M.dmgOp)}</b><small>크리티컬 ${M.critOp}회</small></div>
+        <div><span>남은 HP</span><b>${mr}%</b><small>상대 ${orr}%</small></div>
+        <div><span>주고받은 턴</span><b>${Math.min(M.turn, DUEL_MAX_TURN)}</b><small>최대 ${DUEL_MAX_TURN}턴</small></div>
       </div>
       <div class="racts">
         <button class="btn primary wide" data-act="duel-again" data-mode="${M.kind}">한 판 더</button>
@@ -1662,8 +2046,7 @@ function renderDuelResult(){
         </div>
       </div>
     </div>
-    <div class="rfoot">보유 코인 ${fmt(S.coins)} · 1대1 전적 ${duelRecordText()} · 레이팅 ${fmt(duelRec().r)}</div>
-  `;
+    <div class="rfoot">보유 코인 ${fmt(S.coins)} · 1대1 전적 ${duelRecordText()} · 레이팅 ${fmt(duelRec().r)}</div>`;
 }
 
 /* ---------- rendering: shell ---------- */
@@ -1689,6 +2072,7 @@ function render(){
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === U.tab));
   if(U.match) return;
   const m = $('#main');
+  m.className = '';
   if(U.tab === 'squad') m.innerHTML = S.draft ? draftHTML() : S.squad ? squadHTML() : introHTML();
   else if(U.tab === 'stadium') m.innerHTML = stadiumHTML();
   else if(U.tab === 'upgrade') m.innerHTML = buffHTML();
@@ -1710,7 +2094,7 @@ function paintBadge(){
 function introHTML(){
   const t = tierOf(S.rank.r);
   const cards = [
-    ['🎲','매 경기 새 임대 스쿼드','포메이션은 무작위. 11개 슬롯마다 26/27 유럽 5대 리그 현역 3명 중 한 명을 고릅니다.'],
+    ['🎲','매 경기 새 임대 스쿼드','포메이션은 무작위. 11개 슬롯마다 26/27 유럽 5대 리그 현역 5명 중 한 명을 고릅니다.'],
     ['⏳','1경기만 뛴다','임대 계약은 한 경기. 경기가 끝나면 11명은 반납되고, 다음 경기는 새 드래프트로 시작합니다.'],
     ['⚡','포지션별 무제한 버프','GK·DF·MF·FW 버프 Lv를 코인으로 계속 올립니다. 상한이 없어서 다음 드래프트부터 그 포지션 전원이 강해집니다.']
   ];
@@ -1795,15 +2179,15 @@ function optionHTML(opt, role, k){
   const nm = P[i][0], club = P[i][1], lg = P[i][2];
   const off = !(sp === role || (role==='ST'&&sp==='SS'));
   const bars = [0,1,2,3].map(k2 => `<i><s style="width:${clamp((st[k2]-40)*1.5,6,100)}%"></s></i>`).join('');
+  const cd = condOf(opt.c);
   return `<button class="pick ${off?'off':''}" data-act="pick" data-k="${k}">
     <div class="ovr"><b>${o}</b><small>OVR</small></div>
     <div class="who">
-      <div class="nm">${esc(nm)}</div>
+      <div class="nm">${esc(nm)}<span class="cond" style="color:${cd.col}">${cd.s}</span></div>
       <div class="cl">기본 ${base}${bl?` <b style="color:var(--lime)">+${bl}</b>`:''} · ${esc(club)} · ${esc(LG[lg] || lg)}</div>
       <div class="bars">${bars}</div>
     </div>
     <div class="rt">
-      <span class="cond" style="color:${condOf(opt.c).col};font-size:11.5px">${condOf(opt.c).s}</span>
       <span class="tag ${off?'amber':''}" style="height:17px;font-size:8.5px">${off?'임시 ':''}${sp}</span>
       <span class="go">→</span>
     </div>
@@ -2267,8 +2651,6 @@ function renderResult(){
       ${goalsCard(M)}
       <div class="rh"><span>오늘의 MVP</span><span>${esc(tacTag(M.tac))}</span></div>
       ${mvpCard(M)}
-      <div class="rh"><span>매치 리포트</span><span>${esc(M.opp.league === 'MIX' ? '믹스 팀' : (LG[M.opp.league] || M.opp.league))}</span></div>
-      ${reportCard(M)}
       <div class="racts">
         <button class="btn primary wide" data-act="next-draft">다음 경기 새 드래프트 →</button>
         <div class="row" style="gap:6px">
@@ -2276,6 +2658,8 @@ function renderResult(){
           <button class="btn dark sm" style="flex:1" data-act="quit-result">경기장으로</button>
         </div>
       </div>
+      <div class="rh"><span>매치 리포트</span><span>${esc(M.opp.league === 'MIX' ? '믹스 팀' : (LG[M.opp.league] || M.opp.league))}</span></div>
+      ${reportCard(M)}
     </div>
     <div class="rfoot">보유 코인 ${fmt(S.coins)} · 랭킹전 ${S.rank.w}승 ${S.rank.d}무 ${S.rank.l}패 · ${esc(tacTag(M.tac))}</div>
     <div class="rental" style="margin-top:8px"><span class="ic">⏳</span><span class="tx"><b>임대 계약 종료</b> · 11명을 반납했습니다. 버프 Lv ${fmt(totalBuf())}은 다음 드래프트에 그대로 적용됩니다.</span></div>`;
@@ -2284,14 +2668,14 @@ function renderResult(){
 function goalsCard(M){
   const g = (M.goals || []).slice().sort((a, b) => a.min - b.min);
   if(!g.length) return '<div class="glist"><div class="gline empty"><span class="nm">득점 없이 경기가 끝났습니다</span></div></div>';
-  const MAX = 6;
-  const rows = g.slice(0, MAX).map(x => `<div class="gline ${x.side === 'me' ? 'me' : 'op'}">
+  /* 다득점이어도 높이 고정 · 안쪽 스크롤, 잘라내지 않는다 */
+  const rows = g.map(x => `<div class="gline ${x.side === 'me' ? 'me' : 'op'}">
       <span class="mm">${esc(x.mm)}</span><span class="dot"></span>
       <span class="nm">${esc(x.name)}</span>
       <span class="tm">${x.side === 'me' ? '임대 XI' : esc(M.opp.club)}</span>
     </div>`).join('');
-  const more = g.length > MAX ? `<div class="tiny" style="text-align:right;margin-top:3px">외 ${g.length - MAX}골</div>` : '';
-  return `<div class="glist">${rows}</div>${more}`;
+  const hint = g.length > 4 ? `<div class="gmore">${g.length}골 · 목록 안에서 스크롤</div>` : '';
+  return `<div class="glist">${rows}</div>${hint}`;
 }
 function reportCard(M){
   const ev = (M.ev || []).filter(e => e.type === 'goal').sort((a, b) => a.min - b.min);
@@ -2350,7 +2734,7 @@ function buffHTML(){
       <div style="text-align:right"><div class="big ${tb>0?'up':''}">${fmt(tb)}</div><div class="tiny">드래프트에 그대로 합산</div></div>
     </div>
     <div class="stack" style="margin-top:10px">${rows}</div>
-    <div class="rental" style="margin-top:10px"><span class="ic">⚡</span><span class="tx">버프는 선수 개인이 아니라 <b>포지션 전체</b>에 걸립니다. 드래프트 3택 카드, 피치, 경기 시뮬레이션 모두 버프가 더해진 능력치로 돌아갑니다.</span></div>
+    <div class="rental" style="margin-top:10px"><span class="ic">⚡</span><span class="tx">버프는 선수 개인이 아니라 <b>포지션 전체</b>에 걸립니다. 드래프트 5택 카드, 피치, 경기 시뮬레이션 모두 버프가 더해진 능력치로 돌아갑니다.</span></div>
     <div class="stack" style="margin-top:11px">
       <button class="btn dark wide" data-act="go-stadium">경기장으로 → 코인 벌기</button>
       <div class="tiny" style="text-align:center">Lv 상한 없음 · 코인이 닿는 만큼 계속 올라갑니다</div>
@@ -2479,7 +2863,7 @@ function growHTML(){
       <div class="dc-l"><span>1 VS 1 · MY PICK</span><b>${esc(nm)}</b><small>${sp} · ${esc(club)}</small></div>
       <div class="dc-r"><b>${ovr}</b><span>+${lv}강</span></div>
     </div>
-    <div class="tiny" style="margin-top:-4px">상대도 1명. 일반전은 실력이 비슷한 선수를, 랭킹전은 내 레이팅에 맞는 선수를 데려옵니다.</div>
+    <div class="tiny" style="margin-top:-4px">기술 4개를 주고받는 턴제 배틀. 상대 HP를 먼저 0으로 만들면 승리. 일반전은 실력이 비슷한 선수를, 랭킹전은 내 레이팅에 맞는 선수를 데려옵니다.</div>
     <div class="row" style="gap:6px">
       <button class="btn dark" style="flex:1" data-act="grow-duel" data-mode="normal">⚔️ 1대1 일반</button>
       <button class="btn dark" style="flex:1" data-act="grow-duel" data-mode="ranked">🏆 1대1 랭킹</button>
@@ -2623,20 +3007,21 @@ document.addEventListener('click', ev => {
   else if(act === 'grow-try'){ growAttempt(); }
   else if(act === 'grow-prot'){ if(S.grow){ S.grow.prot = !S.grow.prot; save(); renderGrow(true); } }
   else if(act === 'grow-duel'){ startDuel(el.dataset.mode); }
+  else if(act === 'duel-move'){ duelPlayerMove(+el.dataset.k); }
+  else if(act === 'duel-auto'){
+    const m = U.match; if(!m || !m.duel || m.over) return;
+    m.auto = !m.auto; paintDuel();
+    if(m.auto && !m.busy) duelPlayerMove(duelAiPick(m, true), true);
+    else if(m.auto && m.busy) paintDuel();
+  }
   else if(act === 'duel-skip'){
     const m = U.match; if(!m || !m.duel || m.over) return;
-    clearInterval(m.timer); m.timer = null; m.half = false;
-    while(m.min < 90 && !m.over){
-      m.min += 5;
-      if(m.min >= 90){ finishDuel(); return; }
-      if(m.min === 45){ pushEvent({type:'half', mm:"45'", text:'전반 종료 · ' + duelScore(m) + '.', cls:'half'}); continue; }
-      duelMinute(m);
-    }
-    paintDuel();
+    m.busy = true;
+    duelSimRest(m);
   }
   else if(act === 'duel-again'){ const k = el.dataset.mode || 'normal'; U.match = null; startDuel(k); }
   else if(act === 'duel-goto-grow'){ U.match = null; U.tab = 'grow'; render(); }
-  else if(act === 'quit-duel'){ if(U.match && U.match.timer) clearInterval(U.match.timer); U.match = null; U.tab = 'grow'; render(); }
+  else if(act === 'quit-duel'){ U.match = null; U.tab = 'grow'; render(); }
   else if(act === 'grow-invite'){ copyGrowInvite(); }
   else if(act === 'backup'){ openBackupSheet(); }
   else if(act === 'backup-download'){ downloadBackup(); }
