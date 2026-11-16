@@ -2010,7 +2010,7 @@ function renderDuelResult(){
   const barCls = v => v <= 25 ? 'low' : v <= 52 ? 'mid' : '';
   const reward2 = M.kind === 'ranked'
     ? `<b class="${M.ratingDelta >= 0 ? 'up' : 'dn'}">${M.ratingDelta >= 0 ? '+' : ''}${M.ratingDelta} <small>→ ${fmt(duelRec().r)}</small></b>`
-    : `<b>${fmt(duelRec().r)} <small>1대1</small></b>`;
+    : `<b>${fmt(duelRec().r)} <small>유지</small></b>`;
   const main = $('#main');
   main.className = '';
   main.innerHTML = `
