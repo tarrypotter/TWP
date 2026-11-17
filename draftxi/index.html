@@ -1515,10 +1515,14 @@ function sanitize(s){
   if(!CUP_TACTS[s.leagueTac]) s.leagueTac = 'balance';
   if(s.league && typeof s.league === 'object' && OPP[s.league.my] && OPP[s.league.my].l){
     const L = s.league;
-    const prev = Array.isArray(L.res) ? L.res : [];
+    const newFx = lgFixtures(lgClubsOf(OPP[L.my].l));
+    /* 리그 편성이 바뀐 저장(예: 26/27 20팀 38라운드 개편)은 새 일정으로 시즌을 다시 시작한다 */
+    const migrated = Array.isArray(L.fx) && L.fx.length !== newFx.length;
+    const prev = migrated ? [] : (Array.isArray(L.res) ? L.res : []);
     L.my = String(L.my); L.lg = OPP[L.my].l;
     L.coins = Math.max(0, Math.round(+L.coins || 0));
     L.at = Math.round(+L.at || Date.now());
+    if(migrated){ L.r = 0; L.done = false; L.pos = 0; L.champ = ''; s.lgMigrated = true; }
     L.fx = lgFixtures(lgClubsOf(L.lg));
     L.table = lgTableInit(lgClubsOf(L.lg));
     L.res = L.fx.map((rd, i) => {
@@ -5626,6 +5630,10 @@ if(typeof window !== 'undefined' && window.addEventListener){
 }
 paintHud();
 render();
+if(S.lgMigrated){
+  delete S.lgMigrated; save();
+  setTimeout(() => toast('26/27 리그가 20팀 38라운드 · 18팀 34라운드로 개편되어 이번 시즌을 새 일정으로 다시 시작합니다'), 500);
+}
 
 </script>
 </body>
