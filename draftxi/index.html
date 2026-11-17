@@ -746,6 +746,27 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .share{background:#0c1713;border:1px dashed var(--line2);border-radius:11px;padding:10px 11px;font-size:10.5px;line-height:1.7;
   color:#b9cdc2;white-space:pre-wrap;word-break:break-all;user-select:text;-webkit-user-select:text}
 
+/* ---------- 26/27 리그 · 순위표 ---------- */
+.seg.two{grid-template-columns:1fr 1fr}
+.stbl{display:flex;flex-direction:column;gap:2px;padding:6px 7px;border-radius:12px;border:1px solid var(--line);
+  background:rgba(11,21,18,.6)}
+.stbl > div{display:grid;grid-template-columns:17px minmax(0,1fr) 23px 16px 16px 16px 29px 25px;gap:3px;align-items:center;
+  padding:4px 3px;border-radius:7px;min-width:0}
+.stbl .sth{padding:0 3px 5px;border-bottom:1px solid var(--line);border-radius:0}
+.stbl .sth span{font-size:8px;font-weight:800;letter-spacing:.02em;color:var(--dim);text-align:center;white-space:nowrap}
+.stbl .sth span:nth-child(2){text-align:left}
+.stbl .str span{font-family:var(--mono);font-size:10px;font-weight:800;color:var(--sub);text-align:center}
+.stbl .str .rk{font-size:9.5px;color:var(--dim)}
+.stbl .str .nm{font-family:var(--sans);font-size:10.5px;font-weight:800;letter-spacing:-.03em;color:#dceee2;
+  text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stbl .str b{font-family:var(--mono);font-size:10.5px;font-weight:900;color:var(--ink);text-align:center}
+.stbl .str .gdp{color:var(--lime)}
+.stbl .str .gdn{color:var(--red)}
+.stbl .str.top .rk{color:var(--gold)}
+.stbl .str.me{background:rgba(205,249,95,.1);box-shadow:inset 0 0 0 1px rgba(205,249,95,.28)}
+.stbl .str.me .nm,.stbl .str.me b{color:var(--lime)}
+.opp.mine{border-color:#3d6a3a;background:linear-gradient(100deg,#17281a,#0d1713)}
+
 /* ---------- sheet / toast ---------- */
 .sheet-host{position:absolute;inset:0;z-index:60;display:none;align-items:flex-end;background:rgba(3,7,5,.66);backdrop-filter:blur(3px)}
 .sheet-host.on{display:flex;animation:fade .16s ease-out}
@@ -935,7 +956,7 @@ button.pill:active{transform:scale(.93)}
     </button>
     <button class="tab" data-tab="cup">
       <svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg>
-      <span>레전드컵</span>
+      <span>대회</span>
     </button>
     <button class="tab" data-tab="grow">
       <svg viewBox="0 0 24 24"><path d="M4 20V9M10 20V4M16 20v-7M22 20V7"/><path d="M2 20h20"/></svg>
@@ -1101,7 +1122,8 @@ const MODES = {
   friendly:{name:'친선전', ic:'🤝', coins:[180,80,40], desc:'리그와 난이도를 직접 골라 가볍게 붙습니다.'},
   invite:{name:'친선전', ic:'⚔️', coins:[180,80,40], desc:'친구가 보낸 임대 스쿼드와 한 판.'},
   ranked:{name:'AI 랭킹전', ic:'🏆', coins:[420,160,80], desc:'레이팅이 오르면 더 센 상대가 기다립니다.'},
-  cup:{name:'레전드 컵', ic:'🏆', coins:[0,0,0], desc:'레전드 시즌 팀을 골라 16강·32강 토너먼트를 치릅니다.'}
+  cup:{name:'레전드 컵', ic:'🏆', coins:[0,0,0], desc:'레전드 시즌 팀을 골라 16강·32강 토너먼트를 치릅니다.'},
+  league:{name:'26/27 리그', ic:'⚽', coins:[0,0,0], desc:'26/27 클럽을 골라 실제 리그 순위전을 치릅니다.'}
 };
 /* 친선전 난이도 5단계 — OVR 보정 + AI 전술 지능 */
 const FDIFF = [
@@ -1365,7 +1387,7 @@ const eul = w => josa(w, '을', '를');
 
 /* ---------- state ---------- */
 let U = {tab:'squad', sel:-1, match:null, friendly:{open:false, league:'EPL', diff:0}, busy:false,
-  bufSeg:'pos', bufQ:'', pbufQ:'', skip:null, favOnly:false, scout:{lg:'EPL', g:'FW'}};
+  bufSeg:'pos', bufQ:'', pbufQ:'', skip:null, favOnly:false, scout:{lg:'EPL', g:'FW'}, contest:'cup', lgSel:null};
 let S = load();
 /* 친선 난이도는 마지막에 고른 단계를 이어받는다 */
 U.friendly.diff = FDIFF.some(d => d.v === +S.fdiff) ? +S.fdiff : 0;
@@ -1379,6 +1401,7 @@ function freshState(){
     q:freshQuests(), drain:{day:'', used:0}, grow:{i:null, lv:0, prot:false, safe:false, last:null, best:0, idx:0, list:[]},
     duel:{w:0,d:0,l:0,r:1000}, squadInfo:null, tactic:'balance',
     cup:null, cupSel:null, cups:[], cupRec:{n:0,w:0,l:0},
+    league:null, leagueSel:null, leagueRec:{n:0,w:0,d:0,l:0}, leagueCups:[], leagueClubs:{}, leagueCare:0, leagueTac:'balance',
     favs:[], favB:0, fboost:0, fdiff:0};
 }
 function sanitize(s){
@@ -1501,6 +1524,52 @@ function sanitize(s){
     if(off.length === 3) s.cupSel = {size:sz, offers:off, rerolled:!!s.cupSel.rerolled};
     else s.cupSel = null;
   } else s.cupSel = null;
+  /* 26/27 리그 — 진행 중 시즌과 리그 우승 기록 (구버전 JSON도 그대로 로드) */
+  s.leagueRec = (s.leagueRec && typeof s.leagueRec === 'object') ? s.leagueRec : {n:0,w:0,d:0,l:0};
+  ['n','w','d','l'].forEach(k => { s.leagueRec[k] = Math.max(0, Math.round(+s.leagueRec[k] || 0)); });
+  s.leagueCups = Array.isArray(s.leagueCups) ? s.leagueCups.filter(x => x && OPP[x.club] && OPP[x.club].l).slice(0, 40).map(x => ({
+    at: Math.round(+x.at || 0), lg: OPP[x.club].l, lgn: String(LG[OPP[x.club].l] || OPP[x.club].l), club: String(x.club),
+    ovr: Math.max(0, Math.round(+x.ovr || 0)), pts: Math.max(0, Math.round(+x.pts || 0)),
+    w: Math.max(0, Math.round(+x.w || 0)), d: Math.max(0, Math.round(+x.d || 0)), l: Math.max(0, Math.round(+x.l || 0)),
+    gf: Math.max(0, Math.round(+x.gf || 0)), ga: Math.max(0, Math.round(+x.ga || 0)),
+    rounds: Math.max(0, Math.round(+x.rounds || 0)), under: !!x.under, coins: Math.max(0, Math.round(+x.coins || 0))
+  })) : [];
+  const lgCl = {};
+  if(s.leagueClubs && typeof s.leagueClubs === 'object' && !Array.isArray(s.leagueClubs)){
+    Object.keys(s.leagueClubs).forEach(k => {
+      const v = Math.round(+s.leagueClubs[k] || 0);
+      if(v > 0 && OPP[k]) lgCl[k] = Math.min(999, v);
+    });
+  }
+  s.leagueClubs = lgCl;
+  s.leagueCare = clamp(Math.round(+s.leagueCare || 0), 0, 2);
+  if(!CUP_TACTS[s.leagueTac]) s.leagueTac = 'balance';
+  if(s.league && typeof s.league === 'object' && OPP[s.league.my] && OPP[s.league.my].l){
+    const L = s.league;
+    const prev = Array.isArray(L.res) ? L.res : [];
+    L.my = String(L.my); L.lg = OPP[L.my].l;
+    L.coins = Math.max(0, Math.round(+L.coins || 0));
+    L.at = Math.round(+L.at || Date.now());
+    L.fx = lgFixtures(lgClubsOf(L.lg));
+    L.table = lgTableInit(lgClubsOf(L.lg));
+    L.res = L.fx.map((rd, i) => {
+      const src = Array.isArray(prev[i]) ? prev[i] : [];
+      return src.filter(x => x && rd.some(t => t[0] === x.h && t[1] === x.a)).map(x => ({
+        h: String(x.h), a: String(x.a), gh: clamp(Math.round(+x.gh || 0), 0, 20), ga: clamp(Math.round(+x.ga || 0), 0, 20), mine: !!x.mine
+      }));
+    });
+    let played = 0;
+    L.res.forEach((rd, i) => { if(rd.length >= L.fx[i].length) played = i + 1; });
+    L.res.forEach(rd => rd.forEach(x => lgApply(L, x.h, x.a, x.gh, x.ga)));
+    L.done = !!L.done || played >= L.fx.length;
+    L.r = clamp(Math.max(played, Math.round(+L.r || 0)), 0, L.fx.length - 1);
+    L.pos = lgPos(L);
+    L.champ = L.done ? ((lgStandings(L)[0] || {}).club || '') : '';
+  } else s.league = null;
+  if(s.leagueSel && typeof s.leagueSel === 'object' && !s.league){
+    const off = Array.isArray(s.leagueSel.offers) ? s.leagueSel.offers.filter(c => !!OPP[c]).slice(0, 3) : [];
+    s.leagueSel = off.length === 3 ? {offers:off, rerolled:!!s.leagueSel.rerolled} : null;
+  } else s.leagueSel = null;
   return s;
 }
 function load(){
@@ -2314,7 +2383,9 @@ function openCupHistory(){
   $('#sheetHost').classList.add('on');
 }
 function openMenuSheet(){
-  const n = claimCount(), cups = (S.cups || []).length;
+  const n = claimCount(), cups = (S.cups || []).length, lgc = (S.leagueCups || []).length, L = S.league;
+  const lgSub = L ? (L.done ? (LG[L.lg] || '') + ' ' + L.pos + '위 마감 · 새 시즌' : (LG[L.lg] || '') + ' R' + (L.r + 1) + '/' + L.fx.length + ' 진행 중')
+    : (lgc ? '리그 우승 ' + lgc + '회' : '5대 리그 실제 순위전');
   $('#sheet').innerHTML = `<div class="grab"></div>
     <div class="eyebrow">MENU</div>
     <div style="font-size:16px;font-weight:900;letter-spacing:-.03em;margin-top:3px">전체 메뉴</div>
@@ -2323,7 +2394,10 @@ function openMenuSheet(){
       <button class="mrow" data-act="menu-upgrade"><span class="mi">⚡</span><span class="mt"><b>버프 강화</b><span>포지션 · 팀컬러 · 선수별 Lv</span></span><span class="go">›</span></button>
       <button class="mrow" data-act="menu-quest"><span class="mi">📋</span><span class="mt"><b>퀘스트</b><span>일일 · 주간 · 도전 과제</span></span>${n ? `<span class="mb">${n > 9 ? '9+' : n}</span>` : '<span class="go">›</span>'}</button>
       <button class="mrow" data-act="menu-ranking"><span class="mi">🏅</span><span class="mt"><b>랭킹 · 전적</b><span>11대11 랭킹 · 1대1 · 공유</span></span><span class="go">›</span></button>
+      <button class="mrow" data-act="menu-cup"><span class="mi">🏆</span><span class="mt"><b>레전드 컵</b><span>${cups ? '우승 ' + cups + '회 · 16·32강 토너먼트' : '레전드 시즌 팀 토너먼트'}</span></span><span class="go">›</span></button>
+      <button class="mrow" data-act="menu-league"><span class="mi">⚽</span><span class="mt"><b>26/27 리그</b><span>${esc(lgSub)}</span></span><span class="go">›</span></button>
       <button class="mrow" data-act="cup-history"><span class="mi">🏆</span><span class="mt"><b>레전드 컵 트로피</b><span>${cups ? '우승 ' + cups + '회 기록' : '아직 우승 기록이 없습니다'}</span></span><span class="go">›</span></button>
+      <button class="mrow" data-act="lg-history"><span class="mi">⚽</span><span class="mt"><b>26/27 리그 트로피</b><span>${lgc ? '리그 우승 ' + lgc + '회 기록' : '아직 리그 우승 기록이 없습니다'}</span></span><span class="go">›</span></button>
       <button class="mrow" data-act="menu-backup"><span class="mi">💾</span><span class="mt"><b>백업 · 불러오기</b><span>JSON으로 저장하거나 복원</span></span><span class="go">›</span></button>
       <button class="mrow" data-act="menu-reset"><span class="mi">🗑</span><span class="mt"><b>전체 초기화</b><span>코인 · 전적 · 트로피까지 삭제</span></span><span class="go">›</span></button>
     </div>
@@ -2496,6 +2570,452 @@ function renderCupResult(M){
     <div class="rfoot">보유 코인 ${fmt(S.coins)} · 레전드 컵 ${(S.cups || []).length}회 우승</div>`;
 }
 
+/* ---------- 26/27 리그 · 실제 리그 순위전 ---------- */
+const LG_ROUND_COINS = {w:210, d:90, l:45};
+const LG_SEASON_COINS = [2600, 900, 400];   /* 1·2·3위 시즌 보상 */
+
+function lgAllClubs(){ return Object.keys(OPP).filter(c => OPP[c] && OPP[c].l && LG[OPP[c].l]); }
+function lgClubsOf(lg){ return Object.keys(OPP).filter(c => OPP[c] && OPP[c].l === lg); }
+function lgOvr(club){ const o = OPP[club]; return o ? clamp(Math.round(+o.o || 80), 60, 99) : 80; }
+let LG_TAC_MAP = null;
+function lgTacMap(){
+  if(!LG_TAC_MAP){
+    LG_TAC_MAP = {};
+    lgAllClubs().forEach((c, i) => { LG_TAC_MAP[c] = CUP_TAC_KEYS[(i * 5 + 3) % CUP_TAC_KEYS.length]; });
+  }
+  return LG_TAC_MAP;
+}
+function lgTacOf(club){ return lgTacMap()[club] || 'balance'; }
+function lgAvgOvr(lg){ const a = lgClubsOf(lg); return a.length ? a.reduce((s, c) => s + lgOvr(c), 0) / a.length : 80; }
+function lgIsUnderdog(club){
+  const o = OPP[club]; if(!o || !o.l) return false;
+  return lgOvr(club) <= lgAvgOvr(o.l) - 2.2;
+}
+function lgPlayerOvr(club, name, role){
+  let i = P.findIndex(p => p[0] === name && p[1] === club);
+  if(i < 0) i = P.findIndex(p => p[0] === name);
+  if(i >= 0) return clamp(Math.round(+P[i][4] || 70), 55, 99);
+  const off = {GK:-1, SW:-2, CB:-3, LB:-2, RB:-2, RWB:-2, LWB:-2, DM:-1, CM:1, AM:2, RM:1, LM:1, LW:2, RW:2, RF:2, LF:2, CF:3, ST:3, SS:2}[role];
+  return clamp(lgOvr(club) + (off == null ? 0 : off), 58, 99);
+}
+/* 클럽 현역 베스트 11 — 모자란 자리는 같은 클럽 → 같은 리그 풀에서 채운다 */
+function lgRoster(club){
+  const o = OPP[club]; if(!o) return [];
+  const out = (o.xi || []).slice(0, 11).map(p => ({name:p[0], role:p[1], ovr:lgPlayerOvr(club, p[0], p[1])}));
+  if(out.length >= 11) return out;
+  const used = new Set(out.map(x => x.name));
+  const add = cand => {
+    if(out.length >= 11 || used.has(cand[0])) return;
+    used.add(cand[0]);
+    out.push({name:cand[0], role:cand[3], ovr:clamp(Math.round(+cand[4] || 70), 55, 99)});
+  };
+  P.filter(p => p[1] === club).sort((a, b) => b[4] - a[4]).forEach(add);
+  if(out.length < 11 && o.l) P.filter(p => p[2] === o.l).sort((a, b) => b[4] - a[4]).forEach(add);
+  return out;
+}
+function lgSide(club){
+  const e = lgRoster(club), avg = a => a.length ? a.reduce((s, v) => s + v, 0) / a.length : 60;
+  const gk = e.filter(x => cupGrp(x.role) === 'GK')[0];
+  const df = e.filter(x => cupGrp(x.role) === 'DF'), mf = e.filter(x => cupGrp(x.role) === 'MF'), fw = e.filter(x => cupGrp(x.role) === 'FW');
+  return {ovr:lgOvr(club), att:avg(fw.map(x => x.ovr)), mid:avg(mf.map(x => x.ovr)),
+    def:avg(df.map(x => x.ovr)) * 0.78 + (gk ? gk.ovr : 60) * 0.22, cond:0, entries:e, syn:0, name:club};
+}
+function lgOpp(club, round){
+  const s = lgSide(club), o = OPP[club] || {};
+  return {club, league:o.l || 'EPL', base:lgOvr(club), att:s.att + 0.6, mid:s.mid, def:s.def + 0.4,
+    xi:(o.xi || []).map(p => [p[0], p[1]]), cupTac:lgTacOf(club),
+    ai:aiProfile(clamp(Math.round((lgOvr(club) - 78) * 1.15), 0, 9))};
+}
+/* 같은 리그 클럽들로 라운드로빈 · 8팀 이하는 더블 라운드로빈 */
+function lgFixtures(clubs){
+  const list = clubs.slice();
+  if(list.length % 2) list.push(null);
+  const n = list.length, out = [], rot = list.slice(1);
+  for(let r = 0; r < n - 1; r++){
+    const line = [list[0]].concat(rot), pairs = [];
+    for(let i = 0; i < n / 2; i++){
+      const a = line[i], b = line[n - 1 - i];
+      if(a && b) pairs.push(r % 2 ? [b, a] : [a, b]);
+    }
+    if(pairs.length) out.push(pairs);
+    rot.unshift(rot.pop());
+  }
+  if(clubs.length <= 8) return out.concat(out.map(rd => rd.map(t => [t[1], t[0]])));
+  return out;
+}
+function lgTableInit(clubs){ const t = {}; clubs.forEach(c => { t[c] = {p:0, w:0, d:0, l:0, gf:0, ga:0, pts:0}; }); return t; }
+function lgApply(L, h, a, gh, ga){
+  const T = L.table || (L.table = lgTableInit(lgClubsOf(L.lg)));
+  if(!T[h] || !T[a]) return;
+  T[h].p += 1; T[a].p += 1;
+  T[h].gf += gh; T[h].ga += ga; T[a].gf += ga; T[a].ga += gh;
+  if(gh > ga){ T[h].w += 1; T[a].l += 1; T[h].pts += 3; }
+  else if(gh < ga){ T[a].w += 1; T[h].l += 1; T[a].pts += 3; }
+  else { T[h].d += 1; T[a].d += 1; T[h].pts += 1; T[a].pts += 1; }
+}
+function lgStandings(L){
+  const T = L.table || {}, rows = lgClubsOf(L.lg).map(c => {
+    const s = T[c] || {p:0, w:0, d:0, l:0, gf:0, ga:0, pts:0};
+    return {club:c, p:s.p, w:s.w, d:s.d, l:s.l, gf:s.gf, ga:s.ga, gd:s.gf - s.ga, pts:s.pts};
+  });
+  rows.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.club.localeCompare(b.club));
+  rows.forEach((r, i) => { r.rank = i + 1; });
+  return rows;
+}
+function lgStarted(L){ return lgStandings(L).some(x => x.p > 0); }
+function lgPos(L){
+  const r = lgStandings(L).filter(x => x.club === L.my)[0];
+  return r ? r.rank : 0;
+}
+function lgMyTie(L){
+  const rd = L.fx && L.fx[L.r]; if(!rd) return null;
+  return rd.filter(t => t[0] === L.my || t[1] === L.my)[0] || null;
+}
+function lgRosterTop(club){
+  return lgRoster(club).slice().sort((a, b) => b.ovr - a.ovr).slice(0, 3).map(x => shortNm(x.name) + ' ' + x.ovr).join(' · ');
+}
+function lgSimScore(h, a){
+  const d = (lgOvr(h) - lgOvr(a)) * 0.5 + 1.1;
+  const gh = Math.max(0, Math.round(1.25 + d * 0.17 + rnd(-0.85, 0.85)));
+  const ga = Math.max(0, Math.round(1.25 - d * 0.17 + rnd(-0.85, 0.85)));
+  return [gh, ga];
+}
+function lgOffer(){
+  S.leagueSel = {offers:cupShuffle(lgAllClubs()).slice(0, 3), rerolled:false};
+  U.lgSel = S.leagueSel; U.match = null; U.tab = 'cup'; U.contest = 'league';
+  save(); render();
+}
+/* 티켓 1장 · 시즌당 1회 팀 리롤 (무료 리롤 없음) */
+function lgReroll(){
+  const sel = S.leagueSel || U.lgSel;
+  if(!sel){ toast('팀 선택 화면이 아닙니다'); return; }
+  if(sel.rerolled){ toast('이번 시즌 리롤은 이미 사용했습니다'); return; }
+  if(ticketCount() < CUP_REROLL_TICKET){ toast('패스 티켓이 ' + (CUP_REROLL_TICKET - ticketCount()) + '장 부족합니다'); return; }
+  spendTickets(CUP_REROLL_TICKET);
+  const cur = sel.offers.slice();
+  let next = cur;
+  for(let i = 0; i < 20 && next.every(c => cur.indexOf(c) >= 0); i++) next = cupShuffle(lgAllClubs()).slice(0, 3);
+  sel.offers = next; sel.rerolled = true;
+  S.leagueSel = sel; U.lgSel = sel;
+  save(); render();
+  toast('🎫' + CUP_REROLL_TICKET + ' · 다른 3팀으로 교체 · 시즌당 1회 한정');
+}
+function lgStart(club){
+  if(!OPP[club] || !OPP[club].l) return;
+  const lg = OPP[club].l, clubs = lgClubsOf(lg), fx = lgFixtures(clubs);
+  S.league = {lg, my:club, fx, res:fx.map(() => []), table:lgTableInit(clubs), r:0,
+    done:false, pos:0, champ:'', coins:0, at:Date.now()};
+  S.leagueSel = null; U.lgSel = null; S.leagueCare = 0;
+  U.match = null; U.tab = 'cup'; U.contest = 'league';
+  save(); render();
+  toast('🏁 ' + (LG[lg] || lg) + ' 개막 · ' + club + ' · ' + fx.length + '라운드');
+}
+function lgPlay(){
+  const L = S.league; if(!L || L.done) return;
+  const t = lgMyTie(L); if(!t) return;
+  const home = t[0] === L.my, oppClub = home ? t[1] : t[0];
+  const side = lgSide(L.my);
+  startMatch('league', lgOpp(oppClub, L.r), {team:side, myName:L.my, roster:side.entries,
+    round:'R' + (L.r + 1) + ' ' + (home ? '홈' : '원정')});
+}
+function lgCare(kind){
+  const L = S.league;
+  if(!L || L.done){ toast('진행 중인 시즌이 없습니다'); return; }
+  const care = clamp(Math.round(+S.leagueCare || 0), 0, 2);
+  const v = kind === 'max' ? 2 : 1;
+  if(care >= v){ toast(care >= 2 ? '이미 최상 컨디션입니다' : '이미 컨디션을 올렸습니다'); return; }
+  const cost = kind === 'max' ? CARE.max.cost : CARE.lift.cost;
+  if(S.coins < cost){ toast('코인이 ' + fmt(cost - S.coins) + ' 부족합니다'); return; }
+  S.coins -= cost; S.leagueCare = v; save(); paintHud(); render();
+  toast('컨디션 ' + (v >= 2 ? '최상' : '좋음') + ' · 이번 경기 한정');
+}
+function lgRestRound(){
+  const L = S.league; if(!L || L.done){ render(); return; }
+  if(lgMyTie(L)){ toast('이번 라운드에 내 경기가 있습니다'); return; }
+  L.res[L.r] = L.res[L.r] || [];
+  L.fx[L.r].forEach(f => {
+    const [gh, ga] = lgSimScore(f[0], f[1]);
+    lgApply(L, f[0], f[1], gh, ga);
+    L.res[L.r].push({h:f[0], a:f[1], gh, ga});
+  });
+  L.r += 1;
+  if(L.r >= L.fx.length) lgFinishSeason(L, null);
+  save(); render();
+}
+function lgFinishSeason(L, M){
+  L.done = true;
+  const rows = lgStandings(L), mine = rows.filter(r => r.club === L.my)[0];
+  const pos = mine ? mine.rank : rows.length;
+  L.pos = pos; L.champ = rows[0] ? rows[0].club : '';
+  L.r = Math.max(0, L.fx.length - 1);
+  const bonus = LG_SEASON_COINS[pos - 1] || 0;
+  if(bonus){ S.coins += bonus; L.coins = (L.coins || 0) + bonus; }
+  if(M) M.titleBonus = bonus;
+  if(pos === 1 && mine){
+    const rec = {at:Date.now(), lg:L.lg, lgn:LG[L.lg] || L.lg, club:L.my, ovr:lgOvr(L.my),
+      pts:mine.pts, w:mine.w, d:mine.d, l:mine.l, gf:mine.gf, ga:mine.ga, rounds:L.fx.length,
+      under:lgIsUnderdog(L.my), coins:L.coins || 0};
+    S.leagueCups = [rec].concat(S.leagueCups || []).slice(0, 40);
+    S.leagueClubs = Object.assign({}, S.leagueClubs || {});
+    S.leagueClubs[L.my] = (S.leagueClubs[L.my] || 0) + 1;
+    if(M) M.champion = true;
+  }
+}
+function finishLeagueMatch(M){
+  const L = S.league;
+  if(!L || L.done){ U.match = null; U.tab = 'cup'; U.contest = 'league'; render(); return; }
+  const t = lgMyTie(L);
+  if(!t){ U.match = null; U.tab = 'cup'; U.contest = 'league'; render(); return; }
+  const home = t[0] === L.my;
+  const res = M.me > M.op ? 'w' : M.me === M.op ? 'd' : 'l';
+  M.res = res; M.home = home; M.mvp = pickMVP(M); M.roundNo = L.r + 1;
+  M.roundName = 'R' + (L.r + 1) + (home ? ' 홈' : ' 원정');
+  const gh = home ? M.me : M.op, ga = home ? M.op : M.me;
+  L.res[L.r] = [{h:t[0], a:t[1], gh, ga, mine:true}];
+  lgApply(L, t[0], t[1], gh, ga);
+  L.fx[L.r].forEach(f => {
+    if(f[0] === t[0] && f[1] === t[1]) return;
+    const [x, y] = lgSimScore(f[0], f[1]);
+    lgApply(L, f[0], f[1], x, y);
+    L.res[L.r].push({h:f[0], a:f[1], gh:x, ga:y});
+  });
+  M.roundResults = L.res[L.r].slice();
+  const gd = Math.abs(M.me - M.op);
+  const coins = res === 'w' ? LG_ROUND_COINS.w + gd * 20 : res === 'd' ? LG_ROUND_COINS.d : LG_ROUND_COINS.l;
+  M.coins = coins;
+  S.coins += coins; L.coins = (L.coins || 0) + coins;
+  S.leagueCare = 0;
+  if(!S.leagueRec) S.leagueRec = {n:0, w:0, d:0, l:0};
+  S.leagueRec.n += 1; S.leagueRec[res] = (S.leagueRec[res] || 0) + 1;
+  ensureQuests(); questAdd('game', 1); questAdd('g11', 1);
+  if(res === 'w') questAdd('win', 1);
+  L.r += 1;
+  if(L.r >= L.fx.length) lgFinishSeason(L, M);
+  M.pos = lgPos(L);
+  save(); paintHud();
+  renderLeagueResult(M);
+}
+function lgTableHTML(L, limit){
+  const rows = lgStandings(L), me = rows.filter(r => r.club === L.my)[0];
+  let list = rows;
+  if(limit && rows.length > limit){
+    list = rows.slice(0, limit);
+    if(me && me.rank > limit) list = list.concat([me]);
+  }
+  const row = r => {
+    const gd = r.gd > 0 ? '+' + r.gd : String(r.gd);
+    return `<div class="str ${r.club === L.my ? 'me' : ''} ${r.rank === 1 ? 'top' : ''}"><span class="rk">${r.rank}</span><span class="nm">${esc(r.club)}</span><span>${r.p}</span><span>${r.w}</span><span>${r.d}</span><span>${r.l}</span><span class="${r.gd > 0 ? 'gdp' : r.gd < 0 ? 'gdn' : ''}">${gd}</span><b>${r.pts}</b></div>`;
+  };
+  return `<div class="stbl"><div class="sth"><span>#</span><span>팀</span><span>경기</span><span>승</span><span>무</span><span>패</span><span>득실</span><span>승점</span></div>${list.map(row).join('')}</div>`;
+}
+function lgRoundRows(list){
+  return (list || []).map(x => `<div class="opp ${x.mine ? 'mine' : ''}"><div class="cr">${x.gh}:${x.ga}</div><div class="nm">${esc(x.h)}<span class="tiny" style="margin-left:4px">vs</span> ${esc(x.a)}</div>${x.mine ? '<span class="tag lime">내 경기</span>' : ''}</div>`).join('');
+}
+function lgTrophyRow(r){
+  return `<div class="trop"><div class="ic">${r.under ? '🐴' : '🏆'}</div><div class="tx">
+    <b>${esc(r.club)}${r.under ? ' · 언더독' : ''}</b>
+    <span>${esc(r.lgn || LG[r.lg] || '')} 우승 · ${r.pts}점 ${r.w}-${r.d}-${r.l}${r.rounds ? ' · ' + r.rounds + '라운드' : ''}</span>
+    <small>${kstLabel(r.at)} · OVR ${r.ovr} · +${fmt(r.coins || 0)}C</small>
+  </div></div>`;
+}
+function lgClubRows(){
+  const m = S.leagueClubs || {};
+  const ks = Object.keys(m).filter(k => OPP[k] && m[k] > 0).sort((a, b) => m[b] - m[a]);
+  if(!ks.length) return '<div class="tiny">아직 리그 우승 기록이 없습니다. 26/27 리그에 도전해 보세요.</div>';
+  return `<div class="path">${ks.map(k => `<div class="pr now"><span class="rd">${m[k]}회</span><span class="op">${esc(k)}</span><span class="sc">${esc(LG[OPP[k].l] || '')}${lgIsUnderdog(k) ? ' 🐴' : ''}</span></div>`).join('')}</div>`;
+}
+function openLeagueHistory(){
+  const cups = S.leagueCups || [], rec = S.leagueRec || {n:0, w:0, d:0, l:0};
+  const under = cups.filter(x => x.under).length;
+  $('#sheet').innerHTML = `<div class="grab"></div>
+    <div class="eyebrow">26/27 LEAGUE · TROPHY</div>
+    <div style="font-size:16px;font-weight:900;letter-spacing:-.03em;margin-top:3px">리그 우승 ${cups.length}회${under ? ' · 언더독 ' + under + '회 🐴' : ''}</div>
+    <div class="muted" style="margin-top:5px">시즌 ${rec.n}회 · ${rec.w}승 ${rec.d}무 ${rec.l}패. 5대 리그 실제 순위전 기록입니다.</div>
+    <div class="stack" style="margin-top:12px">${cups.length ? cups.map(lgTrophyRow).join('') : '<div class="tiny">아직 리그 우승 기록이 없습니다. 26/27 리그에 도전해 보세요.</div>'}</div>
+    <div class="sect-h" style="margin-top:14px"><div class="eyebrow g">클럽별 우승</div></div>
+    ${lgClubRows()}
+    <button class="btn dark wide" style="margin-top:12px" data-act="close-sheet">닫기</button>`;
+  $('#sheetHost').classList.add('on');
+}
+function tacStateKey(){
+  const M = U.match;
+  if(M && M.mode === 'league') return 'leagueTac';
+  if(M && M.mode === 'cup') return 'cupTac';
+  return (U.contest || 'cup') === 'league' ? 'leagueTac' : 'cupTac';
+}
+function tacHintHTML(opTac){
+  const my = S[tacStateKey()] || 'balance', e = cupEdge(my, opTac);
+  return e > 0 ? '상성 우위 🔥 · ' + CUP_TACTS[my].name + josa(CUP_TACTS[my].name, '이', '가') + ' ' + CUP_TACTS[opTac].name + josa(CUP_TACTS[opTac].name, '을', '를') + ' 흔듭니다'
+    : e < 0 ? '상성 열세 ⚠️ · ' + CUP_TACTS[opTac].name + josa(CUP_TACTS[opTac].name, '이', '가') + ' 유리합니다. 전술을 바꿔보세요'
+    : '상성 대등 · 하프타임에도 바꿀 수 있습니다';
+}
+function contestSegHTML(){
+  const k = U.contest || 'cup', L = S.league;
+  const st = L ? (L.done ? '결산' : 'R' + (L.r + 1) + '/' + L.fx.length) : '';
+  return `<div class="segwrap"><div class="seg two">
+    <button class="${k === 'cup' ? 'on' : ''}" data-act="contest-seg" data-k="cup">🏆 레전드 컵</button>
+    <button class="${k === 'league' ? 'on' : ''}" data-act="contest-seg" data-k="league">26/27 리그${st ? ' <small>' + esc(st) + '</small>' : ''}</button>
+  </div></div>`;
+}
+function lgIntroHTML(){
+  const cups = S.leagueCups || [], rec = S.leagueRec || {n:0, w:0, d:0, l:0};
+  const under = cups.filter(x => x.under).length, total = lgAllClubs().length;
+  return `<div class="eyebrow">26/27 LEAGUE · 5대 리그 순위전</div>
+    <h2 class="title">⚽ 26/27 리그</h2>
+    <section class="hero" style="margin-top:10px">
+      <div class="eyebrow">REAL LEAGUE SEASON</div>
+      <h2>26/27 클럽으로<br><em>리그 우승</em></h2>
+      <p>5대 리그 1부 ${total}팀 중 랜덤 3팀을 제안받아 한 클럽을 고릅니다. 그 클럽의 현역 베스트 11로 10~12라운드 실제 순위전을 치르고, 같은 리그 다른 팀 경기도 같이 돌아가 순위표가 라운드마다 갱신됩니다.</p>
+      <div class="facts"><span class="fact">5대 리그 <b>${total}팀</b></span><span class="fact">한 시즌 <b>10~12경기</b></span><span class="fact">리그 우승 <b>2,600C</b></span></div>
+    </section>
+    <div class="sect stack">
+      <button class="btn primary wide" data-act="lg-open">시즌 시작 · 랜덤 3팀 보기</button>
+      <div class="tiny" style="text-align:center">고른 클럽은 시즌 내내 그대로 · 코인 버프 없이 전술로만</div>
+    </div>
+    <div class="sect"><div class="grid2">
+      <div class="gcard"><span>리그 우승</span><b>${cups.length}</b><small>${cups.length ? '트로피 ' + cups.length + '개' : '도전 기록 없음'}</small></div>
+      <div class="gcard"><span>시즌 전적</span><b>${rec.w}-${rec.d}-${rec.l}</b><small>${rec.n}경기 · 무승부 포함</small></div>
+    </div>${under ? `<div class="tiny" style="margin-top:7px">🐴 언더독 우승 ${under}회 · 리그 평균보다 낮은 전력으로 정상</div>` : ''}</div>
+    <div class="sect"><div class="sect-h"><div class="eyebrow g">클럽별 우승</div><button class="chip" data-act="lg-history">전체 기록</button></div>${lgClubRows()}</div>
+    ${cups.length ? `<div class="sect"><div class="sect-h"><div class="eyebrow g">RECENT TROPHY</div><div class="tiny">${kstLabel(cups[0].at)}</div></div>${lgTrophyRow(cups[0])}</div>` : ''}`;
+}
+function lgPickHTML(){
+  const sel = S.leagueSel || U.lgSel;
+  const cands = sel && Array.isArray(sel.offers) ? sel.offers.filter(c => !!OPP[c]) : [];
+  if(cands.length !== 3){ S.leagueSel = null; U.lgSel = null; return lgIntroHTML(); }
+  U.lgSel = sel;
+  return `<div class="eyebrow">26/27 LEAGUE · 팀 선택</div>
+    <h2 class="title">시즌을 뛸 클럽을 고르세요</h2>
+    <div class="tiny" style="margin-top:3px">5대 리그 1부 클럽 중 랜덤 3팀입니다. 클럽 전력은 고정 — 전술·상성·컨디션으로만 이깁니다.</div>
+    <div class="pick3" style="margin-top:11px">
+      ${cands.map(c => {
+        const tac = CUP_TACTS[lgTacOf(c)];
+        return `<div class="cupick">
+          <div class="hd"><i>${esc(LG[OPP[c].l] || OPP[c].l)}</i><b>${esc(c)}</b></div>
+          <div class="ov">${lgOvr(c)}</div>
+          <div class="st">${esc(lgRosterTop(c))}</div>
+          <div class="stars"><span class="tag">${esc(tac.ic + ' ' + tac.name)}</span>${lgIsUnderdog(c) ? '<span class="tag amber">🐴 언더독</span>' : '<span class="tag lime">우승 후보</span>'}</div>
+          <button class="go" data-act="lg-pick" data-c="${esc(c)}">이 클럽으로 시즌 시작 →</button>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="sect stack">
+      ${sel.rerolled
+        ? `<button class="btn dark wide" disabled>🎫 리롤 사용 완료 · 시즌당 1회</button>`
+        : `<button class="btn dark wide" data-act="lg-reroll" style="${ticketCount() < CUP_REROLL_TICKET ? 'opacity:.55' : ''}">🎫 ${CUP_REROLL_TICKET}장 · 다른 3팀 보기 (시즌당 1회)</button>`}
+      <div class="tiny" style="text-align:center">티켓이 없으면 지금 3팀 중 하나를 골라야 합니다 · 무료 리롤 없음</div>
+      <button class="btn dark wide" data-act="lg-cancel">돌아가기</button>
+    </div>`;
+}
+function lgSeasonHTML(){
+  const L = S.league, my = L.my, t = lgMyTie(L);
+  const pos = lgPos(L), N = L.fx.length;
+  const home = t ? t[0] === my : false, oppClub = t ? (home ? t[1] : t[0]) : null;
+  const side = lgSide(my);
+  const care = clamp(Math.round(+S.leagueCare || 0), 0, 2);
+  const last = L.r > 0 ? (L.res[L.r - 1] || []) : [];
+  return `<div class="eyebrow">26/27 ${esc(LG[L.lg] || L.lg)} · R${L.r + 1}/${N}</div>
+    <h2 class="title">${esc(my)} <span class="mono" style="font-size:13px;color:var(--dim)">${lgStarted(L) ? pos + '위' : '개막'}</span></h2>
+    <div class="tiny" style="margin-top:3px">OVR ${lgOvr(my)} · 고정 전력 · 코인 버프 없음${lgIsUnderdog(my) ? ' · 🐴 언더독 도전' : ''}</div>
+    ${t ? `<div class="cupvs" style="margin-top:10px">
+      <div class="between"><span class="eyebrow">R${L.r + 1} · ${home ? '홈' : '원정'}</span><span class="tag amber">OVR ${lgOvr(oppClub)}</span></div>
+      <div class="ttl"><i>${esc(LG[OPP[oppClub].l] || '')}</i>${esc(oppClub)}</div>
+      <div class="st">${esc(lgRosterTop(oppClub))}</div>
+      <div class="between" style="margin-top:10px"><span class="eyebrow g">내 전술 · 상대 성향</span>
+        <span class="tiny">상대 <b style="color:var(--amber)">${CUP_TACTS[lgTacOf(oppClub)].ic} ${CUP_TACTS[lgTacOf(oppClub)].name}</b></span></div>
+      <div class="tacbar" style="margin-top:7px">${tacBarHTML(true)}</div>
+      <div class="tiny" style="margin-top:6px">${tacHintHTML(lgTacOf(oppClub))}</div>
+      <div class="row" style="gap:6px;margin-top:9px">
+        <button class="chip ${care >= 1 ? 'on' : ''}" data-act="lg-care" data-k="lift">⚡ 컨디션↑ ${fmt(CARE.lift.cost)}</button>
+        <button class="chip ${care >= 2 ? 'on' : ''}" data-act="lg-care" data-k="max">🔥 최상 ${fmt(CARE.max.cost)}</button>
+      </div>
+      <div class="tiny" style="margin-top:4px">컨디션 케어는 경기당 1회 · 리그는 코인 버프가 적용되지 않습니다</div>
+      <button class="btn primary wide" style="margin-top:9px" data-act="lg-play">R${L.r + 1} ${home ? '홈' : '원정'} 경기 시작 →</button>
+    </div>`
+    : `<div class="card" style="padding:12px;margin-top:10px">
+        <div class="between"><span class="eyebrow">R${L.r + 1} · 휴식</span><span class="tag">이번 라운드 부전</span></div>
+        <div class="tiny" style="margin-top:6px">이번 라운드는 다른 팀 경기만 진행됩니다. 순위표를 확인하고 넘어가세요.</div>
+        <button class="btn primary wide" style="margin-top:9px" data-act="lg-rest">라운드 넘기기 →</button>
+      </div>`}
+    <div class="sect">
+      <div class="sect-h"><div class="eyebrow g">리그 순위표</div><div class="tiny">${esc(LG[L.lg] || '')} · ${N}라운드</div></div>
+      ${lgTableHTML(L)}
+      <div class="tiny" style="margin-top:6px">승점 → 득실 → 다득점 순. 시즌 종료 1위가 리그 우승입니다.</div>
+    </div>
+    ${last.length ? `<div class="sect"><div class="sect-h"><div class="eyebrow g">지난 라운드 결과</div><div class="tiny">R${L.r}</div></div><div class="opps">${lgRoundRows(last)}</div></div>` : ''}
+    <div class="sect"><div class="sect-h"><div class="eyebrow g">내 베스트 11</div><div class="tiny">OVR ${lgOvr(my)}</div></div>
+      <div class="xi">${side.entries.map(x => `<div class="xr"><span class="ps">${esc(x.role)}</span><span class="nm">${esc(x.name)}</span><b>${x.ovr}</b></div>`).join('')}</div>
+    </div>
+    <div class="sect"><button class="btn dark wide" data-act="lg-abandon">시즌 중도 포기</button></div>`;
+}
+function lgDoneHTML(){
+  const L = S.league;
+  if(!L || !OPP[L.my]){ S.league = null; save(); return lgIntroHTML(); }
+  const rows = lgStandings(L), pos = lgPos(L), champ = rows[0] || null;
+  const champMe = pos === 1, under = lgIsUnderdog(L.my), cups = S.leagueCups || [];
+  return `<div class="eyebrow">26/27 ${esc(LG[L.lg] || L.lg)} · 시즌 종료</div>
+    <h2 class="title">⚽ ${esc(L.my)}</h2>
+    <div style="margin-top:10px" class="${champMe ? 'cuptro' : 'cupcard'}">
+      ${champMe ? `<div class="ic">🏆</div><div class="tx"><b>${esc(L.my)} 리그 우승${under ? ' 🐴' : ''}</b>
+        <span>${esc(LG[L.lg] || '')} ${champ.pts}점 · ${champ.w}승 ${champ.d}무 ${champ.l}패</span>
+        <small>리그 우승 ${cups.length}회${under ? ' · 언더독 우승' : ''} · 보상 +${fmt(L.coins || 0)}C</small></div>`
+      : `<div class="lc">🏁</div><div class="tx"><b>${esc(L.my)} · ${pos}위 마감</b>
+        <span>우승 ${esc(champ ? champ.club : '—')}${champ ? ' (' + champ.pts + '점)' : ''} · 보상 +${fmt(L.coins || 0)}C</span></div>`}
+    </div>
+    <div class="sect"><div class="sect-h"><div class="eyebrow g">최종 순위표</div><div class="tiny">${esc(LG[L.lg] || '')}</div></div>${lgTableHTML(L)}</div>
+    <div class="sect stack">
+      <button class="btn primary wide" data-act="lg-new">새 시즌 시작</button>
+      <div class="row" style="gap:6px">
+        <button class="btn dark sm" style="flex:1" data-act="lg-history">🏆 리그 기록</button>
+        <button class="btn dark sm" style="flex:1" data-act="go-stadium">경기장으로</button>
+      </div>
+    </div>`;
+}
+function leagueHTML(){
+  const L = S.league;
+  if(!L) return (U.lgSel || S.leagueSel) ? lgPickHTML() : lgIntroHTML();
+  if(L.done) return lgDoneHTML();
+  return lgSeasonHTML();
+}
+function renderLeagueResult(M){
+  const L = S.league;
+  if(!L){ U.match = null; U.tab = 'cup'; U.contest = 'league'; render(); return; }
+  const win = M.res === 'w', draw = M.res === 'd', champMe = !!M.champion;
+  const pos = lgPos(L), rows = lgStandings(L);
+  const label = champMe ? '우승' : win ? '승리' : draw ? '무승부' : '패배';
+  const cls = champMe ? 'amber' : win ? 'lime' : draw ? 'sky' : 'red';
+  const title = champMe ? '리그 정상' : (L.done ? L.pos + '위 마감' : 'R' + (M.roundNo || L.r) + ' 종료 · ' + pos + '위');
+  $('#main').innerHTML = `
+    <div class="result">
+      <div class="rb">
+        <div class="rbtop"><span class="tag ${cls}">${label}</span><h3>${esc(title)}</h3></div>
+        <div class="fs">${M.me}<i>:</i>${M.op}</div>
+        <div class="rteam"><b>${esc(L.my)}</b><span>${M.home ? '홈' : '원정'}</span><b>${esc(M.opp.club)}</b></div>
+      </div>
+      <div class="rewards">
+        <div><span>획득 코인</span><b class="up">+${fmt(M.coins || 0)}</b>${M.titleBonus ? `<small>시즌 보상 +${fmt(M.titleBonus)}</small>` : ''}</div>
+        <div><span>${L.done ? '최종 순위' : '현재 순위'}</span><b>${pos}<small>위</small></b></div>
+      </div>
+      ${champMe ? `<div class="cuptro" style="margin-top:10px"><div class="ic">🏆</div><div class="tx"><b>${esc(L.my)} 리그 우승${lgIsUnderdog(L.my) ? ' 🐴' : ''}</b><span>${esc(LG[L.lg] || '')} · 리그 우승 ${(S.leagueCups || []).length}회</span><small>${esc((rows[0] || {}).pts || 0)}점 · ${L.fx.length}라운드 마감</small></div></div>` : ''}
+      <div class="rh"><span>득점 타임라인</span><span>점유 ${M.poss}% · 슈팅 ${M.shotsMe}-${M.shotsOp}</span></div>
+      ${goalsCard(M)}
+      <div class="rh"><span>오늘의 MVP</span><span>${esc(tacTag(M.tac))}</span></div>
+      ${mvpCard(M)}
+      <div class="rh"><span>리그 순위표</span><span>${esc(LG[L.lg] || '')}</span></div>
+      ${lgTableHTML(L, 6)}
+      ${(M.roundResults || []).length ? `<div class="rh"><span>R${M.roundNo || L.r} 라운드 결과</span><span>${(M.roundResults || []).length}경기</span></div>
+      <div class="opps">${lgRoundRows(M.roundResults)}</div>` : ''}
+      <div class="racts">
+        <button class="btn primary wide" data-act="lg-next">${L.done ? '시즌 결산 보기' : '다음 라운드 →'}</button>
+        <div class="row" style="gap:6px">
+          <button class="btn dark sm" style="flex:1" data-act="lg-history">🏆 리그 기록</button>
+          <button class="btn dark sm" style="flex:1" data-act="go-stadium">경기장으로</button>
+        </div>
+      </div>
+    </div>
+    <div class="rfoot">보유 코인 ${fmt(S.coins)} · ${esc(LG[L.lg] || '')} ${pos}위</div>`;
+}
+
 /* ---------- match simulation ---------- */
 function startMatch(mode, opp, opts){
   const custom = (opts && opts.team) ? opts.team : null;
@@ -2512,18 +3032,19 @@ function startMatch(mode, opp, opts){
     opp = {...opp, base: Math.max(0, opp.base - drain), att: opp.att - drain, mid: opp.mid - drain, def: opp.def - drain};
     save(); paintHud();
   }
-  const cupMode = mode === 'cup';
+  const lgMode = mode === 'league';
+  const cupMode = mode === 'cup' || lgMode;
   const burning = burnState().on;
-  const tacKey = cupMode ? (S.cupTac || 'balance') : (S.tactic || 'balance');
+  const tacKey = cupMode ? ((lgMode ? S.leagueTac : S.cupTac) || 'balance') : (S.tactic || 'balance');
   if(cupMode){
-    team = {...team, cond: clamp(Math.round(+S.cupCare || 0), 0, 2)};
+    team = {...team, cond: clamp(Math.round(+((lgMode ? S.leagueCare : S.cupCare)) || 0), 0, 2)};
   } else {
     team = applyTactic(team, tacKey);
     if(burning) team = {...team, ovr:team.ovr + BURN_OVR, att:team.att + BURN_OVR, mid:(team.mid || 0) + BURN_OVR, def:team.def + BURN_OVR};
   }
   U.match = {mode, opp, t: team, f:S.formation, info:S.squadInfo, drain, tac:tacKey, min:0, me:0, op:0, ev:[], shotsMe:0, shotsOp:0, poss:50,
     over:false, timer:null, goals:[], rating:0, coins:0, diff:U.friendly.diff || 0, burn:burning,
-    cupMode, cupChanged:false, cupEdge:0,
+    cupMode, lgMode, cupChanged:false, cupEdge:0,
     cupBase: cupMode ? {...team} : null, cupOppBase: cupMode ? {...opp} : null,
     myName:(opts && opts.myName) || '임대 XI', roster:(opts && opts.roster) || null, roundName:(opts && opts.round) || ''};
   if(cupMode) applyCupPair(U.match, tacKey, (opp && opp.cupTac) || 'balance');
@@ -2543,7 +3064,8 @@ function startMatch(mode, opp, opts){
     pushEvent({type:'chemi', mm:"0'", cls:'big',
       text:'같은 클럽 ' + U.match.chemi.n + '명 · ' + U.match.chemi.label + ' 발동! 이번 경기 임대 XI 전체 OVR +' + U.match.chemi.add});
   }
-  U.tab = (mode === 'cup') ? 'cup' : 'stadium';
+  U.tab = cupMode ? 'cup' : 'stadium';
+  if(lgMode) U.contest = 'league';
   renderMatchScreen();
   U.match.timer = setInterval(matchTick, TICK_MS);
 }
@@ -2562,15 +3084,15 @@ function applyCupPair(M, myKey, oppKey){
 }
 function setCupTactic(key){
   if(!CUP_TACTS[key]) return;
-  const M = U.match, t = CUP_TACTS[key];
+  const M = U.match, t = CUP_TACTS[key], kk = tacStateKey();
   if(!M || !M.cupMode || M.over){
-    if((S.cupTac || 'balance') === key){ toast(t.ic + ' ' + t.name + ' 유지'); return; }
-    S.cupTac = key; save(); render();
+    if((S[kk] || 'balance') === key){ toast(t.ic + ' ' + t.name + ' 유지'); return; }
+    S[kk] = key; save(); render();
     toast(t.ic + ' ' + t.name + ' · ' + t.tag);
     return;
   }
   if((M.tac || 'balance') === key){ toast('이미 ' + t.name + ' 전술입니다'); return; }
-  S.cupTac = key; save();
+  S[kk] = key; save();
   applyCupPair(M, key, M.cupOppTac || 'balance');
   M.cupChanged = true;
   const e = cupEdge(key, M.cupOppTac || 'balance');
@@ -2601,7 +3123,7 @@ function cupAiHalftime(M){
 }
 function tacBarHTML(cup){
   const keys = cup ? CUP_TAC_KEYS : TACT_KEYS;
-  const cur = cup ? (S.cupTac || 'balance') : (S.tactic || 'balance');
+  const cur = cup ? (S[tacStateKey()] || 'balance') : (S.tactic || 'balance');
   return keys.map(k => {
     const t = cup ? CUP_TACTS[k] : TACTS[k];
     return `<button class="tacbtn ${cur === k ? 'on' : ''}" data-act="${cup ? 'cup-tactic' : 'tactic'}" data-k="${k}"><b>${t.ic} ${t.name}</b><small>${t.tag}</small></button>`;
@@ -2790,6 +3312,7 @@ function finishMatch(){
   M.over = true;
   clearInterval(M.timer); M.timer = null;
   if(M.mode === 'cup'){ finishCupMatch(M); return; }
+  if(M.mode === 'league'){ finishLeagueMatch(M); return; }
   settleMatch(M);
   save(); paintHud();
   renderResult();
@@ -3560,7 +4083,7 @@ function render(){
   else if(U.tab === 'upgrade') m.innerHTML = buffHTML();
   else if(U.tab === 'quest') m.innerHTML = questHTML();
   else if(U.tab === 'grow') m.innerHTML = growHTML();
-  else if(U.tab === 'cup') m.innerHTML = cupHTML();
+  else if(U.tab === 'cup') m.innerHTML = contestSegHTML() + ((U.contest || 'cup') === 'league' ? leagueHTML() : cupHTML());
   else m.innerHTML = rankingHTML();
   m.scrollTop = 0;
   paintBadge();
@@ -4772,6 +5295,7 @@ function recordText(){ return `${S.rank.w}승 ${S.rank.d}무 ${S.rank.l}패`; }
 function duelWr(){ const d = duelRec(), n = d.w + d.d + d.l; return n ? '승률 ' + Math.round(d.w / n * 100) + '%' : '기록 없음'; }
 function shareText(){
   const t = tierOf(S.rank.r);
+  const lgCups = S.leagueCups || [], lgUnder = lgCups.filter(x => x.under).length;
   const total = S.record.w + S.record.d + S.record.l;
   const wr = total ? Math.round(S.record.w / total * 100) : 0;
   const tOvr = S.bestTeam.ovr || (teamStats() ? teamStats().ovr : 0) || '-';
@@ -4782,12 +5306,14 @@ function shareText(){
     + '최고 팀 OVR ' + tOvr + (S.bestTeam.f ? ' (' + S.bestTeam.f + ')' : '') + '\n'
     + (S.grow && S.grow.best ? '최고 강화 +' + S.grow.best + '강' + (S.grow.best >= 10 ? ' 🥇' : '') + '\n' : '')
     + '레전드 컵 ' + ((S.cups || []).length) + '회 우승' + (S.cupRec && S.cupRec.n ? ' (' + S.cupRec.w + '승 ' + S.cupRec.l + '패)' : '') + '\n'
+    + '26/27 리그 ' + lgCups.length + '회 우승' + (lgUnder ? ' (언더독 ' + lgUnder + '회 🐴)' : '') + (S.leagueRec && S.leagueRec.n ? ' (' + S.leagueRec.w + '승 ' + S.leagueRec.d + '무 ' + S.leagueRec.l + '패)' : '') + '\n'
     + '11대11 경기 ' + S.matches + '회 · 승률 ' + wr + '%\n'
     + '패스 티켓 ' + ticketCount() + '장\n'
     + '키우기 1대1 ' + duelRecordText() + ' · 레이팅 ' + duelRec().r;
 }
 function rankingHTML(){
   const t = tierOf(S.rank.r);
+  const lgCups = S.leagueCups || [], lgUnder = lgCups.filter(x => x.under).length, lgRec = S.leagueRec || {n:0,w:0,d:0,l:0};
   const nxt = t.next;
   const pct = nxt ? clamp((S.rank.r - t.min) / (nxt.min - t.min) * 100, 2, 100) : 100;
   const total = S.record.w + S.record.d + S.record.l;
@@ -4818,6 +5344,14 @@ function rankingHTML(){
         <div class="gcard"><span>우승</span><b>${(S.cups || []).length}</b><small>32강 · 16강 합산</small></div>
         <div class="gcard"><span>대회 전적</span><b>${(S.cupRec || {w:0,l:0}).w}-${(S.cupRec || {w:0,l:0}).l}</b><small>${(S.cupRec || {n:0}).n}경기 · 무승부 없음</small></div>
       </div>
+    </div>
+    <div class="sect">
+      <div class="sect-h"><div class="eyebrow g">26/27 리그</div><button class="chip" data-act="lg-history">리그 기록</button></div>
+      <div class="grid2">
+        <div class="gcard"><span>리그 우승</span><b>${lgCups.length}</b><small>${lgUnder ? '언더독 ' + lgUnder + '회 🐴' : '5대 리그 순위전'}</small></div>
+        <div class="gcard"><span>시즌 전적</span><b>${lgRec.w}-${lgRec.d}-${lgRec.l}</b><small>${lgRec.n}경기 · 무승부 포함</small></div>
+      </div>
+      ${lgCups.length ? `<div class="tiny" style="margin-top:7px">최근 우승 ${esc(lgCups[0].club)} · ${esc(lgCups[0].lgn || '')} ${lgCups[0].pts}점</div>` : ''}
     </div>
     <div class="sect">
       <div class="sect-h"><div class="eyebrow g">키우기 1 VS 1</div><div class="tiny">임대 드래프트와 별개 기록</div></div>
@@ -4969,13 +5503,18 @@ document.addEventListener('click', ev => {
   else if(act === 'quit-match'){
     if(U.match && !U.match.over && U.match.mode === 'cup')
       openConfirm('레전드 컵에서 기권할까요?', '진행 중인 경기는 몰수패가 되고 대회가 끝납니다.', '기권', 'confirm-cup-forfeit');
+    else if(U.match && !U.match.over && U.match.mode === 'league')
+      openConfirm('리그 경기를 나갈까요?', '진행 중인 경기는 기록되지 않고 같은 라운드에 다시 들어갈 수 있습니다.', '나가기', 'confirm-quit');
     else if(U.match && !U.match.over) openConfirm('중계를 나갈까요?', '진행 중인 경기는 기록되지 않습니다.', '나가기', 'confirm-quit');
     else { U.match = null; U.tab='stadium'; render(); }
   }
   else if(act === 'confirm-quit'){
     $('#sheetHost').classList.remove('on');
+    const wasLg = U.match && U.match.mode === 'league';
     if(U.match && U.match.timer) clearInterval(U.match.timer);
-    U.match = null; U.tab='stadium'; render();
+    U.match = null;
+    if(wasLg){ U.tab = 'cup'; U.contest = 'league'; } else U.tab = 'stadium';
+    render();
   }
   else if(act === 'confirm-cup-forfeit'){ $('#sheetHost').classList.remove('on'); cupForfeit(); }
   else if(act === 'cup-open'){ cupOpen(+el.dataset.size === 16 ? 16 : 32); }
@@ -4991,6 +5530,30 @@ document.addEventListener('click', ev => {
   else if(act === 'cup-abandon'){ openConfirm('레전드 컵을 포기할까요?', '진행 중인 대진이 사라집니다. 코인과 우승 기록은 남습니다.', '포기', 'confirm-cup-abandon'); }
   else if(act === 'confirm-cup-abandon'){ $('#sheetHost').classList.remove('on'); U.match = null; S.cup = null; S.cupSel = null; S.cupCare = 0; U.cupSel = null; U.cupR = 0; U.tab = 'cup'; save(); render(); toast('레전드 컵 포기'); }
   else if(act === 'cup-history'){ openCupHistory(); }
+  else if(act === 'contest-seg'){
+    U.contest = el.dataset.k === 'league' ? 'league' : 'cup';
+    if(U.contest === 'league' && S.leagueSel) U.lgSel = S.leagueSel;
+    render();
+  }
+  else if(act === 'lg-open'){ lgOffer(); }
+  else if(act === 'lg-reroll'){ lgReroll(); }
+  else if(act === 'lg-pick'){ lgStart(el.dataset.c); }
+  else if(act === 'lg-cancel'){ S.leagueSel = null; U.lgSel = null; S.leagueCare = 0; save(); render(); }
+  else if(act === 'lg-play'){ lgPlay(); }
+  else if(act === 'lg-care'){ lgCare(el.dataset.k); }
+  else if(act === 'lg-rest'){ lgRestRound(); }
+  else if(act === 'lg-next'){ U.match = null; U.tab = 'cup'; U.contest = 'league'; render(); }
+  else if(act === 'lg-new'){ U.match = null; S.league = null; S.leagueSel = null; U.lgSel = null; S.leagueCare = 0; save(); lgOffer(); }
+  else if(act === 'lg-history'){ openLeagueHistory(); }
+  else if(act === 'lg-abandon'){ openConfirm('26/27 리그를 포기할까요?', '진행 중인 시즌이 사라집니다. 리그 우승 기록은 남습니다.', '포기', 'confirm-lg-abandon'); }
+  else if(act === 'confirm-lg-abandon'){
+    $('#sheetHost').classList.remove('on');
+    if(U.match && U.match.timer) clearInterval(U.match.timer);
+    U.match = null; S.league = null; S.leagueSel = null; U.lgSel = null; S.leagueCare = 0;
+    U.tab = 'cup'; U.contest = 'league'; save(); render(); toast('26/27 리그 포기');
+  }
+  else if(act === 'menu-cup'){ U.contest = 'cup'; closeSheetNav('cup'); }
+  else if(act === 'menu-league'){ U.contest = 'league'; if(S.leagueSel) U.lgSel = S.leagueSel; closeSheetNav('cup'); }
   else if(act === 'menu-upgrade'){ closeSheetNav('upgrade'); }
   else if(act === 'menu-quest'){ closeSheetNav('quest'); }
   else if(act === 'menu-ranking'){ closeSheetNav('ranking'); }
@@ -5013,7 +5576,7 @@ document.addEventListener('click', ev => {
   else if(act === 'reset'){ openConfirm('전체 초기화', '스쿼드, 코인, 전적, 식별코드까지 모두 지워집니다.', '모두 지우기', 'confirm-reset'); }
   else if(act === 'confirm-reset'){
     $('#sheetHost').classList.remove('on');
-    localStorage.removeItem(KEY); S = freshState(); U = {tab:'squad', sel:0, match:null, friendly:{open:false, league:'EPL', diff:0}, busy:false};
+    localStorage.removeItem(KEY); S = freshState(); U = {tab:'squad', sel:0, match:null, friendly:{open:false, league:'EPL', diff:0}, busy:false, contest:'cup', lgSel:null};
     save(); render(); toast('초기화 완료');
   }
 });
