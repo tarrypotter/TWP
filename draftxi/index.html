@@ -2942,7 +2942,7 @@ function tourDoneHTML(k){
         <span>${c.size}강 ${c.totals}라운드 전승 · 보상 +${fmt(c.coins || 0)}C</span>
         <small>${esc(m.name)} 우승 트로피 ${tCups(k).length}개</small></div>`
       : `<div class="lc">💔</div><div class="tx"><b>${esc(myName)} · ${esc(exitRound || c.rounds[c.round].name)} 탈락</b>
-        <span>대회 우승 ${champT ? (champT.flag ? `<span class="fl">${champT.flag}</span> ` : '') + esc(tLabel(k, champT.id)) : '—'} · 보상 +${fmt(c.coins || 0)}C</span></div>`}
+        <span>대회 우승 ${esc(champT ? tLabel(k, champT.id) : '—')} · 보상 +${fmt(c.coins || 0)}C</span></div>`}
     </div>
     <div class="sect"><div class="sect-h"><div class="eyebrow g">내 대진</div><div class="tiny">${c.size}강</div></div>
       <div class="path">${tourPathRows(k, c)}</div></div>
@@ -3027,7 +3027,7 @@ function renderTourResult(k, M){
         <div class="rbtop"><span class="tag ${cls}">${label}</span><h3>${title}</h3></div>
         <div class="fs">${M.me}<i>:</i>${M.op}</div>
         ${M.pens ? `<div class="rpen">승부차기 <b>${M.pens.me}-${M.pens.op}</b> ${M.pens.me > M.pens.op ? '승' : '패'}</div>` : ''}
-        <div class="rteam"><b>${myT ? (myT.flag ? `<span class="fl">${myT.flag}</span> ` : '') + esc(tLabel(k, c.my)) : '내 팀'}</b><span>vs</span><b>${opT ? (opT.flag ? `<span class="fl">${opT.flag}</span> ` : '') + esc(tLabel(k, opT.id)) : esc(M.opp ? M.opp.club : '—')}</b></div>
+        <div class="rteam"><b>${esc(myT ? tLabel(k, c.my) : '내 팀')}</b><span>vs</span><b>${esc(opT ? tLabel(k, opT.id) : (M.opp ? M.opp.club : '—'))}</b></div>
         ${M.rematch ? `<div class="rematch" style="margin-top:8px">✨ ${esc(M.rematch.n)}<small>${esc(M.rematch.s)}${M.rematchBonus ? ' · 승리 보너스 +' + fmt(M.rematchBonus) + 'C' : ''}</small></div>` : ''}
       </div>
       <div class="rewards">
