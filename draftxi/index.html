@@ -1302,6 +1302,12 @@ const QUESTS = {
   ]}
 };
 
+/* 반복 퀘스트는 카운터 이름을 id와 따로 두면 엉뚱한 카운터가 깎인다 — id→카운터 표를 단일 출처로 쓴다 */
+const Q_REP_KEY = {g3:'games', w2:'wins', d3:'duels'};
+const repKeyOf = it => Q_REP_KEY[it.id] || 'games';
+/* 지금 바로 받을 수 있는 반복 퀘스트 사이클 수 */
+const repQueue = (it, q) => { const v = +((q.rep || {})[repKeyOf(it)] || 0); return v >= it.goal ? Math.floor(v / it.goal) : 0; };
+
 /* ---------- helpers ---------- */
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1977,16 +1983,17 @@ function claimQuest(scope, id){
   const item = (QUESTS[scope] || {items:[]}).items.find(x => x.id === id);
   if(!item) return;
   if(scope === 'rep'){
-    if(item.get(q) < item.goal) return;
-    q.rep[id === 'w2' ? 'wins' : 'games'] -= item.goal;
+    const key = repKeyOf(item);
+    if((+q.rep[key] || 0) < item.goal) return;
+    q.rep[key] = Math.max(0, (+q.rep[key] || 0) - item.goal);
   } else {
     if(q.claimed[scope][id] || item.get(q) < item.goal) return;
     q.claimed[scope][id] = 1;
   }
-  if(item.ticket){ addTickets(item.ticket); save(); toast('🎫 +' + item.ticket + '장 · ' + item.name); render(); return; }
+  if(item.ticket){ addTickets(item.ticket); save(); toast('🎫 +' + item.ticket + '장 · ' + item.name); render(true); return; }
   addCoins(item.coin); save();
   toast('+' + fmt(item.coin) + ' 코인 · ' + item.name);
-  render();
+  render(true);
 }
 function claimCount(){
   const q = ensureQuests();
@@ -1994,7 +2001,7 @@ function claimCount(){
   ['day','week','month','chal','tk','tkw'].forEach(sc => {
     QUESTS[sc].items.forEach(it => { if(!q.claimed[sc][it.id] && it.get(q) >= it.goal) n++; });
   });
-  QUESTS.rep.items.forEach(it => { if(it.get(q) >= it.goal) n++; });
+  QUESTS.rep.items.forEach(it => { n += repQueue(it, q); });
   return n;
 }
 /* 퀘스트 보상 일괄 수령 — 출석은 따로, 퀘스트만 한 번에 */
@@ -2009,10 +2016,12 @@ function bulkPending(){
       n++;
     });
   });
+  /* 반복 퀘스트는 쌓인 사이클만큼 전부 계산한다 */
   QUESTS.rep.items.forEach(it => {
-    if(it.get(q) < it.goal) return;
-    if(it.ticket) tickets += it.ticket; else coins += it.coin;
-    n++;
+    const cyc = repQueue(it, q);
+    if(!cyc) return;
+    if(it.ticket) tickets += it.ticket * cyc; else coins += it.coin * cyc;
+    n += cyc;
   });
   return {coins, tickets, n};
 }
@@ -2027,19 +2036,21 @@ function claimAllQuests(){
       n++;
     });
   });
-  /* 반복 퀘스트는 한 번씩만 받는다 (남은 카운트는 다음에 또 받을 수 있음) */
+  /* 반복 퀘스트는 쌓인 만큼(여러 사이클) 한 번에 전부 받는다 — 남은 카운트가 있어도 다음 탭을 기다리지 않는다 */
   QUESTS.rep.items.forEach(it => {
-    if(it.get(q) < it.goal) return;
-    q.rep[it.id === 'w2' ? 'wins' : 'games'] -= it.goal;
-    if(it.ticket) tickets += it.ticket; else coins += it.coin;
-    n++;
+    const key = repKeyOf(it);
+    for(let cyc = repQueue(it, q); cyc > 0; cyc--){
+      q.rep[key] = Math.max(0, (+q.rep[key] || 0) - it.goal);
+      if(it.ticket) tickets += it.ticket; else coins += it.coin;
+      n++;
+    }
   });
   if(!n){ toast('받을 보상이 없습니다'); return; }
   if(coins) addCoins(coins);
   if(tickets) addTickets(tickets);
   save(); paintHud();
   toast('보상 ' + n + '건 · +' + fmt(coins) + ' 코인' + (tickets ? ' · 🎫 +' + tickets + '장' : ''));
-  render();
+  render(true);
 }
 function attNext(){
   const q = ensureQuests();
@@ -2056,7 +2067,7 @@ function claimAtt(){
   addCoins(coin); addTickets(1);
   save();
   toast('출석 ' + q.login.streak + '일차 · +' + fmt(coin) + ' 코인 · 🎫 +1');
-  render();
+  render(true);
 }
 
 /* ---------- opponents ---------- */
@@ -4045,7 +4056,7 @@ function popFx(text){
   document.body.appendChild(el);
   setTimeout(()=>el.remove(), 850);
 }
-function render(){
+function render(keepScroll){
   paintHud();
   document.querySelectorAll('.tab').forEach(b => {
     const k = b.dataset.tab;
@@ -4053,6 +4064,7 @@ function render(){
   });
   if(U.match) return;
   const m = $('#main');
+  const top = keepScroll ? m.scrollTop : 0;
   m.className = '';
   if(U.tab === 'squad') m.innerHTML = S.draft ? draftHTML() : S.squad ? squadHTML() : introHTML();
   else if(U.tab === 'stadium') m.innerHTML = stadiumHTML();
@@ -4061,7 +4073,7 @@ function render(){
   else if(U.tab === 'grow') m.innerHTML = growHTML();
   else if(U.tab === 'cup') m.innerHTML = contestSegHTML() + ((U.contest || 'cup') === 'league' ? leagueHTML() : cupHTML());
   else m.innerHTML = rankingHTML();
-  m.scrollTop = 0;
+  m.scrollTop = top;
   paintBadge();
 }
 function paintBadge(){
@@ -5121,12 +5133,13 @@ function questHTML(){
     const rows = def.items.map(it => {
       const raw = it.get(q), v = Math.min(raw, it.goal), ok = raw >= it.goal;
       const claimed = scope !== 'rep' && !!q.claimed[scope][it.id];
+      const cyc = scope === 'rep' ? repQueue(it, q) : 0;
       const label = it.ticket ? '🎫' + it.ticket : fmt(it.coin);
       const btn = claimed ? `<div class="q-claim done">완료</div>`
         : `<button class="q-claim ${ok ? '' : 'off'}${it.ticket ? ' tk' : ''}" data-act="qclaim" data-sc="${scope}" data-id="${it.id}">${ok ? '+' + label : label}</button>`;
       return `<div class="q ${ok && !claimed ? 'on' : ''}">
         <div class="q-row">
-          <div class="qi"><b>${it.name}</b><span>${fmt(v)}/${fmt(it.goal)} · 보상 ${it.ticket ? '패스 티켓 ' + it.ticket + '장' : fmt(it.coin) + 'C'}</span>
+          <div class="qi"><b>${it.name}</b><span>${fmt(v)}/${fmt(it.goal)} · 보상 ${it.ticket ? '패스 티켓 ' + it.ticket + '장' : fmt(it.coin) + 'C'}${cyc > 1 ? ' · ' + cyc + '회분 대기' : ''}</span>
             <div class="q-bar"><s style="width:${clamp(v / it.goal * 100, 0, 100)}%"></s></div></div>
           ${btn}
         </div></div>`;
