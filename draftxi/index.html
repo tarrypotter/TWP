@@ -673,6 +673,15 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .q-claim.tk{background:rgba(255,180,58,.14);color:var(--amber);min-width:48px}
 .q-claim.off.tk{background:var(--card3);color:var(--dim)}
 .q-claim.done{background:transparent;border:1px solid var(--line2);color:var(--dim);font-size:10px}
+.qall{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:47px;border-radius:13px;
+  border:1px solid #e2ff9a;background:linear-gradient(180deg,#dcff7c,#b9ea3c);color:#0a1409;
+  box-shadow:0 6px 20px rgba(180,235,60,.16),inset 0 1px 0 rgba(255,255,255,.55);
+  transition:transform .35s var(--spring),filter .2s ease}
+.qall b{font-size:13px;font-weight:900;letter-spacing:-.03em;line-height:1.1}
+.qall small{font-size:9.5px;font-weight:800;color:rgba(10,20,9,.6);letter-spacing:-.01em}
+.qall.off{border-color:var(--line2);background:var(--card3);color:var(--dim);box-shadow:none;filter:none}
+.qall.off small{color:var(--dim);opacity:.75}
+.qall:active{transform:scale(.97)}
 .att{display:flex;gap:4px;margin-top:10px}
 .att div{flex:1 1 0;text-align:center;padding:6px 2px;border-radius:8px;border:1px solid var(--line);background:rgba(6,12,10,.4)}
 .att div.now{border-color:var(--lime);background:rgba(205,249,95,.1)}
@@ -789,6 +798,30 @@ h3.sub{font-size:14px;font-weight:900;letter-spacing:-.02em}
 .srow .up{height:32px;width:54px;padding:0 4px;display:flex;flex-direction:column;gap:1px;line-height:1.05;font-size:10.5px}
 .srow .up small{font-size:8px;font-weight:800;color:var(--dim)}
 .srow .up:active{background:var(--lime);color:#0a120c}
+/* 좋아요 선수 · 티켓 등장 부스트 */
+.srow .fav{flex:0 0 auto;width:30px;height:32px;border-radius:9px;border:1px solid var(--line2);background:#0d1a15;
+  color:#3f5a4c;font-size:13px;line-height:1;display:grid;place-items:center;transition:transform .28s var(--spring),background .2s,border-color .2s,color .2s}
+.srow .fav.on{color:#ff6b8a;border-color:rgba(255,107,138,.5);background:rgba(255,107,138,.13);box-shadow:0 0 12px rgba(255,107,138,.16)}
+.srow .fav:active{transform:scale(.9)}
+.favmk{font-style:normal;color:#ff6b8a;margin-right:3px;font-size:10px}
+.favbar{display:flex;align-items:center;gap:8px;min-width:0}
+.favcard{padding:12px 13px;border-radius:15px;border:1px solid rgba(255,180,58,.34);
+  background:linear-gradient(150deg,rgba(255,180,58,.14),rgba(12,22,19,.94));box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.favcard .favttl{font-size:14px;font-weight:900;letter-spacing:-.03em;margin-top:5px}
+.chip.favtier{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;padding:0 9px;font-size:11.5px;font-weight:800}
+.chip.favtier span{font-family:var(--mono);font-size:11px;font-weight:800}
+.chip.favtier b{font-family:var(--mono);font-size:11px;font-weight:800}
+/* 친선 상대 OVR 직접 입력 */
+.fbwrap{padding:11px 12px;border-radius:14px;border:1px solid var(--line2);
+  background:linear-gradient(150deg,rgba(99,215,255,.07),rgba(12,22,19,.94))}
+.fbh{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:900;letter-spacing:-.02em}
+.fbh b{font-family:var(--mono);font-size:12.5px;color:var(--sky);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fbrow{display:flex;align-items:center;gap:7px;margin-top:8px}
+.fbrow .srch{flex:1 1 auto;min-width:0;height:39px}
+.fbrow .chip{flex:0 0 auto;height:39px;border-radius:11px;padding:0 10px}
+.fbwrap input[type=number]::-webkit-outer-spin-button,
+.fbwrap input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.opp .cr.hot{width:auto;min-width:30px;padding:0 6px;font-size:10.5px;color:var(--sky);border:1px solid rgba(99,215,255,.35)}
 .chemi{display:flex;align-items:flex-start;gap:7px;padding:7px 10px;border-radius:11px;border:1px solid var(--line);
   background:var(--card);margin-top:8px}
 .chemi.on{border-color:#3d6a3a;background:linear-gradient(110deg,rgba(205,249,95,.13),rgba(12,22,19,.92))}
@@ -1070,6 +1103,21 @@ const MODES = {
   ranked:{name:'AI 랭킹전', ic:'🏆', coins:[420,160,80], desc:'레이팅이 오르면 더 센 상대가 기다립니다.'},
   cup:{name:'레전드 컵', ic:'🏆', coins:[0,0,0], desc:'레전드 시즌 팀을 골라 16강·32강 토너먼트를 치릅니다.'}
 };
+/* 친선전 난이도 5단계 — OVR 보정 + AI 전술 지능 */
+const FDIFF = [
+  {n:'약함', v:-5, ai:0},
+  {n:'보통', v:0, ai:0},
+  {n:'강함', v:4, ai:0},
+  {n:'극악', v:12, ai:4},
+  {n:'지옥', v:22, ai:8}
+];
+/* 좋아요 선수 등장 확률 부스트 — 패스 티켓 전용 (1단계부터 비싸게) */
+const FAV_B = [
+  {lv:0, n:'꺼짐', p:0, cost:0},
+  {lv:1, n:'소폭', p:0.15, cost:6},
+  {lv:2, n:'높음', p:0.30, cost:12},
+  {lv:3, n:'초고확률', p:0.50, cost:20}
+];
 /* 레전드 컵 라운드 이름 · 라운드별 코인 */
 const CUP_ROUNDS = {32:['32강','16강','8강','4강','결승'], 16:['16강','8강','4강','결승']};
 const CUP_COINS = {5:240, 4:340, 3:470, 2:680, 1:1600};
@@ -1317,8 +1365,11 @@ const eul = w => josa(w, '을', '를');
 
 /* ---------- state ---------- */
 let U = {tab:'squad', sel:-1, match:null, friendly:{open:false, league:'EPL', diff:0}, busy:false,
-  bufSeg:'pos', bufQ:'', pbufQ:'', skip:null, scout:{lg:'EPL', g:'FW'}};
+  bufSeg:'pos', bufQ:'', pbufQ:'', skip:null, favOnly:false, scout:{lg:'EPL', g:'FW'}};
 let S = load();
+/* 친선 난이도는 마지막에 고른 단계를 이어받는다 */
+U.friendly.diff = FDIFF.some(d => d.v === +S.fdiff) ? +S.fdiff : 0;
+if(!isFinite(+S.fboost) || +S.fboost < 0) S.fboost = 0;
 
 function freshState(){
   return {v:3, code:makeCode(), coins:STARTER_COINS, tickets:STARTER_TICKETS, buf:{GK:0,DF:0,MF:0,FW:0}, pbuf:{}, tbuf:{},
@@ -1327,7 +1378,8 @@ function freshState(){
     best:{ovr:0,name:''}, bestTeam:{ovr:0,f:''}, recent:[],
     q:freshQuests(), drain:{day:'', used:0}, grow:{i:null, lv:0, prot:false, safe:false, last:null, best:0, idx:0, list:[]},
     duel:{w:0,d:0,l:0,r:1000}, squadInfo:null, tactic:'balance',
-    cup:null, cupSel:null, cups:[], cupRec:{n:0,w:0,l:0}};
+    cup:null, cupSel:null, cups:[], cupRec:{n:0,w:0,l:0},
+    favs:[], favB:0, fboost:0, fdiff:0};
 }
 function sanitize(s){
   if(!s || typeof s !== 'object' || !s.code) return null;
@@ -1358,6 +1410,20 @@ function sanitize(s){
     });
   }
   s.tbuf = tb;
+  /* 좋아요 선수 — 선수 인덱스 배열 (구버전 백업은 빈 배열) */
+  const fv = [];
+  if(Array.isArray(s.favs)) s.favs.forEach(v => {
+    const i = Math.round(+v);
+    if(i >= 0 && i < P.length && fv.indexOf(i) < 0 && fv.length < 40) fv.push(i);
+  });
+  s.favs = fv;
+  /* 좋아요 선수 등장 부스트 — 다음 드래프트 1회분 */
+  s.favB = clamp(Math.round(+s.favB || 0), 0, 3);
+  /* 친선전 설정 — 상대 OVR 뻥튀기(상한 없음)와 난이도 */
+  const fb = Math.round(+s.fboost || 0);
+  s.fboost = (isFinite(fb) && fb > 0) ? fb : 0;
+  s.fdiff = isFinite(+s.fdiff) ? Math.round(+s.fdiff) : 0;
+  if(s.draft && typeof s.draft === 'object') s.draft.fb = clamp(Math.round(+s.draft.fb || 0), 0, 3);
   if(s.v !== 3){
     if(s.v !== 2){ s.squad = null; s.formation = null; s.draft = null; s.bestTeam = {ovr:0,f:''}; }
     s.v = 3;
@@ -1563,7 +1629,10 @@ function bufLine(){ return BUF_KEYS.map(k => k + ' ' + (S.buf[k] || 0)).join(' �
 /* ---------- draft ---------- */
 function startDraft(){
   const f = pick(FORM_KEYS);
-  S.draft = {f, slot:0, picks:[], opts:[]};
+  /* 티켓으로 켜둔 좋아요 부스트는 이 드래프트 한 판에 소모된다 */
+  const armed = clamp(Math.round(+S.favB || 0), 0, 3);
+  S.draft = {f, slot:0, picks:[], opts:[], fb:armed};
+  S.favB = 0;
   S.draft.opts = sampleOptions(f, 0, []);
   ensureQuests(); questAdd('draft', 1);
   save(); U.tab = 'squad'; render();
@@ -1585,9 +1654,44 @@ function sampleOptions(f, slotIdx, taken){
   pickBiased(exact, DRAFT_OPTS - chosen.length, chosen);
   if(chosen.length < DRAFT_OPTS) pickBiased(near, DRAFT_OPTS - chosen.length, chosen);
   if(chosen.length < DRAFT_OPTS) pickBiased(group, DRAFT_OPTS - chosen.length, chosen);
+  /* 티켓 부스트 — 좋아요 선수를 확률만큼 후보에 끌어올린다 */
+  injectFavs(chosen, role);
   /* 최종 적용 OVR(기본+포지션+팀컬러+선수 버프) 높은 순으로 정렬 */
   return chosen.slice(0, DRAFT_OPTS).map(i => ({i, b: rollBase(i), c: rollCond()}))
     .sort((a, b) => ovrOf(b) - ovrOf(a) || b.b - a.b);
+}
+/* ---------- 좋아요 선수 + 티켓 등장 부스트 ---------- */
+function favIds(){ return (S.favs || []).filter(i => i >= 0 && i < P.length); }
+function isFav(i){ return favIds().indexOf(i) >= 0; }
+/* 지금 유효한 부스트 단계 — 드래프트 중이면 그 드래프트에 묶인 단계 */
+function favBoostLv(){
+  if(S.draft && typeof S.draft.fb === 'number') return clamp(Math.round(S.draft.fb), 0, 3);
+  return clamp(Math.round(+S.favB || 0), 0, 3);
+}
+function favBoostOf(){ return FAV_B[favBoostLv()] || FAV_B[0]; }
+function injectFavs(chosen, role){
+  const p = favBoostOf().p;
+  if(p <= 0) return;
+  const favs = favIds();
+  if(!favs.length) return;
+  const favSet = new Set(favs);
+  const poss = favs.filter(i => posOf(i) === role || (role === 'ST' && posOf(i) === 'SS')
+    || NEAR[role].includes(posOf(i)) || grp(posOf(i)) === grp(role));
+  if(!poss.length) return;
+  for(let k = 0; k < DRAFT_OPTS; k++){
+    if(Math.random() >= p) continue;
+    const pool = poss.filter(i => chosen.indexOf(i) < 0);
+    if(!pool.length) return;
+    const ex = pool.filter(i => posOf(i) === role || (role === 'ST' && posOf(i) === 'SS'));
+    const nr = pool.filter(i => NEAR[role].includes(posOf(i)));
+    const cand = ex.length ? ex : nr.length ? nr : pool;
+    const v = pick(cand);
+    let at = -1;
+    for(let j = chosen.length - 1; j >= 0; j--) if(!favSet.has(chosen[j])){ at = j; break; }
+    if(at >= 0) chosen[at] = v;
+    else if(chosen.length < DRAFT_OPTS) chosen.push(v);
+    else return;
+  }
 }
 function pickBiased(list, k, out){
   const pool = list.filter(i => !out.includes(i));
@@ -1851,6 +1955,50 @@ function claimCount(){
   QUESTS.rep.items.forEach(it => { if(it.get(q) >= it.goal) n++; });
   return n;
 }
+/* 퀘스트 보상 일괄 수령 — 출석은 따로, 퀘스트만 한 번에 */
+const QALL_SCOPES = ['day','week','month','chal','tk','tkw'];
+function bulkPending(){
+  const q = ensureQuests();
+  let coins = 0, tickets = 0, n = 0;
+  QALL_SCOPES.forEach(sc => {
+    QUESTS[sc].items.forEach(it => {
+      if(q.claimed[sc][it.id] || it.get(q) < it.goal) return;
+      if(it.ticket) tickets += it.ticket; else coins += it.coin;
+      n++;
+    });
+  });
+  QUESTS.rep.items.forEach(it => {
+    if(it.get(q) < it.goal) return;
+    if(it.ticket) tickets += it.ticket; else coins += it.coin;
+    n++;
+  });
+  return {coins, tickets, n};
+}
+function claimAllQuests(){
+  const q = ensureQuests();
+  let coins = 0, tickets = 0, n = 0;
+  QALL_SCOPES.forEach(sc => {
+    QUESTS[sc].items.forEach(it => {
+      if(q.claimed[sc][it.id] || it.get(q) < it.goal) return;
+      q.claimed[sc][it.id] = 1;
+      if(it.ticket) tickets += it.ticket; else coins += it.coin;
+      n++;
+    });
+  });
+  /* 반복 퀘스트는 한 번씩만 받는다 (남은 카운트는 다음에 또 받을 수 있음) */
+  QUESTS.rep.items.forEach(it => {
+    if(it.get(q) < it.goal) return;
+    q.rep[it.id === 'w2' ? 'wins' : 'games'] -= it.goal;
+    if(it.ticket) tickets += it.ticket; else coins += it.coin;
+    n++;
+  });
+  if(!n){ toast('받을 보상이 없습니다'); return; }
+  if(coins) addCoins(coins);
+  if(tickets) addTickets(tickets);
+  save(); paintHud();
+  toast('보상 ' + n + '건 · +' + fmt(coins) + ' 코인' + (tickets ? ' · 🎫 +' + tickets + '장' : ''));
+  render();
+}
 function attNext(){
   const q = ensureQuests();
   const done = q.login.last === kstDay();
@@ -1876,6 +2024,23 @@ function opponentOf(club){
   const h = hashOf(club);
   const dAtt = ((h % 7) - 3) * 0.5, dDef = (((h>>3) % 7) - 3) * 0.5;
   return {club, league:o.l, base:o.o, att:o.o + 1.5 + dAtt, mid:o.o + ((h%5)-2)*0.35, def:o.o + 1 + dDef, xi:o.xi};
+}
+/* ---------- 친선전 난이도 5단계 · 상대 OVR 뻥튀기 ---------- */
+function fboostVal(){ const n = Math.round(+S.fboost || 0); return (isFinite(n) && n > 0) ? n : 0; }
+function fdiffVal(){ const v = Math.round(+U.friendly.diff || 0); return FDIFF.some(d => d.v === v) ? v : 0; }
+function fdiffOf(){ return FDIFF.filter(d => d.v === fdiffVal())[0] || FDIFF[1]; }
+function fdiffHint(d){
+  if(fboostVal()) return d.n + ' · 상대 OVR은 직접 입력값 그대로' + (d.ai ? ' · AI가 하프타임에 전술까지 바꿉니다' : '');
+  const ovr = d.v === 0 ? '클럽 기본 OVR' : '상대 OVR ' + (d.v > 0 ? '+' : '') + d.v;
+  return d.n + ' · ' + ovr + (d.ai ? ' · AI가 하프타임에 전술까지 바꿉니다' : ' · AI 전술 고정');
+}
+/* 입력한 OVR이 있으면 전 클럽을 그 OVR로 올린다 (상한 없음) */
+function friendlyOpp(club){
+  const o = opponentOf(club);
+  const t = fboostVal();
+  if(!t) return o;
+  const add = t - o.base;
+  return {...o, base:t, att:o.att + add, mid:o.mid + add, def:o.def + add, fb:t};
 }
 function mixOpponent(){
   const xi = [];
@@ -2363,8 +2528,15 @@ function startMatch(mode, opp, opts){
     myName:(opts && opts.myName) || '임대 XI', roster:(opts && opts.roster) || null, roundName:(opts && opts.round) || ''};
   if(cupMode) applyCupPair(U.match, tacKey, (opp && opp.cupTac) || 'balance');
   if(mode === 'friendly'){
-    const d = U.friendly.diff;
-    U.match.opp.att += d; U.match.opp.mid += d; U.match.opp.def += d;
+    const d = fdiffOf();
+    U.match.diff = d.v;
+    U.match.diffName = d.n;
+    /* 상대 OVR을 직접 적었으면 그 값이 그대로 상대 OVR — 난이도는 AI 지능만 올린다 */
+    if(!fboostVal()){
+      U.match.opp.att += d.v; U.match.opp.mid += d.v; U.match.opp.def += d.v;
+      U.match.opp.base = Math.round(U.match.opp.base + d.v);
+    }
+    if(d.ai) U.match.opp.ai = {tier:d.ai, smart:true, ovr:0, cond:0, applied:{att:0, def:0}, tactic:'probe'};
   }
   U.match.chemi = custom ? {club:'', n:0, total:11, add:0, label:'', need:0} : synergyOf(S.squad);
   if(U.match.chemi.add){
@@ -3480,7 +3652,7 @@ function draftHTML(){
     ${dots}
   </div>
   <div class="between" style="margin-top:12px">
-    <div class="tiny">${picks.length}/11 선택 완료${picks.length?` · 평균 OVR <b style="color:var(--lime)">${teamOvr}</b>`:''}${sy.add?` · ${sy.label} <b style="color:var(--amber)">+${sy.add}</b>`:''}</div>
+    <div class="tiny">${picks.length}/11 선택 완료${picks.length?` · 평균 OVR <b style="color:var(--lime)">${teamOvr}</b>`:''}${sy.add?` · ${sy.label} <b style="color:var(--amber)">+${sy.add}</b>`:''}${favBoostLv()?` · ❤️ 등장 <b style="color:#ff6b8a">+${Math.round(favBoostOf().p*100)}%p</b>`:''}</div>
     <span class="tag ${(d.low||0)>0?'sky':''}">최저픽 ${d.low||0}/11</span>
   </div>
   <div class="row" style="gap:6px;margin-top:8px">
@@ -3503,7 +3675,7 @@ function optionHTML(opt, role, k){
   return `<button class="pick ${off?'off':''}" data-act="pick" data-k="${k}">
     <div class="ovr"><b>${o}</b><small>OVR</small></div>
     <div class="who">
-      <div class="nm">${esc(nm)}<span class="cond" style="color:${cd.col}">${cd.s}</span></div>
+      <div class="nm">${isFav(i) ? '<i class="favmk">❤</i>' : ''}${esc(nm)}<span class="cond" style="color:${cd.col}">${cd.s}</span></div>
       <div class="cl">기본 ${base} · ${esc(club)} · ${esc(LG[lg] || lg)}${opt.elite ? ' · <b style="color:var(--amber)">🎫 엘리트</b>' : ''}</div>
       ${(bl || pa.team || pa.player)
         ? `<div class="bf">${bl?`<i class="p">포지션 +${bl}</i>`:''}${pa.team?`<i class="t">팀컬러 +${pa.team}</i>`:''}${pa.player?`<i class="s">선수 +${pa.player}</i>`:''}</div>`
@@ -3633,6 +3805,7 @@ function openPlayer(k){
     <div class="stack" style="margin-top:12px">
       <button class="btn primary wide" data-act="player-buff" data-i="${inst.i}">★ ${esc(shortNm(nm))} 선수 버프 +1 · ${fmt(pnext)}</button>
       <button class="btn dark wide" data-act="sheet-buff">⚡ ${g} 버프 강화하기</button>
+      <button class="btn dark wide" data-act="sheet-fav" data-i="${inst.i}" data-k="${k}">${isFav(inst.i) ? '❤️ 좋아요 해제' : '🤍 이 선수 좋아요'}</button>
       <button class="btn dark wide" data-act="close-sheet">닫기</button>
     </div>`;
   $('#sheetHost').classList.add('on');
@@ -3825,7 +3998,7 @@ function openBackupSheet(){
   $('#sheet').innerHTML = `<div class="grab"></div>
     <div class="eyebrow">BACKUP · JSON</div>
     <div style="font-size:16px;font-weight:900;letter-spacing:-.03em;margin-top:3px">백업 · 불러오기</div>
-    <div class="muted" style="margin-top:6px">코인·패스 티켓·식별코드·포지션·팀컬러·선수 버프 Lv·키우기 선수·랭킹 전적·퀘스트 진행도까지 전부 담습니다. 티켓 항목이 없는 예전 백업도 그대로 불러옵니다.</div>
+    <div class="muted" style="margin-top:6px">코인·패스 티켓·식별코드·포지션·팀컬러·선수 버프 Lv·키우기 선수·랭킹 전적·퀘스트 진행도, 좋아요 선수(favs)·등장 부스트·친선 난이도와 상대 OVR까지 전부 담습니다. 티켓·좋아요 항목이 없는 예전 백업도 그대로 불러옵니다.</div>
     <div class="stack" style="margin-top:12px">
       <button class="btn primary wide" data-act="backup-download">파일로 내려받기 (.json)</button>
       <button class="btn dark wide" data-act="backup-copy">클립보드에 복사</button>
@@ -3893,6 +4066,57 @@ function openConfirm(title, desc, okLabel, act){
 }
 
 /* ---------- stadium ---------- */
+function friendlyRowsHTML(clubs){
+  const hot = fboostVal() > 0;
+  return clubs.map(c => {
+    const o = friendlyOpp(c);
+    return `<div class="opp">
+        <div class="cr ${hot ? 'hot' : ''}">${fmt(Math.round(o.base))}</div>
+        <div class="nm">${esc(c)}</div>
+        <div class="ov">${esc(LG[OPP[c].l]||OPP[c].l)}</div>
+        <button class="pl" data-act="play-friendly" data-c="${esc(c)}">경기</button>
+      </div>`;
+  }).join('');
+}
+function fbBoostHTML(){
+  const v = fboostVal();
+  return `<div class="fbwrap">
+      <div class="fbh"><span>상대 OVR 뻥튀기</span><b id="fbVal">${v ? 'OVR ' + fmt(v) : '기본'}</b></div>
+      <div class="fbrow">
+        <input id="fbIn" class="srch" data-srch="fb" type="number" inputmode="numeric" min="0" step="1" autocomplete="off" placeholder="상대 OVR 직접 입력 (예: 500)" value="${v ? v : ''}">
+        <button class="chip" data-act="fb-reset">초기화</button>
+      </div>
+      <div class="chips" style="margin-top:7px">${[110,130,200,500].map(n => `<button class="chip ${v === n ? 'on' : ''}" data-act="fb-set" data-n="${n}">${n}</button>`).join('')}</div>
+      <div class="tiny" style="margin-top:6px">입력한 OVR이 <b>모든 클럽</b>과 실제 친선 경기 상대 OVR이 됩니다. 상한 없음 · 비우면 클럽 기본 OVR에 난이도 보정이 붙습니다.</div>
+    </div>`;
+}
+function friendlyBodyHTML(){
+  const leagues = ['EPL','LALIGA','BUNDESLIGA','SERIEA','LIGUE1'];
+  const clubs = Object.keys(OPP).filter(k => OPP[k].l === U.friendly.league)
+    .sort((a,b)=>OPP[b].o-OPP[a].o);
+  return `<div class="sect stack">
+      <div class="sect-h"><div class="eyebrow">FRIENDLY</div><button class="chip" data-act="close-friendly">닫기 ✕</button></div>
+      <div class="chips">${leagues.map(l=>`<button class="chip ${U.friendly.league===l?'on':''}" data-act="fleague" data-l="${l}">${LG[l]}</button>`).join('')}</div>
+      <div class="chips">${FDIFF.map(x=>`<button class="chip ${fdiffVal()===x.v?'on':''}" data-act="fdiff" data-v="${x.v}">${x.n}</button>`).join('')}</div>
+      <div class="tiny" id="fdHint">${esc(fdiffHint(fdiffOf()))}</div>
+      ${fbBoostHTML()}
+      <div class="opps" id="oppList">${friendlyRowsHTML(clubs)}</div>
+    </div>`;
+}
+/* 입력 중에는 클럽 목록·라벨만 다시 그린다 (포커스 유지) */
+function paintFriendly(){
+  const v = fboostVal();
+  const lb = document.getElementById('fbVal');
+  if(lb) lb.textContent = v ? 'OVR ' + fmt(v) : '기본';
+  const hint = document.getElementById('fdHint');
+  if(hint) hint.textContent = fdiffHint(fdiffOf());
+  const host = document.getElementById('oppList');
+  if(host){
+    const clubs = Object.keys(OPP).filter(k => OPP[k].l === U.friendly.league).sort((a,b)=>OPP[b].o-OPP[a].o);
+    host.innerHTML = friendlyRowsHTML(clubs);
+  }
+  document.querySelectorAll('[data-act="fb-set"]').forEach(b => b.classList.toggle('on', +b.dataset.n === v));
+}
 function stadiumHTML(){
   const t = teamStats();
   if(!S.squad || !t){
@@ -3926,20 +4150,7 @@ function stadiumHTML(){
   };
   let body = '';
   if(U.friendly.open){
-    const leagues = ['EPL','LALIGA','BUNDESLIGA','SERIEA','LIGUE1'];
-    const clubs = Object.keys(OPP).filter(k => OPP[k].l === U.friendly.league)
-      .sort((a,b)=>OPP[b].o-OPP[a].o);
-    body = `<div class="sect stack">
-      <div class="sect-h"><div class="eyebrow">FRIENDLY</div><button class="chip" data-act="close-friendly">닫기 ✕</button></div>
-      <div class="chips">${leagues.map(l=>`<button class="chip ${U.friendly.league===l?'on':''}" data-act="fleague" data-l="${l}">${LG[l]}</button>`).join('')}</div>
-      <div class="chips">${[['약함',-5],['보통',0],['강함',4]].map(([n,v])=>`<button class="chip ${U.friendly.diff===v?'on':''}" data-act="fdiff" data-v="${v}">${n}</button>`).join('')}</div>
-      <div class="opps">${clubs.map(c=>`<div class="opp">
-        <div class="cr">${OPP[c].o}</div>
-        <div class="nm">${esc(c)}</div>
-        <div class="ov">${esc(LG[OPP[c].l]||OPP[c].l)}</div>
-        <button class="pl" data-act="play-friendly" data-c="${esc(c)}">경기</button>
-      </div>`).join('')}</div>
-    </div>`;
+    body = friendlyBodyHTML();
   }
   return `<div class="eyebrow">STADIUM · ${S.formation}</div>
     <h2 class="title">경기장 <span class="mono" style="font-size:13px;color:var(--dim)">OVR ${t.ovr}</span></h2>
@@ -3995,7 +4206,7 @@ function renderMatchScreen(){
     <div class="between" style="margin-bottom:9px;gap:8px">
       <div style="flex:1 1 auto;min-width:0">
         <div class="eyebrow" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${MODES[M.mode].name}${M.roundName ? ' · ' + esc(M.roundName) : ''}${M.drain ? ' · 전력 흡수' : ''}</div>
-        <div class="tiny" style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(leagueText(M))} · 상대 OVR ${Math.round(M.opp.base)}${M.cupMode ? ' · ' + esc(cupTacTag(M.tac)) : ''}</div>
+        <div class="tiny" style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(leagueText(M))} · 상대 OVR ${Math.round(M.opp.base)}${M.diffName ? ' · ' + esc(M.diffName) : ''}${M.cupMode ? ' · ' + esc(cupTacTag(M.tac)) : ''}</div>
       </div>
       <button class="chip" data-act="skip" style="flex:0 0 auto;padding:0 9px">⏩ 바로 결과</button>
     </div>
@@ -4179,6 +4390,61 @@ function buyPlayerBuf(i, n){
   toast(P[i][0] + ' +' + S.pbuf[String(i)] + ' · 드래프트에 나오면 OVR +' + S.pbuf[String(i)]);
   popFx('선수 +' + S.pbuf[String(i)]);
 }
+/* ---------- 좋아요 선수 · 티켓 등장 부스트 ---------- */
+function toggleFav(i){
+  if(!(i >= 0 && i < P.length)) return;
+  const a = favIds().slice(), at = a.indexOf(i);
+  if(at >= 0) a.splice(at, 1);
+  else { a.push(i); while(a.length > 40) a.shift(); }
+  S.favs = a; save();
+  toast(at >= 0 ? P[i][0] + ' 좋아요 해제' : '❤️ ' + P[i][0] + ' 좋아요');
+}
+function buyFavBoost(lv){
+  lv = clamp(Math.round(+lv || 0), 0, 3);
+  const inDraft = !!(S.draft && typeof S.draft.fb === 'number');
+  const cur = favBoostLv();
+  if(lv === 0){
+    if(inDraft && (S.draft.fb || 0) > 0){ S.draft.fb = 0; save(); refreshBuff(); toast('이번 드래프트 등장 부스트를 껐습니다'); return; }
+    if(!(S.favB > 0)){ toast('켜진 부스트가 없습니다'); return; }
+    const back = FAV_B[S.favB].cost;
+    S.favB = 0; addTickets(back); save(); refreshBuff();
+    toast('부스트 해제 · 🎫 ' + back + '장 돌려받았습니다');
+    return;
+  }
+  if(!favIds().length){ toast('먼저 ❤️ 좋아요 선수를 골라주세요'); return; }
+  if(lv === cur){ toast('이미 ' + FAV_B[lv].n + ' 부스트가 켜져 있습니다'); return; }
+  const cost = FAV_B[lv].cost;
+  if(ticketCount() < cost){ toast('패스 티켓이 ' + (cost - ticketCount()) + '장 부족합니다'); return; }
+  spendTickets(cost);
+  if(inDraft) S.draft.fb = Math.max(S.draft.fb || 0, lv);
+  else S.favB = lv;
+  save(); refreshBuff();
+  toast('🎫 ' + cost + '장 · 좋아요 등장 +' + Math.round(FAV_B[lv].p * 100) + '%p');
+  popFx('❤️ +' + Math.round(FAV_B[lv].p * 100) + '%');
+}
+function favBoostHTML(){
+  const lv = favBoostLv(), b = FAV_B[lv] || FAV_B[0], nf = favIds().length;
+  const armed = (S.favB || 0) > 0;
+  const state = (S.draft && (S.draft.fb || 0) > 0)
+    ? `<b style="color:var(--amber)">이번 드래프트 적용 중</b> · 후보 한 장당 +${Math.round(b.p * 100)}%p`
+    : armed ? `<b style="color:var(--lime)">다음 드래프트 1회 대기</b> · 🎫${FAV_B[S.favB].cost}장 사용 완료`
+    : nf ? '꺼짐 · 좋아요 선수는 후보 목록 맨 위에 고정' : '아직 좋아요한 선수가 없습니다. 선수 옆 ❤️를 눌러주세요.';
+  return `<div class="favcard" id="favCard">
+    <div class="between"><span class="eyebrow" style="color:var(--amber)">HEART BOOST · 🎫 전용</span><span class="tag amber">🎫 ${fmt(ticketCount())}</span></div>
+    <div class="favttl">❤️ 좋아요 선수 등장 확률 UP</div>
+    <div class="tiny" style="margin-top:4px;line-height:1.5">코인으로는 못 사고 티켓으로만 켩니다. 넣은 티켓만큼 드래프트 후보 <b>한 장당</b> 좋아요 선수가 끼어들 확률이 올라갑니다. 11명 뽑는 드래프트 한 판에 적용됩니다.</div>
+    <div class="chips" style="margin-top:8px">
+      ${FAV_B.slice(1).map(x => `<button class="chip tk favtier ${lv === x.lv ? 'on' : ''} ${ticketCount() < x.cost ? 'poor' : ''}" data-act="fav-buy" data-lv="${x.lv}"><span>🎫${x.cost}</span><b>+${Math.round(x.p * 100)}%</b></button>`).join('')}
+      ${lv ? `<button class="chip favtier" data-act="fav-buy" data-lv="0">끄기</button>` : ''}
+    </div>
+    <div class="tiny" style="margin-top:6px" id="favState">${state}</div>
+  </div>`;
+}
+function favBarHTML(){
+  const n = favIds().length;
+  return `<button class="chip ${U.favOnly ? 'on' : ''}" data-act="fav-only">❤️ 좋아요만 <b class="mono" style="font-size:11px">${n}</b></button>
+    <span class="tiny" style="flex:1 1 auto;min-width:0;line-height:1.45">${n ? '좋아요 선수는 목록 맨 위에 고정됩니다' : '선수 옆 ❤️를 눌러 좋아요를 남기세요'}</span>`;
+}
 function segHTML(){
   const seg = U.bufSeg || 'pos';
   const cnt = {pos:totalBuf(), team:tbufTotal(), player:pbufTotal()};
@@ -4237,6 +4503,7 @@ function teamRowsHTML(){
 }
 function playerRowsHTML(){
   const q = String(U.pbufQ || '').trim().toLowerCase();
+  const favS = new Set(favIds());
   const buffed = Object.keys(S.pbuf || {}).map(k => Math.round(+k))
     .filter(i => i >= 0 && i < P.length && pbufLv(i) > 0)
     .sort((a,b) => pbufLv(b) - pbufLv(a));
@@ -4252,14 +4519,19 @@ function playerRowsHTML(){
     const byBase = P.map((p,i) => i).sort((a,b) => P[b][4] - P[a][4]);
     for(let k=0; k<byBase.length && ids.length < 60; k++) if(ids.indexOf(byBase[k]) < 0) ids.push(byBase[k]);
   }
-  if(!ids.length) return `<div class="tiny" style="padding:16px 2px;text-align:center">검색 결과가 없습니다</div>`;
+  if(U.favOnly) ids = ids.filter(i => favS.has(i));
+  /* 좋아요 선수는 목록 맨 위로 */
+  else ids = ids.filter(i => favS.has(i)).concat(ids.filter(i => !favS.has(i)));
+  if(!ids.length) return `<div class="tiny" style="padding:16px 2px;text-align:center">${U.favOnly ? '좋아요한 선수가 없습니다' : '검색 결과가 없습니다'}</div>`;
   return ids.map(i => {
     const lv = pbufLv(i), p = P[i], p1 = pbufCost(lv), tl = tbufLv(p[1]);
+    const fav = favS.has(i);
     return `<div class="srow ${lv ? 'on' : ''}">
-      <div class="nm"><b>${esc(p[0])}</b>
+      <div class="nm"><b>${fav ? '<i class="favmk">❤</i>' : ''}${esc(p[0])}</b>
         <span>${p[3]} · ${esc(p[1])} · 기본 ${p[4]}${tl ? ` · <b style="color:var(--sky)">팀 +${tl}</b>` : ''}</span>
       </div>
       <div class="lv ${lv ? '' : 'off'}">+${lv}</div>
+      <button class="fav ${fav ? 'on' : ''}" data-act="fav" data-i="${i}" aria-label="좋아요">❤</button>
       <div class="btns"><button class="up ${S.coins < p1 ? 'poor' : ''}" data-act="pbuf" data-i="${i}" data-n="1">+1<small>${fmt(p1)}</small></button></div>
     </div>`;
   }).join('');
@@ -4294,8 +4566,10 @@ function buffHTML(){
     </div>`;
   } else if(seg === 'player'){
     body = `<div class="stack" style="margin-top:0">
+      ${favBoostHTML()}
       <input id="pbufQ" class="srch" data-srch="player" type="search" autocomplete="off" placeholder="선수·클럽·포지션 검색" value="${esc(U.pbufQ || '')}">
-      <div class="tiny" style="line-height:1.55">원하는 선수만 골라 Lv 상한 없이 강화합니다. 드래프트에 그 선수가 나오면 OVR이 그만큼 더해집니다.</div>
+      <div class="favbar" id="favBar">${favBarHTML()}</div>
+      <div class="tiny" style="line-height:1.55">원하는 선수만 골라 Lv 상한 없이 강화합니다. 드래프트에 그 선수가 나오면 OVR이 그만큼 더해집니다. ❤️는 강화 없이도 그 선수를 후보로 자주 보게 해줍니다.</div>
       <div class="slist" id="bufList">${playerRowsHTML()}</div>
     </div>`;
   } else {
@@ -4313,6 +4587,10 @@ function refreshBuff(){
   if(pill) pill.textContent = fmt(S.coins);
   const host = document.getElementById('bufList');
   if(host) host.innerHTML = bufListRows();
+  const bar = document.getElementById('favBar');
+  if(bar) bar.innerHTML = favBarHTML();
+  const fc = document.getElementById('favCard');
+  if(fc) fc.outerHTML = favBoostHTML();
   const cnt = {pos:totalBuf(), team:tbufTotal(), player:pbufTotal()};
   document.querySelectorAll('#bufSegBar button').forEach(b => {
     const s = b.querySelector('small');
@@ -4359,8 +4637,13 @@ function questHTML(){
       <div class="stack" style="gap:7px">${rows}</div></div>`;
   };
   const hint = claimCount();
+  const bp = bulkPending();
   return `<div class="eyebrow">QUEST · KST</div>
     <div class="between"><h2 class="title">퀘스트</h2><span class="pill" style="height:27px"><span class="dot"></span><b>${fmt(S.coins)}</b></span></div>
+    <button class="qall ${bp.n ? '' : 'off'}" data-act="qall" ${bp.n ? '' : 'disabled'} style="margin-top:11px">
+      <b>${bp.n ? '모두 받기 · +' + fmt(bp.coins) + '코인' + (bp.tickets ? ' / +' + bp.tickets + '티켓' : '') : '받을 보상 없음'}</b>
+      <small>${bp.n ? bp.n + '건 한 번에 수령' : '완료한 퀘스트가 생기면 열립니다'}</small>
+    </button>
     <div class="card" style="padding:12px 13px;margin-top:11px">
       <div class="between">
         <div><b style="font-size:13px;letter-spacing:-.02em">출석체크</b>
@@ -4602,6 +4885,7 @@ document.addEventListener('click', ev => {
   else if(act === 'copy-invite'){ copyInvite(); }
   else if(act === 'cancel-invite'){ U.invite = null; try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){} render(); }
   else if(act === 'qclaim'){ claimQuest(el.dataset.sc, el.dataset.id); }
+  else if(act === 'qall'){ claimAllQuests(); }
   else if(act === 'qatt'){ claimAtt(); }
   else if(act === 'care'){ openCareSheet(); }
   else if(act === 'care-do'){ applyCare(el.dataset.k); }
@@ -4652,11 +4936,17 @@ document.addEventListener('click', ev => {
   else if(act === 'backup-copy'){ copyBackup(); }
   else if(act === 'backup-import-text'){ const t = document.getElementById('impText'); importJSON(t ? t.value : ''); }
   else if(act === 'fleague'){ U.friendly.league = el.dataset.l; render(); }
-  else if(act === 'fdiff'){ U.friendly.diff = +el.dataset.v; render(); }
+  else if(act === 'fdiff'){ U.friendly.diff = +el.dataset.v; S.fdiff = U.friendly.diff; save(); render(); }
+  else if(act === 'fb-set'){ S.fboost = Math.max(1, Math.round(+el.dataset.n || 0)); save(); render(); }
+  else if(act === 'fb-reset'){ S.fboost = 0; save(); render(); }
+  else if(act === 'fav'){ toggleFav(+el.dataset.i); refreshBuff(); }
+  else if(act === 'fav-only'){ U.favOnly = !U.favOnly; refreshBuff(); }
+  else if(act === 'fav-buy'){ buyFavBoost(+el.dataset.lv); }
+  else if(act === 'sheet-fav'){ const k = +el.dataset.k; toggleFav(+el.dataset.i); if(S.squad && S.squad[k]) openPlayer(k); }
   else if(act === 'close-friendly'){ U.friendly.open = false; render(); }
   else if(act === 'play-friendly'){
     const club = el.dataset.c;
-    const o = opponentOf(club);
+    const o = friendlyOpp(club);
     startMatch('friendly', o);
   }
   else if(act === 'skip'){
@@ -4738,6 +5028,15 @@ document.addEventListener('change', ev => {
 document.addEventListener('input', ev => {
   const t = ev.target;
   if(!t || !t.dataset || !t.dataset.srch) return;
+  if(t.dataset.srch === 'fb'){
+    /* 상대 OVR 직접 입력 — 상한 없음, 빈 칸이면 기본 */
+    const raw = String(t.value == null ? '' : t.value).replace(/[^0-9]/g, '');
+    const n = raw ? Number(raw) : 0;
+    if(!raw) S.fboost = 0;
+    else if(isFinite(n) && n >= 1) S.fboost = Math.floor(n);
+    save(); paintFriendly();
+    return;
+  }
   if(t.dataset.srch === 'team') U.bufQ = t.value;
   else U.pbufQ = t.value;
   const host = document.getElementById('bufList');
