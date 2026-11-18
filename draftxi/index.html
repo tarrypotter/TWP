@@ -4030,7 +4030,10 @@ function renderMatchScreen(){
         <div class="eyebrow" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${MODES[M.mode].name}${M.roundName ? ' · ' + esc(M.roundName) : ''}${M.drain ? ' · 전력 흡수' : ''}</div>
         <div class="tiny" style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(leagueText(M))} · 상대 OVR ${Math.round(M.opp.base)}${M.diffName ? ' · ' + esc(M.diffName) : ''}${M.cupMode ? ' · ' + esc(cupTacTag(M.tac)) : ''}${M.big ? ' · 🔥 빅매치' : ''}</div>
       </div>
-      <button class="chip" data-act="skip" style="flex:0 0 auto;padding:0 9px">⏩ 바로 결과</button>
+      <div class="row" style="gap:5px;flex:0 0 auto">
+        <button class="chip" data-act="skip" style="padding:0 9px">⏩ 바로 결과</button>
+        <button class="chip" data-act="quit-match" style="padding:0 8px">나가기</button>
+      </div>
     </div>
     <div class="board">
       <div class="tm">
@@ -4054,8 +4057,7 @@ function renderMatchScreen(){
       </div>
     </div>
     <div class="sect-h" style="margin-top:14px"><div class="eyebrow g">LIVE COMMENTARY</div><div class="tiny" id="mCount">0</div></div>
-    <div class="ticker" id="tkHost"></div>
-    <div class="sect"><button class="btn dark wide" data-act="quit-match">중계 나가기</button></div>`;
+    <div class="ticker" id="tkHost"></div>`;
   paintMatch();
   M.ev.slice().reverse().forEach(ev => addTick(ev, true));
 }

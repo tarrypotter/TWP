@@ -616,8 +616,7 @@ function lgSeasonHTML(){
         <button class="chip ${care >= 1 ? 'on' : ''}" data-act="lg-care" data-k="lift">⚡ 컨디션↑ ${fmt(CARE.lift.cost)}</button>
         <button class="chip ${care >= 2 ? 'on' : ''}" data-act="lg-care" data-k="max">🔥 최상 ${fmt(CARE.max.cost)}</button>
       </div>
-      <div class="tiny" style="margin-top:4px">컨디션 케어는 경기당 1회 · 리그는 코인 버프가 적용되지 않습니다</div>
-      <button class="btn primary wide" style="margin-top:9px" data-act="lg-play">R${L.r + 1} ${home ? '홈' : '원정'} 경기 시작 →</button>
+      <button class="btn primary wide" style="margin-top:8px" data-act="lg-play">R${L.r + 1} ${home ? '홈' : '원정'} 경기 시작 →</button>
     </div>`
     : `<div class="card" style="padding:12px;margin-top:10px">
         <div class="between"><span class="eyebrow">R${L.r + 1} · 휴식</span><span class="tag">이번 라운드 부전</span></div>

@@ -529,9 +529,8 @@ function tourHTML(k){
   const care = tCareGet(k), myTac = S[tTacKeyOf(k)] || 'balance';
   const myName = esc(tLabel(k, c.my));
   const opTac = opT ? tTacOf(k, opT.id) : 'balance';
-  return `<div class="eyebrow">${m.eye} · ${c.size}강 · ${c.round + 1}/${c.totals} 라운드</div>
+  return `<div class="eyebrow">${m.eye} · ${c.size}강 · ${c.round + 1}/${c.totals} 라운드 <span style="color:var(--dim)">· OVR ${tLv(k, myT)}</span></div>
     <h2 class="title">${m.ic} ${myName}</h2>
-    <div class="tiny" style="margin-top:3px">OVR ${tLv(k, myT)} · 고정 전력 · 전술과 컨디션으로 결승까지</div>
     ${opT ? `<div class="cupvs" style="margin-top:10px">
       <div class="between"><span class="eyebrow">${names[c.round]} · 다음 상대</span><span class="tag amber">OVR ${tLv(k, opT)}</span></div>
       <div class="ttl">${opT.flag ? `<span class="fl">${opT.flag}</span> ` : ''}${opT.s ? `<i>${esc(opT.s)}</i>` : ''}${esc(opT.n)}</div>
@@ -542,16 +541,11 @@ function tourHTML(k){
         <span class="tiny">하프타임 변경 가능</span></div>
       ${cupTacLineHTML(opTac)}
       <div class="tacbar" style="margin-top:7px">${tacBarHTML(true)}</div>
-      <div class="tiny" style="margin-top:6px">${(() => { const e = cupEdge(myTac, opTac);
-        return e > 0 ? '상성 우위 🔥 · ' + CUP_TACTS[myTac].name + josa(CUP_TACTS[myTac].name, '이', '가') + ' ' + CUP_TACTS[opTac].name + '을 흔듭니다'
-          : e < 0 ? '상성 열세 ⚠️ · ' + CUP_TACTS[opTac].name + josa(CUP_TACTS[opTac].name, '이', '가') + ' 유리합니다. 전술을 바꿔보세요'
-          : '상성 대등 · 하프타임에도 바꿀 수 있습니다'; })()}</div>
-      <div class="row" style="gap:6px;margin-top:9px">
+      <div class="row" style="gap:6px;margin-top:8px">
         <button class="chip ${care >= 1 ? 'on' : ''}" data-act="tour-care" data-k="${k}" data-c="lift">⚡ 컨디션↑ ${fmt(CARE.lift.cost)}</button>
         <button class="chip ${care >= 2 ? 'on' : ''}" data-act="tour-care" data-k="${k}" data-c="max">🔥 최상 ${fmt(CARE.max.cost)}</button>
       </div>
-      <div class="tiny" style="margin-top:5px">고정 OVR · 코인 버프 없음 · 컨디션 케어 1회</div>
-      <button class="btn primary wide" style="margin-top:9px" data-act="tour-play" data-k="${k}">${names[c.round]} 경기 시작 →</button>
+      <button class="btn primary wide" style="margin-top:8px" data-act="tour-play" data-k="${k}">${names[c.round]} 경기 시작 →</button>
     </div>` : ''}
     <div class="sect">
       <div class="sect-h"><div class="eyebrow g">내 베스트 11</div><div class="tiny">OVR ${myT.ovr}</div></div>
