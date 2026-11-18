@@ -158,7 +158,7 @@ main.duel{padding:8px 10px calc(6px + env(safe-area-inset-bottom));display:flex;
 .stage{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:5px;padding:7px 7px 6px;
   border-radius:14.5px;border:1px solid #24402f;overflow:hidden;
   background:radial-gradient(120% 78% at 50% 44%,#16291f 0%,#0d1814 58%,#0a120e 100%)}
-.arena{position:relative;flex:1 1 auto;min-height:0}
+.arena{position:relative;flex:1 1 62%;min-height:120px;max-height:360px}
 .arena:before{content:"";position:absolute;left:50%;top:50%;width:226px;height:226px;transform:translate(-50%,-50%);
   border-radius:50%;border:1px solid rgba(205,249,95,.09);box-shadow:0 0 0 24px rgba(205,249,95,.022),0 0 0 54px rgba(205,249,95,.012)}
 .vsmark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;
@@ -248,7 +248,7 @@ main.duel{padding:8px 10px calc(6px + env(safe-area-inset-bottom));display:flex;
 .mv:disabled{opacity:.42}
 .mv:disabled .ic{border-color:var(--line2);background:rgba(255,255,255,.04)}
 
-.blog{flex:0 0 auto;height:82px;overflow-y:auto;display:flex;flex-direction:column;gap:2.5px;padding:5px 6px;
+.blog{flex:1 1 38%;min-height:70px;height:auto;overflow-y:auto;display:flex;flex-direction:column;gap:2.5px;padding:5px 6px;
   border-radius:10px;border:1px solid var(--line);background:rgba(9,17,14,.8);
   scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .blog::-webkit-scrollbar{display:none}
@@ -1066,6 +1066,7 @@ button.pill:active{transform:scale(.93)}
 .modegrid .mode .rw{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}
 .modegrid .mode .rw .tag{height:14px;padding:0 3px;font-size:7.5px;border-radius:4px;letter-spacing:0}
 .modegrid .mode .row{display:none}
+.modegrid .mode.hot:after{display:none}
 .qgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
 .qgrid .q{display:flex;flex-direction:column;gap:3px;padding:7px 7px 7.5px;border-radius:10px;min-width:0}
 .qgrid .q .q-row{display:flex;flex-direction:column;gap:3px;align-items:stretch}
@@ -1089,12 +1090,12 @@ button.pill:active{transform:scale(.93)}
 .slist .srow:has(.fav) .nm{padding-right:20px}
 .pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:10px}
 .pgrid .brow{padding:7px 7px 7.5px;border-radius:11px;min-width:0}
-.pgrid .brow .hd{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.pgrid .brow .hd{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
 .pgrid .brow .ic{width:24px;height:24px;border-radius:7px;font-size:12px}
 .pgrid .brow .nm{flex:1 1 0;min-width:0}
 .pgrid .brow .nm b{font-size:9.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pgrid .brow .nm span{display:none}
-.pgrid .brow .lv{font-size:13px;letter-spacing:-.04em}
+.pgrid .brow .lv{flex:1 1 100%;font-size:12px;letter-spacing:-.04em;line-height:1.1}
 .pgrid .brow .lv small{font-size:7.5px}
 .pgrid .brow .tr{margin-top:5px}
 .pgrid .brow .ft{display:flex;flex-direction:column;align-items:stretch;gap:3px;margin-top:5px}
