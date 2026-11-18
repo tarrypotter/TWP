@@ -568,11 +568,11 @@ function lgPickHTML(){
       ${cands.map(c => {
         const tac = CUP_TACTS[lgTacOf(c)];
         return `<div class="cupick">
-          <div class="hd"><i>${esc(LG[OPP[c].l] || OPP[c].l)}</i><b>${esc(c)}</b></div>
-          <div class="ov">${lgOvr(c)}</div>
+          <div class="hd"><i>${esc(LG[OPP[c].l] || OPP[c].l)}</i><span class="ov">${lgOvr(c)}</span></div>
+          <div class="tt">${esc(c)}</div>
           <div class="st">${esc(lgRosterTop(c))}</div>
           <div class="stars"><span class="tag">${esc(tac.ic + ' ' + tac.name)}</span>${lgIsUnderdog(c) ? '<span class="tag amber">🐴 언더독</span>' : '<span class="tag lime">우승 후보</span>'}</div>
-          <button class="go" data-act="lg-pick" data-c="${esc(c)}">이 클럽으로 시즌 시작 →</button>
+          <button class="go" data-act="lg-pick" data-c="${esc(c)}">시작 →</button>
         </div>`;
       }).join('')}
     </div>

@@ -435,11 +435,11 @@ function tourPickHTML(k){
     <div class="tiny" style="margin-top:3px">${esc(m.poolN)} ${tTeams(k).length}${k === 'cup' ? '팀' : '개국'} 중 랜덤 3${k === 'cup' ? '팀' : '개국'}입니다. 전력은 86~90으로 평준화되어 전술·컨디션 승부가 됩니다.</div>
     <div class="pick3" style="margin-top:11px">
       ${cands.map(t => `<div class="cupick">
-        <div class="hd">${t.flag ? `<span class="fl">${t.flag}</span>` : ''}${t.s ? `<i>${esc(t.s)}</i>` : ''}<b>${esc(t.n)}</b></div>
-        <div class="ov">${tLv(k, t)}</div>
+        <div class="hd">${t.flag ? `<span class="fl">${t.flag}</span>` : ''}${t.s ? `<i>${esc(t.s)}</i>` : ''}<span class="ov">${tLv(k, t)}</span></div>
+        <div class="tt">${esc(t.n)}</div>
         <div class="st">${esc(t.story)}</div>
         <div class="stars">${t.star.map(x => `<span class="tag">${esc(x)}</span>`).join('')}<span class="tag amber">${CUP_TACTS[tTacOf(k, t.id) || 'balance'].ic} ${CUP_TACTS[tTacOf(k, t.id) || 'balance'].name}</span>${tUnderdog(k, t) ? '<span class="tag lime">🐴 언더독</span>' : ''}</div>
-        <button class="go" data-act="tour-pick" data-id="${t.id}">이 ${noun}으로 출전 →</button>
+        <button class="go" data-act="tour-pick" data-id="${t.id}">출전 →</button>
       </div>`).join('')}
     </div>
     <div class="sect stack">
