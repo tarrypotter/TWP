@@ -284,15 +284,25 @@ main.duel{padding:8px 10px calc(6px + env(safe-area-inset-bottom));display:flex;
 .dstats small{display:block;font-size:8.5px;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ---------- 키우기 보관함 ---------- */
-.groster{display:flex;gap:5px;overflow-x:auto;padding:7.5px 0 2.5px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.groster::-webkit-scrollbar{display:none}
-.gchip{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:5px 8.5px;border-radius:8px;
+.groster{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:7.5px 0 2.5px}
+.gchip{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:6px 7px;border-radius:9px;min-width:0;
   background:rgba(255,255,255,.035);border:1px solid var(--line);color:var(--sub);transition:all .15s}
-.gchip b{font-size:9.5px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;max-width:104px;overflow:hidden;text-overflow:ellipsis}
-.gchip small{font-family:var(--mono);font-size:8.5px;font-weight:800;color:var(--dim);letter-spacing:-.02em}
+.gchip b{font-size:9.5px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.gchip small{font-family:var(--mono);font-size:8.5px;font-weight:800;color:var(--dim);letter-spacing:-.02em;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .gchip.on{background:rgba(205,249,95,.14);border-color:rgba(205,249,95,.55);color:var(--lime)}
 .gchip.on small{color:#a9e12f}
-.gchip.add{border-style:dashed;color:var(--dim);align-items:center;justify-content:center;white-space:nowrap}
+.gchip.add{border-style:dashed;color:var(--dim);align-items:center;justify-content:center;white-space:nowrap;text-align:center}
+/* 1대1 대전 모드 — 한 줄에 3개 타일 */
+.duelmodes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.dmode{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 4px 7px;border-radius:10px;min-width:0;
+  border:1px solid var(--line2);background:var(--card2);color:var(--ink);text-align:center;transition:transform .35s var(--spring),border-color .18s ease,background .18s ease}
+.dmode .ic{font-size:15px;line-height:1}
+.dmode b{font-size:9.5px;font-weight:900;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.dmode small{font-size:7.5px;font-weight:800;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;letter-spacing:-.02em}
+.dmode:active{transform:scale(.95)}
+.dmode:disabled{opacity:.42;transform:none}
+.dmode.hot{border-color:rgba(205,248,95,.45);background:linear-gradient(170deg,rgba(205,249,95,.14),rgba(205,249,95,.03))}
+.dmode.hot small{color:#a9e12f}
 
 /* ---------- generic ---------- */
 .eyebrow{font-size:9px;font-weight:800;letter-spacing:.16em;color:var(--lime);text-transform:uppercase}
@@ -1045,6 +1055,65 @@ button.pill:active{transform:scale(.93)}
 .cupvs{box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 10px 26px rgba(0,0,0,.3)}
 .honor,.cuptro{box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
 @media (prefers-reduced-motion:reduce){.tab.on{animation:none}.tab.on:before{animation:none}main>*{animation:none}}
+/* ============ 게시판형 3열 그리드 — 목록형 선택 UI 공통 ============ */
+.modegrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.modegrid .mode{display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:8px 7px;border-radius:11px;min-width:0}
+.modegrid .mode .mh{display:flex;align-items:center;justify-content:space-between;gap:3px}
+.modegrid .mode .ic{width:26px;height:26px;border-radius:8px;font-size:13px}
+.modegrid .mode .ov{font-family:var(--mono);font-size:11px;font-weight:800;color:var(--lime);letter-spacing:-.02em;white-space:nowrap}
+.modegrid .mode .ttl{font-size:10px;font-weight:900;letter-spacing:-.03em;line-height:1.25;margin-top:3px;overflow-wrap:anywhere}
+.modegrid .mode .dsc{display:none}
+.modegrid .mode .rw{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}
+.modegrid .mode .rw .tag{height:14px;padding:0 3px;font-size:7.5px;border-radius:4px;letter-spacing:0}
+.modegrid .mode .row{display:none}
+.qgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.qgrid .q{display:flex;flex-direction:column;gap:3px;padding:7px 7px 7.5px;border-radius:10px;min-width:0}
+.qgrid .q .q-row{display:flex;flex-direction:column;gap:3px;align-items:stretch}
+.qgrid .q .qi{width:100%;min-width:0}
+.qgrid .q .qi b{font-size:9.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;overflow-wrap:anywhere}
+.qgrid .q .qi span{font-size:7.5px;line-height:1.3;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal}
+.qgrid .q .q-bar{margin-top:3px}
+.qgrid .q .q-claim{width:100%;min-width:0;height:30px;font-size:9.5px;border-radius:7px;margin-top:auto}
+.qgrid .q .q-claim.done{font-size:8.5px}
+.slist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.slist .srow{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:6px 7px 6.5px;border-radius:10px;min-width:0}
+.slist .srow .nm{flex:0 0 auto;width:100%}
+.slist .srow .nm > b{font-size:9.5px}
+.slist .srow .nm span{font-size:7.5px;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.slist .srow .tr{margin-top:3px}
+.slist .srow .lv{font-size:12px;line-height:1;margin-top:2px}
+.slist .srow .btns{display:flex;gap:3px;width:100%;margin-top:3px}
+.slist .srow .up{flex:1 1 0;width:auto;height:30px;font-size:9px;padding:0 2px}
+.slist .srow .up small{font-size:7.5px}
+.slist .srow .fav{position:absolute;right:4px;top:4px;width:18px;height:18px;border-radius:6px;font-size:9px}
+.slist .srow:has(.fav) .nm{padding-right:20px}
+.pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:10px}
+.pgrid .brow{padding:7px 7px 7.5px;border-radius:11px;min-width:0}
+.pgrid .brow .hd{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.pgrid .brow .ic{width:24px;height:24px;border-radius:7px;font-size:12px}
+.pgrid .brow .nm{flex:1 1 0;min-width:0}
+.pgrid .brow .nm b{font-size:9.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pgrid .brow .nm span{display:none}
+.pgrid .brow .lv{font-size:13px;letter-spacing:-.04em}
+.pgrid .brow .lv small{font-size:7.5px}
+.pgrid .brow .tr{margin-top:5px}
+.pgrid .brow .ft{display:flex;flex-direction:column;align-items:stretch;gap:3px;margin-top:5px}
+.pgrid .brow .ft .tiny{font-size:7.5px}
+.pgrid .brow .btns{display:flex;gap:3px}
+.pgrid .brow .up{flex:1 1 0;min-width:0;height:30px;font-size:9px;padding:0 2px;border-radius:7px}
+.pgrid .brow .up span{font-size:7.5px !important}
+.opps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.opps .opp{display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:7px 7px 7.5px;border-radius:10px;min-width:0}
+.opps .opp .cr{width:24px;height:24px;border-radius:7px;font-size:9.5px}
+.opps .opp .nm{flex:0 0 auto;font-size:9.5px;margin-top:2px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;line-height:1.25}
+.opps .opp .ov{font-size:9.5px}
+.opps .opp .pl{width:100%;height:30px;font-size:9.5px;margin-top:3px;border-radius:7px}
+.cuplist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.cuplist .cupcard{flex-direction:column;align-items:stretch;padding:7px;border-radius:10px;gap:2px}
+.cuplist .cupcard .lc{width:24px;height:24px;border-radius:7px;font-size:12px}
+.cuplist .cupcard .tx b{font-size:9.5px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;line-height:1.25}
+.cuplist .cupcard .tx span{font-size:7.5px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cuplist .cupcard .ov{font-size:11px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -3976,14 +4045,10 @@ function stadiumHTML(){
     const tier = tierOf(S.rank.r);
     const tag = key === 'ranked' ? tier.n : '상대 무작위';
     return `<button class="mode ${key==='ranked'?'hot':''}" data-act="mode" data-mode="${key}">
-      <div class="row">
-        <div class="ic">${m.ic}</div>
-        <div style="flex:1"><div class="ttl">${m.name}</div><div class="dsc">${m.desc}</div></div>
-        <div style="text-align:right"><div class="mono" style="font-size:12px;color:var(--lime)">${key==='ranked'?S.rank.r:'→'}</div>
-        <div class="tiny">${key==='ranked'?tag:'시작'}</div></div>
-      </div>
-      <div class="rw"><span class="tag lime">승 ${m.coins[0]}C</span><span class="tag">무 ${m.coins[1]}C</span><span class="tag">패 ${m.coins[2]}C</span>
-      <span class="tag sky">${rec.w}승 ${rec.d}무 ${rec.l}패</span>${key==='ranked'?`<span class="tag amber">전력 흡수 ${drainLeft()}/${DRAIN_MAX}</span>`:''}</div>
+      <div class="mh"><span class="ic">${m.ic}</span><span class="ov">${key==='ranked' ? fmt(S.rank.r) : '→'}</span></div>
+      <div class="ttl">${m.name}</div>
+      <div class="rw"><span class="tag lime">승 ${m.coins[0]}C</span><span class="tag">${key==='ranked' ? tag : '상대 난이도'}</span>
+      <span class="tag sky">${rec.w}-${rec.d}-${rec.l}</span>${key==='ranked'?`<span class="tag amber">흡수 ${drainLeft()}/${DRAIN_MAX}</span>`:''}</div>
     </button>`;
   };
   let body = '';
@@ -4014,7 +4079,7 @@ function stadiumHTML(){
       <div class="tacbar" id="mTacBar">${tacBarHTML(false)}</div>
       <div class="tiny" style="margin-top:6px"> ${esc(tacOf(S.tactic || 'balance').tag)} · ${S.tactic === 'press' ? '공격 +3 / 수비 -2' : S.tactic === 'counter' ? '수비 +3 / 공격 +1' : '공격·중원·수비 그대로'}</div>
     </div>
-    <div class="sect stack">${modeCard('normal')}${modeCard('friendly')}${modeCard('ranked')}</div>
+    <div class="sect modegrid">${modeCard('normal')}${modeCard('friendly')}${modeCard('ranked')}</div>
     <div class="sect">
       <div class="sect-h"><div class="eyebrow">⚡ 패스 티켓 · 초고속</div><div class="tiny">레전드 컵 제외</div></div>
       ${skipCardHTML('매 경기 포지션별 최고 OVR 자동 드래프트(현재 버프 반영)로 연속 시뮬레이션합니다. 첫 경기는 지금 임대 XI로 뜁니다.')}
@@ -4321,7 +4386,7 @@ function posBuffHTML(){
       <div><div class="eyebrow">POSITION BUFF</div><div class="nm">포지션 버프 Lv</div><div class="cl">${bufLine()}</div></div>
       <div style="text-align:right"><div class="big ${tb>0?'up':''}">${fmt(tb)}</div><div class="tiny">드래프트에 그대로 합산</div></div>
     </div>
-    <div class="stack" style="margin-top:10px">${rows}</div>
+    <div class="pgrid">${rows}</div>
     <div class="rental" style="margin-top:10px"><span class="ic">⚡</span><span class="tx">포지션 버프는 그 포지션 <b>전원</b>에게 걸립니다. 드래프트 후보 카드, 피치, 경기 시뮬레이션 모두 버프가 더해진 능력치로 돌아갑니다.</span></div>`;
 }
 function teamRowsHTML(){
@@ -4479,7 +4544,7 @@ function questHTML(){
     }).join('');
     return `<div class="sect stack">
       <div class="sect-h"><div class="eyebrow ${tkScope2 ? '' : 'g'}">${def.label}</div><div class="tiny">${def.reset}</div></div>
-      <div class="stack" style="gap:7px">${rows}</div></div>`;
+      <div class="qgrid">${rows}</div></div>`;
   };
   const hint = claimCount();
   const bp = bulkPending();
@@ -4516,7 +4581,7 @@ function growHTML(){
     <div style="margin-top:9px">${burnBannerHTML()}</div>
     <div class="groster" style="margin-top:10px">
       ${roster.map((x, k) => `<button class="gchip ${k === ridx && picked ? 'on' : ''}" data-act="grow-switch" data-k="${k}">
-        <b>${esc(P[x.i][0])}</b><small>+${x.lv}강</small></button>`).join('')}
+        <b>${esc(P[x.i][0])}</b><small>+${x.lv}강 · ${posOf(x.i)}</small></button>`).join('')}
       <button class="gchip add" data-act="grow-pick">＋ 새 선수<small>${roster.length}/${GROW_SLOTS}</small></button>
     </div>`;
   if(!picked){
@@ -4578,11 +4643,11 @@ function growHTML(){
       <div class="dc-r"><b>${ovr}</b><span>+${lv}강</span></div>
     </div>
     <div class="tiny" style="margin-top:-4px">기술 4개를 주고받는 턴제 배틀. 상대 HP를 먼저 0으로 만들면 승리. 일반전은 실력이 비슷한 선수를, 랭킹전은 내 레이팅에 맞는 선수를 데려옵니다.</div>
-    <div class="row" style="gap:6px">
-      <button class="btn dark" style="flex:1" data-act="grow-duel" data-mode="normal">⚔️ 1대1 일반</button>
-      <button class="btn dark" style="flex:1" data-act="grow-duel" data-mode="ranked">🏆 1대1 랭킹</button>
+    <div class="duelmodes">
+      <button class="dmode" data-act="grow-duel" data-mode="normal"><span class="ic">⚔️</span><b>1대1 일반</b><small>비슷한 실력</small></button>
+      <button class="dmode hot" data-act="grow-duel" data-mode="ranked"><span class="ic">🏆</span><b>1대1 랭킹</b><small>레이팅 매칭</small></button>
+      <button class="dmode" data-act="grow-duel" data-mode="invite" ${U.ace?'':'disabled'}><span class="ic">🤝</span><b>1대1 초대</b><small>${U.ace ? esc(U.ace.name) + ' +' + U.ace.lv + '강' : '받은 초대 없음'}</small></button>
     </div>
-    <button class="btn dark wide" data-act="grow-duel" data-mode="invite" ${U.ace?'':'disabled'}>🤝 친구 1대1 초대${U.ace ? ' · ' + esc(U.ace.name) + ' +' + U.ace.lv + '강' : ' (받은 1대1 초대 없음)'}</button>
     <div class="tkcard" style="margin-top:2px">
       <div class="hd"><b>⚡ 패스 티켓 초고속</b><span class="tiny" style="color:var(--amber)">🎫 ${fmt(ticketCount())}장</span></div>
       <div class="tiny" style="margin-top:3px">지금 키우는 선수로 연속 대결하고 한 번에 결과를 봅니다</div>
