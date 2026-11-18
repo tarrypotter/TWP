@@ -438,7 +438,7 @@ function tourPickHTML(k){
         <div class="hd">${t.flag ? `<span class="fl">${t.flag}</span>` : ''}${t.s ? `<i>${esc(t.s)}</i>` : ''}<span class="ov">${tLv(k, t)}</span></div>
         <div class="tt">${esc(t.n)}</div>
         <div class="st">${esc(t.story)}</div>
-        <div class="stars">${t.star.map(x => `<span class="tag">${esc(x)}</span>`).join('')}<span class="tag amber">${CUP_TACTS[tTacOf(k, t.id) || 'balance'].ic} ${CUP_TACTS[tTacOf(k, t.id) || 'balance'].name}</span>${tUnderdog(k, t) ? '<span class="tag lime">🐴 언더독</span>' : ''}</div>
+        <div class="stars">${t.star.slice(0, 1).map(x => `<span class="tag">${esc(x)}</span>`).join('')}<span class="tag amber">${CUP_TACTS[tTacOf(k, t.id) || 'balance'].ic} ${CUP_TACTS[tTacOf(k, t.id) || 'balance'].name}</span>${tUnderdog(k, t) ? '<span class="tag lime">🐴 언더독</span>' : ''}</div>
         <button class="go" data-act="tour-pick" data-id="${t.id}">출전 →</button>
       </div>`).join('')}
     </div>

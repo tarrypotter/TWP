@@ -51,6 +51,9 @@ b,strong{font-weight:800}
 .pill.code b{color:var(--ink);font-weight:700}
 /* 패스 티켓 — 코인 옆 제2 재화 */
 .pill.tk{padding:0 6px;gap:3px;background:rgba(255,180,58,.11);border-color:rgba(255,180,58,.4)}
+/* 컴팩트 상단 필 — 보이는 크기는 그대로, 터치 영역만 가로·세로로 넓힌다 */
+.pill.tk,.pill.code{position:relative}
+.pill.tk:after,.pill.code:after{content:"";position:absolute;left:-2px;right:-2px;top:-5px;bottom:-5px}
 .pill.tk .ic{font-size:10px;line-height:1}
 .pill.tk b{color:var(--amber)}
 .pill.tk.zero{opacity:.55;background:var(--card2);border-color:var(--line2)}
@@ -497,9 +500,9 @@ h3.sub{font-size:13px;font-weight:900;letter-spacing:-.02em}
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cupick .st{font-size:8px;color:var(--sub);margin-top:2px;line-height:1.38;letter-spacing:-.01em;overflow-wrap:anywhere;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;padding:0}
-.cupick .stars{display:flex;gap:2px;flex-wrap:wrap;margin-top:4px;max-height:30px;overflow:hidden}
+.cupick .stars{display:flex;gap:2px;flex-wrap:wrap;margin-top:4px}
 .cupick .stars .tag{height:14px;padding:0 3px;font-size:7.5px;border-radius:4px;letter-spacing:0;max-width:100%}
-.cupick .go{margin-top:auto;width:100%;height:26px;border-radius:7px;background:var(--lime);color:#0a120c;font-size:9.5px;font-weight:900;display:grid;place-items:center;white-space:nowrap;overflow:hidden}
+.cupick .go{margin-top:auto;width:100%;height:30px;border-radius:7px;background:var(--lime);color:#0a120c;font-size:9.5px;font-weight:900;display:grid;place-items:center;white-space:nowrap;overflow:hidden}
 .xi{display:flex;flex-direction:column;gap:2.5px}
 .xr{display:flex;align-items:center;gap:5.5px;padding:3.5px 7px;border-radius:7px;background:rgba(255,255,255,.028);border:1px solid #16281f}
 .xr .ps{flex:0 0 auto;width:24px;font-family:var(--mono);font-size:8.5px;font-weight:800;color:var(--dim);letter-spacing:.02em}
