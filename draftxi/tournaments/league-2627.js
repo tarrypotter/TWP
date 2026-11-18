@@ -351,7 +351,7 @@ function lgSimScore(h, a){
   return [gh, ga];
 }
 function lgOffer(){
-  S.leagueSel = {offers:cupShuffle(lgAllClubs()).slice(0, 3), rerolled:false};
+  S.leagueSel = {offers:tShuffle(lgAllClubs()).slice(0, 3), rerolled:false};
   U.lgSel = S.leagueSel; U.match = null; U.tab = 'cup'; U.contest = 'league';
   save(); render();
 }
@@ -364,7 +364,7 @@ function lgReroll(){
   spendTickets(CUP_REROLL_TICKET);
   const cur = sel.offers.slice();
   let next = cur;
-  for(let i = 0; i < 20 && next.every(c => cur.indexOf(c) >= 0); i++) next = cupShuffle(lgAllClubs()).slice(0, 3);
+  for(let i = 0; i < 20 && next.every(c => cur.indexOf(c) >= 0); i++) next = tShuffle(lgAllClubs()).slice(0, 3);
   sel.offers = next; sel.rerolled = true;
   S.leagueSel = sel; U.lgSel = sel;
   save(); render();
