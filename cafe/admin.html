@@ -425,7 +425,7 @@ function renderOrders() {
         <button class="btn primary sm" data-confirm="${o.id}" type="button">입금 확인 → 완료</button>` : `<span class="badge ok" style="align-self:center">결제 완료된 주문</span>`}
         <button class="btn sm ghost" data-del="${o.id}" type="button" style="flex:0 0 auto;color:var(--muted)">삭제</button>
       </div>
-      <div class="o-chat" data-chat="${m.id}">
+      <div class="o-chat" data-chat="${o.id}">
         <div class="msgs">${chatBubbles(o.id)}</div>
         <div class="o-cin">
           <input class="input" data-cin="${esc(o.id)}" maxlength="200" autocomplete="off" placeholder="손님에게 한마디 (폰 알림으로 전송)">
