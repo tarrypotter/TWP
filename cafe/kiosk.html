@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="세종카페">
 <meta name="theme-color" content="#08080a">
 <title>세종월드교회 카페 · 키오스크</title>
-<link rel="stylesheet" href="./style.css?v=18">
+<link rel="stylesheet" href="./style.css?v=19">
 <style>
   /* ---- 키오스크(태블릿) · 다크 글래스 ---- */
   .kiosk { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
@@ -80,17 +80,39 @@
   .k-cust .input { padding: 12px 13px; }
   .k-cart { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px 16px; scrollbar-width: none; }
   .k-cart::-webkit-scrollbar { display: none; }
-  .k-lines .k-line { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .k-pane-top { display: flex; align-items: center; gap: 8px; }
+  .k-pane-top b { font-size: 14.5px; flex: 0 0 auto; }
+  .k-pane-top #kTier { margin-left: auto; }
+  .k-clear {
+    flex: 0 0 auto; padding: 6px 10px; border-radius: 9px; background: rgba(255, 255, 255, .05);
+    border: 1px solid var(--line); color: var(--sub); font-size: 11.5px; font-weight: 800;
+    letter-spacing: -.01em; white-space: nowrap; transition: .18s var(--spring);
+  }
+  .k-clear:active { transform: scale(.95); background: rgba(255, 255, 255, .1); color: var(--ink); }
+  .k-lines .k-line { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .k-l-top { display: flex; align-items: flex-start; gap: 8px; }
   .k-line .li { flex: 1 1 auto; min-width: 0; }
-  .k-line .li b { font-size: 13px; display: block; }
+  .k-line .li b { font-size: 13.5px; display: block; line-height: 1.3; word-break: keep-all; }
   .k-line .li span { font-size: 11px; color: var(--muted); }
-  .k-line .q { display: flex; align-items: center; gap: 6px; }
+  .k-del {
+    flex: 0 0 auto; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 9px;
+    background: rgba(255, 255, 255, .05); border: 1px solid var(--line); color: var(--muted);
+    font-size: 12px; line-height: 1; transition: .18s var(--spring);
+  }
+  .k-del:active { transform: scale(.94); color: var(--ink); }
+  .k-l-bot { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+  .k-line .tseg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); }
+  .k-line .tseg button { padding: 5px 9px; border-radius: 7px; font-size: 10.5px; font-weight: 800; color: var(--muted); letter-spacing: .03em; transition: .18s var(--spring); }
+  .k-line .tseg button.on { background: var(--brand-soft); color: var(--brand-2); box-shadow: inset 0 0 0 1px rgba(233, 189, 148, .3); }
+  .k-line .k-fix { font-size: 10px; font-weight: 800; color: var(--muted); letter-spacing: .07em; }
+  .k-line .q { margin-left: auto; display: flex; align-items: center; gap: 6px; }
   .k-line .q button {
-    width: 30px; height: 30px; border-radius: 10px; background: rgba(255, 255, 255, .06);
+    width: 31px; height: 31px; border-radius: 10px; background: rgba(255, 255, 255, .06);
     border: 1px solid var(--line-2); font-size: 15px; font-weight: 700; color: var(--brand-2);
     transition: .18s var(--spring);
   }
   .k-line .q button:active { transform: scale(.92); }
+  .k-line .q button:disabled { opacity: .3; }
   .k-line .q b { min-width: 18px; text-align: center; font-size: 13.5px; }
   .k-pane-foot { flex: 0 0 auto; padding: 13px 16px calc(env(safe-area-inset-bottom) + 14px); border-top: 1px solid var(--line); background: rgba(10, 10, 13, .9); }
   .k-total { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
@@ -202,7 +224,8 @@
 
     <aside class="k-right-pane">
       <div class="k-pane-hdr">
-        <div class="between"><b>주문서</b><span class="badge" id="kTier">가격 확인 중</span></div>
+        <div class="k-pane-top"><b>주문서</b><span class="badge" id="kTier">가격 확인 중</span>
+          <button class="k-clear" id="kClear" type="button">전체 비우기</button></div>
         <div class="k-cust mt10">
           <input class="input" id="kName" placeholder="이름" maxlength="12" autocomplete="off">
           <input class="input" id="kAge" placeholder="나이" inputmode="numeric" maxlength="2" autocomplete="off">
@@ -240,7 +263,7 @@ import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierShort,
   priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, doc, addDoc, setDoc, getDoc, getDocs, onSnapshot, query, where,
   copyText, profileFrom, hydrateProfile, whoTag, ageTag, tierName, menuMatches, hhmm, itemsSummary, memberKeyOf, pushTokensOf
-} from './core.js?v=18';
+} from './core.js?v=19';
 
 lockZoom();
 
@@ -386,15 +409,41 @@ function render() {
     if (m) i.price = priceOf(m, t);
   }
   const lines = Object.entries(S.cart);
-  $('#kLines').innerHTML = lines.length ? lines.map(([k, i]) => `
+  $('#kLines').innerHTML = lines.length ? lines.map(([k, i]) => {
+    const t3 = cartTemp(i.id);
+    const canTemp = t3 === 'both';
+    return `
     <div class="k-line">
-      <div class="li"><b>${esc(i.name)}${i.option ? ` <span class="badge gray">${esc(i.option)}</span>` : ''}</b><span class="tnum">${won(i.price)}</span></div>
-      <div class="q"><button data-dec="${esc(k)}" type="button">−</button><b>${i.qty}</b><button data-inc="${esc(k)}" type="button">+</button></div>
-    </div>`).join('') : '<div class="empty" style="padding:24px 0"><b>음료를 골라 주세요</b></div>';
-  $('#kLines').querySelectorAll('[data-inc]').forEach(b => b.onclick = () => { S.cart[b.dataset.inc].qty++; render(); });
-  $('#kLines').querySelectorAll('[data-dec]').forEach(b => b.onclick = () => {
-    const k = b.dataset.dec; S.cart[k].qty--; if (S.cart[k].qty <= 0) delete S.cart[k]; render();
+      <div class="k-l-top">
+        <div class="li"><b>${esc(i.name)}</b><span class="tnum">${won(i.price)} × ${i.qty} = ${won(i.price * i.qty)}</span></div>
+        <button class="k-del" data-del="${esc(k)}" type="button" aria-label="${esc(i.name)} 빼기">✕</button>
+      </div>
+      <div class="k-l-bot">
+        ${canTemp ? `<div class="tseg" role="group" aria-label="온도 선택">
+          <button type="button" data-temp="HOT" data-k="${esc(k)}" class="${i.option === 'HOT' ? 'on' : ''}">🔥 HOT</button>
+          <button type="button" data-temp="ICED" data-k="${esc(k)}" class="${i.option === 'ICED' ? 'on' : ''}">🧊 ICED</button>
+        </div>` : `<span class="k-fix">${t3 === 'hot' ? 'ONLY HOT' : t3 === 'iced' ? 'ONLY ICED' : ''}</span>`}
+        <div class="q">
+          <button data-dec="${esc(k)}" type="button" aria-label="수량 줄이기"${i.qty <= 1 ? ' disabled' : ''}>−</button><b>${i.qty}</b>
+          <button data-inc="${esc(k)}" type="button" aria-label="수량 늘리기"${i.qty >= 20 ? ' disabled' : ''}>+</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty" style="padding:24px 0"><b>음료를 골라 주세요</b></div>';
+  $('#kLines').querySelectorAll('[data-inc]').forEach(b => b.onclick = () => {
+    const k = b.dataset.inc; if (!S.cart[k] || S.cart[k].qty >= 20) return;
+    S.cart[k].qty++; render();
   });
+  $('#kLines').querySelectorAll('[data-dec]').forEach(b => b.onclick = () => {
+    const k = b.dataset.dec; if (!S.cart[k] || S.cart[k].qty <= 1) return;
+    S.cart[k].qty--; render();
+  });
+  $('#kLines').querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    const k = b.dataset.del; if (!S.cart[k]) return;
+    const name = S.cart[k].name; delete S.cart[k];
+    render(); toast(`${name} 뺐어요`);
+  });
+  $('#kLines').querySelectorAll('[data-temp]').forEach(b => b.onclick = () => setCartTemp(b.dataset.k, b.dataset.temp));
   const total = Object.values(S.cart).reduce((a, i) => a + i.qty * i.price, 0);
   $('#kTotal').textContent = won(total);
   const c = cust();
@@ -460,10 +509,25 @@ function renderModal() {
 function addToCart(m, option, qty) {
   const key = m.id + '|' + option;
   const price = priceOf(m, tier());
-  if (S.cart[key]) { S.cart[key].qty += qty; S.cart[key].price = price; }
+  if (S.cart[key]) { S.cart[key].qty = Math.min(20, S.cart[key].qty + qty); S.cart[key].price = price; }
   else S.cart[key] = { id: m.id, name: m.name, option, price, qty };
   render();
 }
+/* HOT ↔ ICED — 같은 메뉴의 반대 온도 줄이 이미 있으면 수량을 합쳐 한 줄로 정리합니다 */
+function cartTemp(id) { const m = S.menus.find(x => x.id === id); return m ? m.temp : ''; }
+function setCartTemp(k, temp) {
+  const i = S.cart[k];
+  if (!i || cartTemp(i.id) !== 'both' || i.option === temp) return;
+  const nk = i.id + '|' + temp;
+  if (S.cart[nk]) { S.cart[nk].qty = Math.min(20, S.cart[nk].qty + i.qty); delete S.cart[k]; }
+  else { delete S.cart[k]; S.cart[nk] = { ...i, option: temp }; }
+  render();
+  toast(`${temp === 'HOT' ? '따뜻한' : '아이스'} ${i.name}로 바꿨어요`);
+}
+$('#kClear').onclick = () => {
+  if (!Object.keys(S.cart).length) return toast('주문서가 이미 비어 있어요');
+  S.cart = {}; render(); toast('주문서를 비웠어요');
+};
 
 /* 이름·기수 입력 */
 $('#kName').oninput = render;

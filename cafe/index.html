@@ -13,7 +13,7 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="stylesheet" href="./style.css?v=18">
+<link rel="stylesheet" href="./style.css?v=19">
 <style>
   /* ---- 손님 앱 전용 · 다크 글래스 ---- */
   .tier-pill {
@@ -88,6 +88,25 @@
   }
   .qty button:active { transform: scale(.93); }
   .qty b { font-size: 19px; min-width: 34px; text-align: center; }
+
+  /* 주문서 한 줄 — 이름·가격 + 온도(HOT/ICED)·수량·삭제 */
+  .o-line { padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .o-line:last-child { border-bottom: 0; padding-bottom: 3px; }
+  .ol-top { display: flex; align-items: flex-start; gap: 8px; }
+  .ol-name { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 800; line-height: 1.35; letter-spacing: -.01em; word-break: keep-all; }
+  .ol-price { display: block; font-size: 11.5px; font-weight: 600; color: var(--sub); margin-top: 2px; letter-spacing: 0; }
+  .ol-del { flex: 0 0 auto; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 10px; background: rgba(255, 255, 255, .05); border: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1; transition: .18s var(--spring); }
+  .ol-del:active { transform: scale(.94); color: var(--ink); background: rgba(255, 255, 255, .1); }
+  .ol-bot { display: flex; align-items: center; gap: 8px; margin-top: 9px; }
+  .tseg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 11px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); }
+  .tseg button { padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; color: var(--muted); letter-spacing: .03em; transition: .18s var(--spring); }
+  .tseg button.on { background: var(--brand-soft); color: var(--brand-2); box-shadow: inset 0 0 0 1px rgba(233, 189, 148, .3); }
+  .ol-fix { font-size: 10.5px; font-weight: 800; color: var(--muted); letter-spacing: .08em; }
+  .stepper { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .stepper button { width: 31px; height: 31px; border-radius: 10px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line-2); font-size: 16px; font-weight: 700; color: var(--brand-2); line-height: 1; transition: .18s var(--spring); }
+  .stepper button:active { transform: scale(.94); }
+  .stepper button:disabled { opacity: .3; }
+  .stepper b { min-width: 20px; text-align: center; font-size: 13.5px; font-variant-numeric: tabular-nums; }
 
   .sum-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 13.5px; color: var(--sub); }
   .sum-row b { color: var(--ink); }
@@ -409,7 +428,11 @@
 
 <!-- ============ 주문서 시트 ============ -->
 <section class="sheet" id="sheetOrder" aria-hidden="true">
-  <div class="sheet-hdr"><b>주문서</b><button class="btn sm ghost" id="orderClose" type="button" style="margin-left:auto">닫기</button></div>
+  <div class="sheet-hdr">
+    <b>주문서</b><span class="badge gray" id="orderCnt">0잔</span>
+    <button class="btn sm ghost" id="orderClear" type="button" style="margin-left:auto">전체 비우기</button>
+    <button class="btn sm ghost" id="orderClose" type="button">닫기</button>
+  </div>
   <div class="sheet-body">
     <div id="orderLines"></div>
 
@@ -473,7 +496,7 @@ import {
   acctOf, acctProblem, pwProblem, pwHashOf, newSalt,
   watchConfig, collection, doc, addDoc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
   beep, buzz, notify, askNotifyPermission, registerPush, pushTokenLocal, pushTokensOf, PUSH, pushAvailable, sendPush
-} from './core.js?v=18';
+} from './core.js?v=19';
 
 lockZoom();
 
@@ -1013,26 +1036,70 @@ function openOrderSheet() {
   renderOrderLines();
   $('#sheetOrder').classList.add('open');
 }
+function closeOrderSheet() { $('#sheetOrder').classList.remove('open'); }
+// 수량·온도·삭제를 마치면 주문서 줄과 하단 장바구니 바를 함께 다시 그립니다. 다 비면 시트가 스스로 닫힙니다.
+function afterCartEdit() {
+  renderOrderLines();
+  renderCart();
+  if (!cartList().length) closeOrderSheet();
+}
+function cartTempOf(id) {
+  const m = S.menus.find(x => x.id === id);
+  return m ? m.temp : '';
+}
+// HOT ↔ ICED — 같은 메뉴의 반대 온도 줄이 이미 있으면 수량을 합쳐 한 줄로 정리합니다
+function setCartTemp(key, temp) {
+  const i = S.cart[key];
+  if (!i) return;
+  if (cartTempOf(i.id) !== 'both' || i.option === temp) return;
+  const nk = i.id + '|' + temp;
+  if (S.cart[nk]) { S.cart[nk].qty = Math.min(20, S.cart[nk].qty + i.qty); delete S.cart[key]; }
+  else { delete S.cart[key]; S.cart[nk] = { ...i, option: temp }; }
+  afterCartEdit();
+  toast(`${temp === 'HOT' ? '따뜻한' : '아이스'} ${i.name}로 바꿨어요`);
+  buzz(15);
+}
 function renderOrderLines() {
   repricingCart();
-  const rows = cartList().map(i => `
-    <div class="row between" style="padding:9px 0;border-bottom:1px solid var(--line)">
-      <div class="grow">
-        <b style="font-size:14px">${esc(i.name)}${i.option ? ` <span class="badge gray">${esc(i.option)}</span>` : ''}</b>
-        <div class="small muted">${won(i.price)} × ${i.qty}</div>
+  const box = $('#orderLines');
+  const rows = Object.entries(S.cart).map(([k, i]) => {
+    const temp = cartTempOf(i.id);
+    const canTemp = temp === 'both';
+    return `
+    <div class="o-line">
+      <div class="ol-top">
+        <div class="ol-name">${esc(i.name)}<span class="ol-price tnum">${won(i.price)} × ${i.qty} = ${won(i.price * i.qty)}</span></div>
+        <button class="ol-del" data-del="${esc(k)}" type="button" aria-label="${esc(i.name)} 빼기">✕</button>
       </div>
-      <div class="row" style="gap:6px">
-        <button class="btn sm" data-dec="${esc(i.id + '|' + i.option)}" type="button">−</button>
-        <b class="tnum">${i.qty}</b>
-        <button class="btn sm" data-inc="${esc(i.id + '|' + i.option)}" type="button">+</button>
+      <div class="ol-bot">
+        ${canTemp ? `<div class="tseg" role="group" aria-label="온도 선택">
+          <button type="button" data-temp="HOT" data-k="${esc(k)}" class="${i.option === 'HOT' ? 'on' : ''}">🔥 HOT</button>
+          <button type="button" data-temp="ICED" data-k="${esc(k)}" class="${i.option === 'ICED' ? 'on' : ''}">🧊 ICED</button>
+        </div>` : `<span class="ol-fix">${temp === 'hot' ? 'ONLY HOT' : temp === 'iced' ? 'ONLY ICED' : ''}</span>`}
+        <div class="stepper">
+          <button data-dec="${esc(k)}" type="button" aria-label="수량 줄이기"${i.qty <= 1 ? ' disabled' : ''}>−</button>
+          <b class="tnum">${i.qty}</b>
+          <button data-inc="${esc(k)}" type="button" aria-label="수량 늘리기"${i.qty >= 20 ? ' disabled' : ''}>+</button>
+        </div>
       </div>
-    </div>`).join('');
-  $('#orderLines').innerHTML = rows || '<div class="empty"><b>장바구니가 비었어요</b></div>';
-  $('#orderLines').querySelectorAll('[data-inc]').forEach(b => b.onclick = () => { S.cart[b.dataset.inc].qty++; renderOrderLines(); renderCart(); });
-  $('#orderLines').querySelectorAll('[data-dec]').forEach(b => b.onclick = () => {
-    const k = b.dataset.dec; S.cart[k].qty--; if (S.cart[k].qty <= 0) delete S.cart[k];
-    renderOrderLines(); renderCart(); if (!cartList().length) $('#sheetOrder').classList.remove('open');
+    </div>`;
+  }).join('');
+  box.innerHTML = rows || '<div class="empty"><b>장바구니가 비었어요</b></div>';
+  $('#orderCnt').textContent = `${cartCount()}잔`;
+  box.querySelectorAll('[data-inc]').forEach(b => b.onclick = () => {
+    const k = b.dataset.inc; if (!S.cart[k] || S.cart[k].qty >= 20) return;
+    S.cart[k].qty++; afterCartEdit(); buzz(12);
   });
+  box.querySelectorAll('[data-dec]').forEach(b => b.onclick = () => {
+    const k = b.dataset.dec; if (!S.cart[k] || S.cart[k].qty <= 1) return;
+    S.cart[k].qty--; afterCartEdit(); buzz(12);
+  });
+  box.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    const k = b.dataset.del; if (!S.cart[k]) return;
+    const name = S.cart[k].name; delete S.cart[k];
+    afterCartEdit(); toast(`${name} 뺐어요`); buzz(15);
+  });
+  box.querySelectorAll('[data-temp]').forEach(b => b.onclick = () => setCartTemp(b.dataset.k, b.dataset.temp));
   const total = cartTotal();
   $('#orderSum').innerHTML = `
     <div class="sum-row"><span>주문 금액</span><b class="tnum">${won(total)}</b></div>
@@ -1055,7 +1122,14 @@ $('#paySeg').querySelectorAll('button').forEach(b => b.onclick = () => {
     ? `계좌이체 · <b>${esc(S.cfg.bank)} ${esc(S.cfg.account)}</b> (예금주 ${esc(S.cfg.holder)})`
     : `현장 현금 · 음료 받으실 때 카운터에 현금으로 결제해 주세요.`;
 });
-$('#orderClose').onclick = () => $('#sheetOrder').classList.remove('open');
+$('#orderClose').onclick = () => closeOrderSheet();
+// 전체 비우기 — 확인 창 없이 바로 비우고 주문서를 답습니다 (다시 담으면 됩니다)
+$('#orderClear').onclick = () => {
+  if (!cartList().length) return;
+  S.cart = {};
+  renderOrderLines(); renderCart(); closeOrderSheet();
+  toast('주문서를 비웠어요'); buzz(20);
+};
 
 $('#orderSubmit').onclick = async () => {
   if (!ACCT || !S.profile) { openAuth('login'); return; }

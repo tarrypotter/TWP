@@ -1,7 +1,7 @@
 /* 세종월드교회 카페 — 서비스 워커
    원칙: 화면(HTML)·스크립트는 항상 네트워크 우선 → 새 배포가 바로 반영되고,
    네트워크가 끊겼을 때만 캐시로 대신 열어 줍니다. (정적 셸 캐시 충돌 없음) */
-const CACHE = 'sejong-cafe-v9';
+const CACHE = 'sejong-cafe-v10';
 const SHELL = ['./', './index.html', './board.html', './style.css', './core.js', './manifest.json',
   './icon-192.png', './icon-512.png', './icon-180.png'];
 
