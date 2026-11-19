@@ -29,7 +29,11 @@ export default {
     }
 
     if (url.pathname === '/' || url.pathname === '/health') {
-      return json({ ok: true, service: 'sejong-cafe-push', fcm: !!env.FIREBASE_SA_JSON });
+      return json({
+        ok: true, service: 'sejong-cafe-push', fcm: !!env.FIREBASE_SA_JSON,
+        // 배포된 코드가 최신인지 확인용 — 이 값이 없으면 예전 버전이 올라가 있는 것
+        build: '2026-11-20-banner', urgency: 'high', ttl: 86400
+      });
     }
 
     if (url.pathname !== '/send') return json({ ok: false, error: 'not_found' }, 404);
