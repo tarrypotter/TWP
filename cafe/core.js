@@ -102,10 +102,10 @@ export const DEFAULT_CONFIG = {
 /* ---------------- 도우미 ---------------- */
 export const won = n => Number(n || 0).toLocaleString('ko-KR') + '원';
 
-/** 14기 이상 + 만 37세 미만 = 대학부 / 그 외(13기 이하 또는 만 37세 이상) = 청년처 */
-export function tierOf(gi, senior) {
+/** 14기 이상 = 대학부 / 13기 이하(27세 이상) = 청년처 */
+export function tierOf(gi) {
   const g = Number(gi) || 0;
-  return (!senior && g >= 14) ? 'college' : 'youth';
+  return g >= 14 ? 'college' : 'youth';
 }
 export const tierLabel = t => t === 'college' ? '대학부 가격' : '청년처 가격';
 export const tierShort = t => t === 'college' ? '대학부' : '청년처';
@@ -122,30 +122,29 @@ const AGE_BANDS = [
   { maxAge: 30, dept: '청년3부', tier: 'youth' },     // 10~13기
   { maxAge: 33, dept: '청년2부', tier: 'youth' },     // 7~9기
   { maxAge: 36, dept: '청년1부', tier: 'youth' },     // 4~6기
-  { maxAge: 999, dept: '장년부', tier: 'youth' }      // 3기 이하 · 37세 이상 · 장년·권사·집사
+  { maxAge: 999, dept: '', tier: 'youth' }            // 37세 이상 · 부서 없이 청년처
 ];
 
-/** 나이(와 장년 체크)로 부서 구간을 찾습니다. 나이가 없으면 null */
-export function bandOf(age, senior) {
+/** 나이만으로 부서 구간을 찾습니다. 37세 이상은 부서가 없고 청년처 가격입니다. 나이가 없으면 null */
+export function bandOf(age) {
   const a = Number(age) || 0;
-  if (senior || a >= 37) return AGE_BANDS[AGE_BANDS.length - 1];
+  if (a >= 37) return AGE_BANDS[AGE_BANDS.length - 1];
   if (a <= 0) return null;
   return AGE_BANDS.find(b => a <= b.maxAge) || AGE_BANDS[AGE_BANDS.length - 1];
 }
-export const deptOf = (age, senior) => { const b = bandOf(age, senior); return b ? b.dept : ''; };
-export const tierOfAge = (age, senior) => { const b = bandOf(age, senior); return b ? b.tier : 'youth'; };
+export const deptOf = age => { const b = bandOf(age); return b ? b.dept : ''; };
+export const tierOfAge = age => { const b = bandOf(age); return b ? b.tier : 'youth'; };
 
-/** 이름·나이·장년 여부 → 저장/표시용 프로필(나이로 기수·부서·가격대를 계산) */
+/** 이름·나이 → 저장/표시용 프로필 (기수 = 40 − 나이, 37세 이상은 부서 없이 청년처) */
 export function profileFrom(p) {
   const age = Number(p && p.age) || 0;
-  const senior = !!(p && p.senior);
   return {
     name: String((p && p.name) || '').trim(),
     age,
     gi: giFromAge(age),
-    dept: deptOf(age, senior),
-    senior,
-    tier: tierOfAge(age, senior)
+    dept: deptOf(age),
+    senior: age >= 37,
+    tier: tierOfAge(age)
   };
 }
 
@@ -153,17 +152,26 @@ export function profileFrom(p) {
 export function hydrateProfile(p) {
   if (!p) return null;
   const age = Number(p.age) || (Number(p.gi) > 0 ? AGE_BASE - Number(p.gi) : 0);
-  return { ...p, ...profileFrom({ name: p.name, age, senior: p.senior }) };
+  return { ...p, ...profileFrom({ name: p.name, age }) };
 }
 
-/** 주문 카드용 한 줄: 29세(11기) · 청년3부 · 청년처 */
+/** 나이 표기: 29세(11기) / 37세 이상은 37세 */
+export function ageTag(o) {
+  if (!o) return '';
+  const age = Number(o.age) || (Number(o.gi) > 0 ? AGE_BASE - Number(o.gi) : 0);
+  if (!age) return Number(o.gi) > 0 ? `${o.gi}기` : '';
+  const gi = Number(o.gi) || giFromAge(age);
+  return (age < 37 && gi > 0) ? `${age}세(${gi}기)` : `${age}세`;
+}
+
+/** 주문 카드용 한 줄: 29세(11기) · 청년3부 · 청년처 / 37세 이상은 37세 · 청년처 */
 export function whoTag(o) {
   if (!o) return '';
   const age = Number(o.age) || (Number(o.gi) > 0 ? AGE_BASE - Number(o.gi) : 0);
-  const p = profileFrom({ name: o.name, age, senior: o.senior });
+  const p = profileFrom({ name: o.name, age });
   const tier = o.tier || p.tier;
-  const agePart = p.age ? (p.gi > 0 ? `${p.age}세(${p.gi}기)` : `${p.age}세`) : (p.gi > 0 ? `${p.gi}기` : '');
-  return [agePart, o.dept || p.dept, tierShort(tier)].filter(Boolean).join(' · ');
+  const dept = p.age >= 37 ? '' : (o.dept || p.dept);
+  return [ageTag({ age, gi: o.gi }), dept, tierShort(tier)].filter(Boolean).join(' · ');
 }
 
 export function priceOf(menu, tier) {

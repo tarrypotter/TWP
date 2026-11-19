@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="세종카페">
 <meta name="theme-color" content="#08080a">
 <title>세종월드교회 카페 · 키오스크</title>
-<link rel="stylesheet" href="./style.css?v=11">
+<link rel="stylesheet" href="./style.css?v=12">
 <style>
   /* ---- 키오스크(태블릿) · 다크 글래스 ---- */
   .kiosk { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
@@ -31,6 +31,7 @@
   /* 실시간 주문 현황 */
   #kBoardBtn.on { background: var(--brand-soft); color: var(--brand-2); border-color: rgba(233, 189, 148, .32); }
   #kBoardBtn .n { font-variant-numeric: tabular-nums; }
+  #kBoardBtn, #kStatus { white-space: nowrap; }
   #kBoardCard { max-height: 78dvh; overflow-y: auto; scrollbar-width: none; }
   #kBoardCard::-webkit-scrollbar { display: none; }
   .kb-sec { padding: 16px 0 4px; font-size: 11px; letter-spacing: .14em; color: var(--muted); font-weight: 800; }
@@ -44,15 +45,15 @@
 
   /* 왼쪽: 카테고리 + 메뉴 그리드 */
   .k-left { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
-  .k-cats { flex: 0 0 auto; display: flex; gap: 8px; padding: 14px 20px 6px; overflow-x: auto; scrollbar-width: none; }
+  .k-cats { flex: 0 0 auto; display: flex; gap: 8px; padding: 14px clamp(14px, 2vw, 24px) 6px; overflow-x: auto; scrollbar-width: none; }
   .k-cats::-webkit-scrollbar { display: none; }
   .k-cats .chip { font-size: 13.5px; padding: 10px 17px; }
-  .k-grid-wrap { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 20px 28px; scrollbar-width: none; }
+  .k-grid-wrap { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px clamp(14px, 2vw, 24px) 28px; scrollbar-width: none; }
   .k-grid-wrap::-webkit-scrollbar { display: none; }
   .k-cat-title { display: flex; align-items: center; gap: 10px; padding: 16px 2px 9px; }
   .k-cat-title b { font-size: 11px; letter-spacing: .18em; color: var(--brand); }
   .k-cat-title .line { flex: 1 1 auto; height: 1px; background: var(--line); }
-  .k-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 10px; }
+  .k-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
   .k-item {
     text-align: left; padding: 15px 15px 13px; border-radius: 18px; background: var(--card);
     border: 1px solid var(--line); box-shadow: var(--card-shadow), inset 0 1px 0 var(--sheen);
@@ -67,9 +68,9 @@
   .k-item .p b { font-size: 14.5px; color: var(--brand); }
   .k-item .p span { font-size: 10px; color: var(--muted); }
 
-  /* 오른쪽: 주문서 패널 */
+  /* 오른쪽: 주문서 패널 — 가로 태블릿에서는 폭이 화면에 따라 늘어납니다 */
   .k-right-pane {
-    flex: 0 0 364px; display: flex; flex-direction: column; min-height: 0;
+    flex: 0 0 clamp(320px, 31vw, 410px); display: flex; flex-direction: column; min-height: 0;
     border-left: 1px solid var(--line); background: rgba(12, 12, 16, .72);
     backdrop-filter: blur(14px) saturate(140%);
   }
@@ -131,10 +132,45 @@
   .done-ov .cd { margin-top: 20px; font-size: 13px; color: var(--sub); }
   .done-ov .cd b { font-size: 20px; color: var(--ink); }
 
-  @media (max-width: 880px) {
+  /* 900px 미만(세로 거치·좁은 태블릿)에서는 상하 2단으로 */
+  @media (max-width: 1199px) {
+    .k-grid { grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); }
+  }
+  @media (max-width: 899px) {
     .k-body { flex-direction: column; }
-    .k-right-pane { flex: 0 0 auto; max-height: 48dvh; border-left: 0; border-top: 1px solid var(--line); }
-    .k-grid { grid-template-columns: repeat(auto-fill, minmax(152px, 1fr)); }
+    .k-right-pane { flex: 0 0 auto; max-height: 54dvh; border-left: 0; border-top: 1px solid var(--line); }
+    .k-pane-hdr { padding: 9px 14px 7px; }
+    .k-cust { grid-template-columns: 1fr 76px; }
+    .k-cust .input { padding: 9px 11px; }
+    .k-cust + .tiny { font-size: 11px; line-height: 1.35; }
+    .check-row { padding: 9px 11px; }
+    .k-memchips { display: none; }
+    .k-cart { padding: 8px 14px; }
+    .k-cart .textarea { height: 46px; min-height: 46px; }
+    #kAcctNote { display: none; }        /* 세로에서는 아래 계좌번호 복사 버튼으로 기음 */
+    .k-pane-foot { padding: 10px 14px calc(env(safe-area-inset-bottom) + 10px); }
+    .k-total { margin-bottom: 8px; }
+    .k-total b { font-size: 20px; }
+    .k-big { padding: 13px; font-size: 15px; }
+    .k-grid { grid-template-columns: repeat(auto-fill, minmax(146px, 1fr)); }
+    .k-item { min-height: 96px; padding: 13px 13px 11px; }
+    .k-item .n { font-size: 14px; }
+  }
+  /* 좁은 세로 태블릿에서는 상단을 두 줄로 — 브랜드·상태 / 검색 */
+  @media (max-width: 860px) {
+    .k-top { flex-wrap: wrap; row-gap: 8px; padding: 10px 14px 12px; }
+    .k-top .hdr-mark { width: 34px; height: 34px; border-radius: 11px; font-size: 17px; }
+    .k-top .k-name { min-width: 0; }
+    .k-top .k-name b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .k-top .k-name span { display: none; }
+    .k-top .k-search { order: 3; flex: 1 1 100%; max-width: none; }
+    .k-top .k-right { order: 2; gap: 6px; }
+    #kBoardBtn, #kStatus { font-size: 11px; padding: 4px 9px; }
+  }
+  @media (max-height: 640px) {
+    .k-top { padding: 9px 16px; }
+    .k-cats { padding-top: 10px; }
+    .k-pane-hdr { padding: 11px 14px 8px; }
   }
 </style>
 </head>
@@ -169,11 +205,7 @@
           <input class="input" id="kName" placeholder="이름" maxlength="12" autocomplete="off">
           <input class="input" id="kAge" placeholder="나이" inputmode="numeric" maxlength="2" autocomplete="off">
         </div>
-        <div class="tiny muted mt6" id="kCalc" style="font-size:12px;line-height:1.4">나이를 입력하면 기수·부서·가격대가 자동으로 계산됩니다</div>
-        <button class="check-row mt10" id="kSeniorBtn" type="button" style="width:100%;text-align:left">
-          <input type="checkbox" id="kSenior" tabindex="-1" style="pointer-events:none">
-          <div class="grow"><b>장년 · 권사 · 집사</b><span>37세 이상이면 자동으로 장년부로 계산됩니다</span></div>
-        </button>
+        <div class="tiny muted mt6" id="kCalc" style="font-size:12px;line-height:1.4">나이만 입력하면 기수·부서·가격이 자동 계산됩니다 (37세 이상 청년처)</div>
         <div class="k-memchips" id="kMembers"></div>
       </div>
 
@@ -203,10 +235,10 @@
 
 <script type="module">
 import {
-  db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort,
+  db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierShort,
   priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, doc, addDoc, setDoc, onSnapshot, query, where,
-  copyText, profileFrom, hydrateProfile, whoTag, menuMatches, hhmm, itemsSummary, memberKeyOf
-} from './core.js?v=11';
+  copyText, profileFrom, hydrateProfile, whoTag, ageTag, menuMatches, hhmm, itemsSummary, memberKeyOf
+} from './core.js?v=12';
 
 lockZoom();
 
@@ -222,7 +254,7 @@ function toast(msg) {
 }
 
 const cust = () => {
-  const p = profileFrom({ name: $('#kName').value, age: $('#kAge').value, senior: $('#kSenior').checked });
+  const p = profileFrom({ name: $('#kName').value, age: $('#kAge').value });
   return { name: $('#kName').value.trim(), age: p.age, gi: p.gi, dept: p.dept, senior: p.senior, tier: p.tier };
 };
 const tier = () => cust().tier;
@@ -285,12 +317,12 @@ function renderMembers() {
   const box = $('#kMembers');
   box.innerHTML = S.members.map((m, i) => {
     const p = hydrateProfile(m);
-    const tag = p.age ? (p.gi > 0 ? `${p.age}세(${p.gi}기)` : `${p.age}세`) : `${p.gi}기`;
+    const tag = ageTag(p);
     return `<button type="button" data-m="${i}">${esc(p.name)} ${esc(tag)}</button>`;
   }).join('');
   box.querySelectorAll('[data-m]').forEach(b => b.onclick = () => {
     const p = hydrateProfile(S.members[Number(b.dataset.m)]);
-    $('#kName').value = p.name; $('#kAge').value = p.age || ''; $('#kSenior').checked = !!p.senior;
+    $('#kName').value = p.name; $('#kAge').value = p.age || '';
     render();
   });
 }
@@ -352,10 +384,10 @@ function render() {
   $('#kTotal').textContent = won(total);
   const c = cust();
   $('#kCalc').textContent = c.age
-    ? `${c.age}세 → ${c.gi > 0 ? c.gi + '기 · ' : ''}${c.dept} · ${tierLabel(c.tier)}`
-    : '나이를 입력하면 기수·부서·가격대가 자동으로 계산됩니다';
+    ? `${whoTag(c)} 가격`
+    : '나이만 입력하면 기수·부서·가격이 자동 계산됩니다';
   $('#kCalc').style.color = c.age ? 'var(--brand-2)' : 'var(--muted)';
-  $('#kTier').textContent = named() ? `${c.gi > 0 ? c.gi + '기 · ' : ''}${c.dept} · ${tierShort(c.tier)}` : '이름·나이 입력';
+  $('#kTier').textContent = named() ? `${c.age}세 · ${tierShort(c.tier)}` : '이름·나이 입력';
   $('#kTier').className = named() ? 'badge' : 'badge gray';
 }
 
@@ -421,7 +453,6 @@ function addToCart(m, option, qty) {
 /* 이름·기수 입력 */
 $('#kName').oninput = render;
 $('#kAge').oninput = () => { $('#kAge').value = $('#kAge').value.replace(/[^0-9]/g, ''); render(); };
-$('#kSeniorBtn').onclick = () => { const c = $('#kSenior'); c.checked = !c.checked; render(); };
 $('#kAcctCopy').onclick = async () => { const ok = await copyText(`${S.cfg.bank} ${S.cfg.account}`); toast(ok ? '계좌번호를 복사했어요' : '복사 실패'); };
 $('#kReset').onclick = () => resetAll(true);
 
@@ -498,7 +529,7 @@ function showDone(orderId, total, c) {
 function resetAll(ask) {
   S.cart = {}; $('#kMsg').value = ''; $('#kName').value = ''; $('#kAge').value = '';
   S.q = ''; $('#kQ').value = ''; $('#kSearch').classList.remove('has-q');
-  $('#kSenior').checked = false; $('#kDone').classList.remove('open');
+  $('#kDone').classList.remove('open');
   const btn = $('#kOrder'); btn.disabled = false; btn.textContent = '주문하기';
   render();
   if (ask) toast('처음부터 다시 시작합니다');

@@ -13,7 +13,7 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="stylesheet" href="./style.css?v=11">
+<link rel="stylesheet" href="./style.css?v=12">
 <style>
   /* ---- 손님 앱 전용 · 다크 글래스 ---- */
   .tier-pill {
@@ -273,17 +273,13 @@
 <section class="sheet" id="sheetSignup" aria-hidden="true">
   <div class="sheet-hdr"><b>세종월드교회 카페</b><button class="btn sm ghost" id="signupClose" type="button" style="margin-left:auto">닫기</button></div>
   <div class="sheet-body">
-    <p class="sub small">이름과 나이만 적어 주세요. <b>나이로 기수·부서를 계산해</b> 청년처 / 대학부 가격이 자동으로 적용됩니다.</p>
+    <p class="sub small">이름과 나이만 적어 주세요. <b>나이로 기수·부서를 계산해</b> 청년처 / 대학부 가격이 자동으로 적용됩니다. <b>37세 이상은 청년처</b> 가격입니다.</p>
     <div class="mt14">
       <label class="field"><span>이름</span>
         <input class="input" id="suName" placeholder="예) 이태웅" autocomplete="name" maxlength="20">
       </label>
       <label class="field"><span>나이 (숫자만)</span>
         <input class="input" id="suAge" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="예) 29" maxlength="2">
-      </label>
-      <label class="check-row" for="suSenior">
-        <input type="checkbox" id="suSenior">
-        <div><b>장년 · 권사 · 집사</b><span>37세 이상이면 자동으로 장년부로 계산됩니다.</span></div>
       </label>
       <div class="mt14" style="padding:13px;border-radius:13px;background:var(--brand-soft)">
         <div class="small sub">자동 계산</div>
@@ -364,10 +360,10 @@
 import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort,
   priceOf, deviceUid, shortId, timeAgo, hhmm, esc, lockZoom, ensureMenus, saveMember, localProfile,
-  hydrateProfile, profileFrom, whoTag, menuMatches, itemsSummary, memberKeyOf,
+  hydrateProfile, whoTag, menuMatches, itemsSummary, memberKeyOf,
   watchConfig, collection, doc, addDoc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
   beep, buzz, notify, askNotifyPermission
-} from './core.js?v=11';
+} from './core.js?v=12';
 
 lockZoom();
 
@@ -390,7 +386,7 @@ const S = {
   ready: false
 };
 const uid = deviceUid();
-const tier = () => S.profile?.tier || tierOf(S.profile?.gi, S.profile?.senior);
+const tier = () => S.profile?.tier || tierOf(S.profile?.gi);
 const priceFor = m => S.profile ? priceOf(m, tier()) : null;
 
 const $ = s => document.querySelector(s);
@@ -447,7 +443,7 @@ onSnapshot(collection(db, 'orders'), snap => {
   updateChatDot();
   if (S.view === 'orders') renderOrders();
   if (S.view === 'live') renderLive();
-  if (S.view === 'chat') { if ($('.chat-thread')) updateThreadMsgs(); else renderChat(); }
+  if (S.view === 'chat') updateChatThreads();
 }, err => console.warn('orders', err));
 
 /* 예전에 끝난 주문에 남아 있는 대화는 이 기기에서 한 번만 비워 둡니다 */
@@ -1166,7 +1162,7 @@ const THREAD_EMPTY = '<div class="tiny muted" style="text-align:center;padding:1
 function threadHtml({ o, msgs }) {
   const st = o.status === 'done' ? '<span class="badge ok">완료</span>'
     : o.madeAt ? '<span class="badge warn">픽업 대기</span>' : '<span class="badge">조리 중</span>';
-  return `<div class="chat-thread">
+  return `<div class="chat-thread" data-thread="${o.id}">
     <div class="ct-hdr">
       <span class="lb-no">#${shortId(o.id)}</span>
       <b>${esc(itemsSummary(o.items) || '주문')}</b>
@@ -1220,6 +1216,13 @@ function updateThreadMsgs() {
     box.scrollTop = box.scrollHeight;
   }
 }
+/* 스레드 목록 자체가 바뀌었면(끝난 주문 정리 등) 화면을 다시 그립니다 */
+function updateChatThreads() {
+  const want = chatThreads().map(t => t.o.id).join(',');
+  const have = Array.from(document.querySelectorAll('#view-chat .chat-thread')).map(n => n.dataset.thread).join(',');
+  if (want !== have) { renderChat(); return; }
+  updateThreadMsgs();
+}
 
 /* ---------------- 내정보 ---------------- */
 function renderMe() {
@@ -1238,7 +1241,8 @@ function renderMe() {
       <div class="mt14">
         <div class="kv"><span>기수</span><b>40 − 나이 (29세 = 11기)</b></div>
         <div class="kv"><span>대학부 가격</span><b>26세 이하 · 대학2부(17~20기) / 대학1부(14~16기)</b></div>
-        <div class="kv"><span>청년처 가격</span><b>27세 이상 · 청년3부 · 청년2부 · 청년1부 · 장년부</b></div>
+        <div class="kv"><span>청년처 가격</span><b>27세 이상 · 청년3부 · 청년2부 · 청년1부</b></div>
+        <div class="kv"><span>37세 이상</span><b>부서 없이 청년처 가격</b></div>
       </div>
       <button class="btn block mt14" id="editProfile" type="button">${p ? '내 정보 수정' : '가입하기'}</button>
       ${p ? `<button class="btn block mt6" id="logoutBtn" type="button" style="color:var(--danger);border-color:rgba(240,138,128,.3)">로그아웃</button>` : ''}
@@ -1277,39 +1281,34 @@ function openSignup(required) {
   const p = S.profile;
   $('#suName').value = p ? p.name : '';
   $('#suAge').value = p && p.age ? p.age : '';
-  $('#suSenior').checked = !!p?.senior;
   $('#signupClose').classList.toggle('hide', !!required);
   updateSuTier();
   $('#sheetSignup').classList.add('open');
 }
 function updateSuTier() {
   const age = Number($('#suAge').value) || 0;
-  const senior = $('#suSenior').checked;
   if (!age) {
     $('#suTier').textContent = '나이 입력 필요';
     $('#suCalc').textContent = '예) 29 입력 → 11기 · 청년3부 · 청년처 가격';
     return;
   }
-  const pr = profileFrom({ age, senior });
-  const giTxt = pr.gi > 0 ? `${pr.gi}기` : '장년';
-  $('#suTier').textContent = `${giTxt} · ${pr.dept} · ${tierLabel(pr.tier)}`;
-  $('#suCalc').textContent = age >= 37 || pr.gi <= 0
-    ? `${age}세 · 장년부로 계산됩니다`
-    : `기수는 40 − 나이로 자동 계산됩니다`;
+  $('#suTier').textContent = `${whoTag({ age })} 가격`;
+  $('#suCalc').textContent = age >= 37
+    ? '37세 이상은 부서 없이 청년처 가격입니다'
+    : '기수는 40 − 나이로 자동 계산됩니다';
 }
 $('#suName').oninput = () => { };
 $('#suAge').oninput = () => { $('#suAge').value = $('#suAge').value.replace(/[^0-9]/g, ''); updateSuTier(); };
-$('#suSenior').onchange = updateSuTier;
 $('#signupSave').onclick = async () => {
   const name = $('#suName').value.trim();
   const age = Number($('#suAge').value);
   if (!name) return toast('이름을 적어 주세요');
   if (!age || age < 15 || age > 99) return toast('나이를 숫자로 적어 주세요 (15~99)');
-  S.profile = await saveMember({ name, age, senior: $('#suSenior').checked });
+  S.profile = await saveMember({ name, age });
   renderTierPill(); renderMenu(true); renderCart();
   if (S.view === 'me') renderMe();
   $('#sheetSignup').classList.remove('open');
-  toast(`${name}님 · ${S.profile.gi > 0 ? S.profile.gi + '기 · ' : ''}${S.profile.dept} · ${tierLabel(tier())} 적용`);
+  toast(`${name}님 · ${whoTag(S.profile)} 가격 적용`);
 };
 $('#signupClose').onclick = () => { if (signupRequired) return; $('#sheetSignup').classList.remove('open'); };
 
