@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#f6f1e9">
 <title>세종월드교회 카페 · 키오스크</title>
-<link rel="stylesheet" href="./style.css?v=4">
+<link rel="stylesheet" href="./style.css?v=5">
 <style>
   /* ---- 키오스크(태블릿) · 다크 글래스 ---- */
   .kiosk { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
@@ -124,8 +124,6 @@
     <div class="k-name"><b>세종월드교회 카페</b><span>SEJONG WORLD CAFE · 키오스크</span></div>
     <div class="k-right">
       <span class="badge gray" id="kStatus">연결 중…</span>
-      <a class="btn sm" href="./index.html">휴대폰 주문</a>
-      <a class="btn sm ghost" href="./admin.html" style="font-size:11px;color:var(--muted)">사장님</a>
     </div>
   </header>
 
@@ -140,11 +138,12 @@
         <div class="between"><b>주문서</b><span class="badge" id="kTier">가격 확인 중</span></div>
         <div class="k-cust mt10">
           <input class="input" id="kName" placeholder="이름" maxlength="12" autocomplete="off">
-          <input class="input" id="kGi" placeholder="기수" inputmode="numeric" maxlength="2" autocomplete="off">
+          <input class="input" id="kAge" placeholder="나이" inputmode="numeric" maxlength="2" autocomplete="off">
         </div>
+        <div class="tiny muted mt6" id="kCalc" style="font-size:12px;line-height:1.4">나이를 입력하면 기수·부서·가격대가 자동으로 계산됩니다</div>
         <button class="check-row mt10" id="kSeniorBtn" type="button" style="width:100%;text-align:left">
           <input type="checkbox" id="kSenior" tabindex="-1" style="pointer-events:none">
-          <div class="grow"><b>만 37세 이상 (장년·권사·집사)</b><span>체크하면 청년처 가격이 적용됩니다</span></div>
+          <div class="grow"><b>장년 · 권사 · 집사</b><span>37세 이상이면 자동으로 장년부로 계산됩니다</span></div>
         </button>
         <div class="k-memchips" id="kMembers"></div>
       </div>
@@ -176,8 +175,8 @@
 import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort,
   priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, addDoc, onSnapshot,
-  copyText
-} from './core.js?v=4';
+  copyText, profileFrom, hydrateProfile, whoTag
+} from './core.js?v=5';
 
 lockZoom();
 
@@ -192,13 +191,12 @@ function toast(msg) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1900);
 }
 
-const cust = () => ({
-  name: $('#kName').value.trim(),
-  gi: Number($('#kGi').value) || 0,
-  senior: $('#kSenior').checked
-});
-const tier = () => { const c = cust(); return tierOf(c.gi, c.senior); };
-const named = () => cust().name.length > 0 && cust().gi > 0;
+const cust = () => {
+  const p = profileFrom({ name: $('#kName').value, age: $('#kAge').value, senior: $('#kSenior').checked });
+  return { name: $('#kName').value.trim(), age: p.age, gi: p.gi, dept: p.dept, senior: p.senior, tier: p.tier };
+};
+const tier = () => cust().tier;
+const named = () => { const c = cust(); return c.name.length > 0 && c.age > 0; };
 
 watchConfig(c => {
   S.cfg = c;
@@ -222,11 +220,14 @@ onSnapshot(collection(db, 'members'), snap => {
 
 function renderMembers() {
   const box = $('#kMembers');
-  box.innerHTML = S.members.map((m, i) =>
-    `<button type="button" data-m="${i}">${esc(m.name)} ${esc(String(m.gi))}기${m.senior ? ' · 장년' : ''}</button>`).join('');
+  box.innerHTML = S.members.map((m, i) => {
+    const p = hydrateProfile(m);
+    const tag = p.age ? (p.gi > 0 ? `${p.age}세(${p.gi}기)` : `${p.age}세`) : `${p.gi}기`;
+    return `<button type="button" data-m="${i}">${esc(p.name)} ${esc(tag)}</button>`;
+  }).join('');
   box.querySelectorAll('[data-m]').forEach(b => b.onclick = () => {
-    const m = S.members[Number(b.dataset.m)];
-    $('#kName').value = m.name; $('#kGi').value = m.gi; $('#kSenior').checked = !!m.senior;
+    const p = hydrateProfile(S.members[Number(b.dataset.m)]);
+    $('#kName').value = p.name; $('#kAge').value = p.age || ''; $('#kSenior').checked = !!p.senior;
     render();
   });
 }
@@ -276,7 +277,12 @@ function render() {
   });
   const total = Object.values(S.cart).reduce((a, i) => a + i.qty * i.price, 0);
   $('#kTotal').textContent = won(total);
-  $('#kTier').textContent = named() ? `${tierShort(t)} · ${tierLabel(t)}` : '이름·기수 입력';
+  const c = cust();
+  $('#kCalc').textContent = c.age
+    ? `${c.age}세 → ${c.gi > 0 ? c.gi + '기 · ' : ''}${c.dept} · ${tierLabel(c.tier)}`
+    : '나이를 입력하면 기수·부서·가격대가 자동으로 계산됩니다';
+  $('#kCalc').style.color = c.age ? 'var(--brand-2)' : 'var(--muted)';
+  $('#kTier').textContent = named() ? `${c.gi > 0 ? c.gi + '기 · ' : ''}${c.dept} · ${tierShort(c.tier)}` : '이름·나이 입력';
   $('#kTier').className = named() ? 'badge' : 'badge gray';
 }
 
@@ -284,7 +290,7 @@ function render() {
 function pick(id) {
   const m = S.menus.find(x => x.id === id);
   if (!m) return;
-  if (!named()) { toast('이름과 기수를 먼저 입력해 주세요'); $('#kName').focus(); return; }
+  if (!named()) { toast('이름과 나이를 먼저 입력해 주세요'); $('#kName').focus(); return; }
   const flavors = m.flavors || [];
   const needTemp = m.temp === 'both';
   if (!flavors.length && !needTemp) { addToCart(m, '', 1); return; }
@@ -326,7 +332,7 @@ function addToCart(m, option, qty) {
 
 /* 이름·기수 입력 */
 $('#kName').oninput = render;
-$('#kGi').oninput = () => { $('#kGi').value = $('#kGi').value.replace(/[^0-9]/g, ''); render(); };
+$('#kAge').oninput = () => { $('#kAge').value = $('#kAge').value.replace(/[^0-9]/g, ''); render(); };
 $('#kSeniorBtn').onclick = () => { const c = $('#kSenior'); c.checked = !c.checked; render(); };
 $('#kAcctCopy').onclick = async () => { const ok = await copyText(`${S.cfg.bank} ${S.cfg.account}`); toast(ok ? '계좌번호를 복사했어요' : '복사 실패'); };
 $('#kReset').onclick = () => resetAll(true);
@@ -336,7 +342,7 @@ let resetTimer = null;
 $('#kOrder').onclick = async () => {
   const c = cust();
   if (!c.name) return toast('이름을 입력해 주세요');
-  if (!c.gi) return toast('기수를 입력해 주세요');
+  if (!c.age || c.age < 15 || c.age > 99) return toast('나이를 15~99 사이 숫자로 입력해 주세요');
   const items = Object.values(S.cart);
   if (!items.length) return toast('주문할 음료를 골라 주세요');
   const btn = $('#kOrder');
@@ -344,7 +350,7 @@ $('#kOrder').onclick = async () => {
   try {
     const total = items.reduce((a, i) => a + i.qty * i.price, 0);
     const ref = await addDoc(collection(db, 'orders'), {
-      name: c.name.slice(0, 12), gi: c.gi, senior: !!c.senior, tier: tierOf(c.gi, c.senior),
+      name: c.name.slice(0, 12), age: c.age, gi: c.gi, dept: c.dept, senior: !!c.senior, tier: c.tier,
       uid: 'kiosk', channel: 'kiosk', mode: 'onsite',
       items: items.map(i => ({ id: i.id, name: i.name, option: i.option || '', price: i.price, qty: i.qty })),
       total,
@@ -365,7 +371,7 @@ function showDone(orderId, total, c) {
   ov.innerHTML = `
     <div class="big">주문이 접수되었습니다</div>
     <div class="no">#${shortId(orderId)}</div>
-    <div style="font-size:15px;opacity:.95">${esc(c.name)}님 · ${esc(String(c.gi))}기 · ${tierLabel(tierOf(c.gi, c.senior))}</div>
+    <div style="font-size:15px;opacity:.95">${esc(c.name)}님 · ${esc(whoTag(c))} · ${tierLabel(c.tier)}</div>
     <div class="box">
       <div style="font-size:13px;opacity:.9">결제 금액</div>
       <b>${won(total)}</b>
@@ -387,7 +393,7 @@ function showDone(orderId, total, c) {
 }
 
 function resetAll(ask) {
-  S.cart = {}; $('#kMsg').value = ''; $('#kName').value = ''; $('#kGi').value = '';
+  S.cart = {}; $('#kMsg').value = ''; $('#kName').value = ''; $('#kAge').value = '';
   $('#kSenior').checked = false; $('#kDone').classList.remove('open');
   const btn = $('#kOrder'); btn.disabled = false; btn.textContent = '주문하기';
   render();

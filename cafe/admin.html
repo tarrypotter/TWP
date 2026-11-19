@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2b211a">
 <title>세종월드교회 카페 · 사장님</title>
-<link rel="stylesheet" href="./style.css?v=4">
+<link rel="stylesheet" href="./style.css?v=5">
 <style>
   /* ---- 사장님 화면 · 다크 글래스 ---- */
   .pin-wrap { height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
@@ -174,8 +174,8 @@ import {
   db, BRAND, CATS, CAT_NAME, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort, priceOf, shortId,
   timeAgo, hhmm, esc, lockZoom, ensureMenus, ensureConfig, watchConfig, copyText,
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, query, orderBy,
-  limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary
-} from './core.js?v=4';
+  limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary, whoTag
+} from './core.js?v=5';
 
 lockZoom();
 
@@ -346,7 +346,7 @@ function renderOrders() {
       </div>
       <div class="o-body">
         <div class="between">
-          <div class="o-name">${esc(o.name)} <span class="small sub" style="font-weight:700">${esc(String(o.gi))}기 · ${tierShort(o.tier)}</span></div>
+          <div class="o-name">${esc(o.name)} <span class="small sub" style="font-weight:700">${esc(whoTag(o))}</span></div>
           <b class="tnum" style="color:var(--brand);font-size:16px">${won(o.total)}</b>
         </div>
         <div class="o-items">${(o.items || []).map(i => `<div class="li"><span>${esc(i.name)}${i.option ? ` (${esc(i.option)})` : ''} × ${i.qty}</span><b class="tnum">${won(i.price * i.qty)}</b></div>`).join('')}</div>

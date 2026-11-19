@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#f6f1e9">
 <meta name="format-detection" content="telephone=no">
 <title>세종월드교회 카페 · 주문</title>
-<link rel="stylesheet" href="./style.css?v=4">
+<link rel="stylesheet" href="./style.css?v=5">
 <style>
   /* ---- 손님 앱 전용 · 다크 글래스 ---- */
   .tier-pill {
@@ -190,22 +190,22 @@
 <section class="sheet" id="sheetSignup" aria-hidden="true">
   <div class="sheet-hdr"><b>세종월드교회 카페</b><button class="btn sm ghost" id="signupClose" type="button" style="margin-left:auto">닫기</button></div>
   <div class="sheet-body">
-    <p class="sub small">이름과 기수를 적어 주시면 <b>청년처 / 대학부 가격</b>이 자동으로 적용됩니다.</p>
+    <p class="sub small">이름과 나이만 적어 주세요. <b>나이로 기수·부서를 계산해</b> 청년처 / 대학부 가격이 자동으로 적용됩니다.</p>
     <div class="mt14">
       <label class="field"><span>이름</span>
         <input class="input" id="suName" placeholder="예) 이태웅" autocomplete="name" maxlength="20">
       </label>
-      <label class="field"><span>기수 (숫자만)</span>
-        <input class="input" id="suGi" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="예) 15" maxlength="3">
+      <label class="field"><span>나이 (숫자만)</span>
+        <input class="input" id="suAge" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="예) 29" maxlength="2">
       </label>
       <label class="check-row" for="suSenior">
         <input type="checkbox" id="suSenior">
-        <div><b>만 37세 이상 (장년 · 권사 · 집사)</b><span>체크하시면 청년처 가격이 적용됩니다.</span></div>
+        <div><b>장년 · 권사 · 집사</b><span>37세 이상이면 자동으로 장년부로 계산됩니다.</span></div>
       </label>
       <div class="mt14" style="padding:13px;border-radius:13px;background:var(--brand-soft)">
-        <div class="small sub">적용 요금제</div>
-        <div class="row mt6"><b id="suTier" style="font-size:19px;color:var(--brand)">기수 입력 필요</b></div>
-        <div class="tiny muted mt6">14기 이상 + 만 37세 미만 → 대학부 / 13기 이하 또는 만 37세 이상 → 청년처</div>
+        <div class="small sub">자동 계산</div>
+        <div class="row mt6" style="flex-wrap:wrap;gap:4px"><b id="suTier" style="font-size:16px;color:var(--brand);letter-spacing:-.01em">나이 입력 필요</b></div>
+        <div class="tiny muted mt6" id="suCalc">예) 29 입력 → 11기 · 청년3부 · 청년처 가격</div>
       </div>
     </div>
   </div>
@@ -281,15 +281,16 @@
 import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort,
   priceOf, deviceUid, shortId, timeAgo, hhmm, esc, lockZoom, ensureMenus, saveMember, localProfile,
+  hydrateProfile, profileFrom, whoTag,
   watchConfig, collection, doc, addDoc, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
   beep, buzz, notify, askNotifyPermission
-} from './core.js?v=4';
+} from './core.js?v=5';
 
 lockZoom();
 
 /* ---------------- 상태 ---------------- */
 const S = {
-  profile: localProfile(),
+  profile: hydrateProfile(localProfile()),
   cfg: { ...DEFAULT_CONFIG },
   menus: [],
   cart: {},           // key -> {id, name, price, option, qty}
@@ -302,7 +303,7 @@ const S = {
   ready: false
 };
 const uid = deviceUid();
-const tier = () => tierOf(S.profile?.gi, S.profile?.senior);
+const tier = () => S.profile?.tier || tierOf(S.profile?.gi, S.profile?.senior);
 const priceFor = m => S.profile ? priceOf(m, tier()) : null;
 
 const $ = s => document.querySelector(s);
@@ -424,8 +425,8 @@ function renderMenu() {
   const list = S.cat === 'all' ? CATS : CATS.filter(c => c.key === S.cat);
   let html = `
     <div class="hero">
-      <b>${S.profile ? `${esc(S.profile.name)}님, 무엇을 드릴까요?` : '이름과 기수를 등록해 주세요'}</b>
-      <p>${S.profile ? `${esc(String(S.profile.gi))}기 · ${tierLabel(tier())} 적용 중` : '등록하면 내 가격으로 바로 주문할 수 있어요'}</p>
+      <b>${S.profile ? `${esc(S.profile.name)}님, 무엇을 드릴까요?` : '이름과 나이를 등록해 주세요'}</b>
+      <p>${S.profile ? `${whoTag(S.profile)} 적용 중` : '나이만 적으면 기수·부서와 가격이 자동으로 정해져요'}</p>
       <div class="hero-row">
         <span class="hero-chip">미리 주문 가능</span>
         <span class="hero-chip">계좌이체 · 현금</span>
@@ -593,7 +594,9 @@ $('#orderSubmit').onclick = async () => {
     const total = cartTotal();
     const docRef = await addDoc(collection(db, 'orders'), {
       name: String(S.profile.name).slice(0, 20),
+      age: Number(S.profile.age) || 0,
       gi: Number(S.profile.gi) || 0,
+      dept: S.profile.dept || '',
       senior: !!S.profile.senior,
       tier: tier(),
       uid,
@@ -707,13 +710,14 @@ function renderMe() {
         <div class="hdr-mark" style="width:44px;height:44px;border-radius:14px;font-size:20px">👤</div>
         <div class="grow">
           <b style="font-size:16px">${p ? esc(p.name) : '아직 가입 전'}</b>
-          <div class="small sub">${p ? `${esc(String(p.gi))}기 · ${p.senior ? '만 37세 이상' : '만 37세 미만'}` : '이름과 기수를 등록해 주세요'}</div>
+          <div class="small sub">${p ? `${esc(whoTag(p))} · ${tierLabel(tier())}` : '이름과 나이를 등록해 주세요'}</div>
         </div>
         <span class="badge">${p ? tierLabel(tier()) : '가격 미적용'}</span>
       </div>
       <div class="mt14">
-        <div class="kv"><span>청년처 가격</span><b>14기 미만 · 만 37세 이상(장년·권사·집사)</b></div>
-        <div class="kv"><span>대학부 가격</span><b>14기 이상 + 만 37세 미만</b></div>
+        <div class="kv"><span>기수</span><b>40 − 나이 (29세 = 11기)</b></div>
+        <div class="kv"><span>대학부 가격</span><b>26세 이하 · 대학2부(17~20기) / 대학1부(14~16기)</b></div>
+        <div class="kv"><span>청년처 가격</span><b>27세 이상 · 청년3부 · 청년2부 · 청년1부 · 장년부</b></div>
       </div>
       <button class="btn block mt14" id="editProfile" type="button">${p ? '내 정보 수정' : '가입하기'}</button>
     </div>
@@ -751,30 +755,39 @@ function openSignup(required) {
   signupRequired = !!required;
   const p = S.profile;
   $('#suName').value = p ? p.name : '';
-  $('#suGi').value = p ? p.gi : '';
+  $('#suAge').value = p && p.age ? p.age : '';
   $('#suSenior').checked = !!p?.senior;
   $('#signupClose').classList.toggle('hide', !!required);
   updateSuTier();
   $('#sheetSignup').classList.add('open');
 }
 function updateSuTier() {
-  const gi = Number($('#suGi').value) || 0;
+  const age = Number($('#suAge').value) || 0;
   const senior = $('#suSenior').checked;
-  const t = tierOf(gi, senior);
-  $('#suTier').textContent = gi ? (senior ? '청년처 가격 (만 37세 이상)' : tierLabel(t)) : '기수 입력 필요';
+  if (!age) {
+    $('#suTier').textContent = '나이 입력 필요';
+    $('#suCalc').textContent = '예) 29 입력 → 11기 · 청년3부 · 청년처 가격';
+    return;
+  }
+  const pr = profileFrom({ age, senior });
+  const giTxt = pr.gi > 0 ? `${pr.gi}기` : '장년';
+  $('#suTier').textContent = `${giTxt} · ${pr.dept} · ${tierLabel(pr.tier)}`;
+  $('#suCalc').textContent = age >= 37 || pr.gi <= 0
+    ? `${age}세 · 장년부로 계산됩니다`
+    : `나이 ${age}세 → ${pr.gi}기 · ${pr.dept}`;
 }
 $('#suName').oninput = () => { };
-$('#suGi').oninput = () => { $('#suGi').value = $('#suGi').value.replace(/[^0-9]/g, ''); updateSuTier(); };
+$('#suAge').oninput = () => { $('#suAge').value = $('#suAge').value.replace(/[^0-9]/g, ''); updateSuTier(); };
 $('#suSenior').onchange = updateSuTier;
 $('#signupSave').onclick = async () => {
   const name = $('#suName').value.trim();
-  const gi = Number($('#suGi').value);
+  const age = Number($('#suAge').value);
   if (!name) return toast('이름을 적어 주세요');
-  if (!gi || gi < 1 || gi > 99) return toast('기수를 숫자로 적어 주세요');
-  S.profile = await saveMember({ name, gi, senior: $('#suSenior').checked });
+  if (!age || age < 15 || age > 99) return toast('나이를 숫자로 적어 주세요 (15~99)');
+  S.profile = await saveMember({ name, age, senior: $('#suSenior').checked });
   renderTierPill(); renderMenu(); renderCart();
   $('#sheetSignup').classList.remove('open');
-  toast(`${name}님 · ${tierLabel(tier())} 적용`);
+  toast(`${name}님 · ${S.profile.gi > 0 ? S.profile.gi + '기 · ' : ''}${S.profile.dept} · ${tierLabel(tier())} 적용`);
 };
 $('#signupClose').onclick = () => { if (signupRequired) return; $('#sheetSignup').classList.remove('open'); };
 

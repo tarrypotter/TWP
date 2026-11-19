@@ -77,7 +77,7 @@ export const SEED = [
   { id: 'tea-ashotchu',          cat: 'tea',      name: '아샷추',              youth: 3500, college: 3000, temp: 'iced', tags: ['ONLY ICED'] },
   { id: 'tea-omija-zero',        cat: 'tea',      name: '제로 슈가 오미자 아이스티', youth: 3000, college: 2500, temp: 'iced', tags: ['0% SUGAR', 'ONLY ICED'] },
   { id: 'tea-fruit-tea',         cat: 'tea',      name: '수제청 과일차',       youth: 3500, college: 3000, temp: 'hot',  tags: ['NEW', 'ONLY HOT'], flavors: ['레몬', '자몽'] },
-  { id: 'tea-yuja',              cat: 'tea',      name: '유자차',              youth: 2500, college: 2000, temp: 'hot',  tags: ['ONLY HOT'] },
+  { id: 'tea-yuja',              cat: 'tea',      name: '유자차',              youth: 3500, college: 3000, temp: 'hot',  tags: ['ONLY HOT'] },
   { id: 'tea-hallabong',         cat: 'tea',      name: '제주 한라봉티',       youth: 2500, college: 2000, temp: 'both' },
   { id: 'tea-jasmine',           cat: 'tea',      name: '자스민',              youth: 2500, college: 2000, temp: 'both' },
   { id: 'tea-peppermint',        cat: 'tea',      name: '페퍼 민트',           youth: 2500, college: 2000, temp: 'both' },
@@ -109,6 +109,62 @@ export function tierOf(gi, senior) {
 }
 export const tierLabel = t => t === 'college' ? '대학부 가격' : '청년처 가격';
 export const tierShort = t => t === 'college' ? '대학부' : '청년처';
+
+/* ---------------- 나이 → 기수 · 부서 ---------------- */
+// 세종월드교회 카페 기준: 29세(98년생) = 11기, 30세(97년생) = 10기 → 기수 = 40 − 나이
+export const AGE_BASE = 40;
+export const giFromAge = age => { const a = Number(age) || 0; return a > 0 ? AGE_BASE - a : 0; };
+
+// 나이 구간별 부서 · 가격대 (위에서부터 처음 맞는 구간)
+const AGE_BANDS = [
+  { maxAge: 23, dept: '대학2부', tier: 'college' },   // 17~20기
+  { maxAge: 26, dept: '대학1부', tier: 'college' },   // 14~16기
+  { maxAge: 30, dept: '청년3부', tier: 'youth' },     // 10~13기
+  { maxAge: 33, dept: '청년2부', tier: 'youth' },     // 7~9기
+  { maxAge: 36, dept: '청년1부', tier: 'youth' },     // 4~6기
+  { maxAge: 999, dept: '장년부', tier: 'youth' }      // 3기 이하 · 37세 이상 · 장년·권사·집사
+];
+
+/** 나이(와 장년 체크)로 부서 구간을 찾습니다. 나이가 없으면 null */
+export function bandOf(age, senior) {
+  const a = Number(age) || 0;
+  if (senior || a >= 37) return AGE_BANDS[AGE_BANDS.length - 1];
+  if (a <= 0) return null;
+  return AGE_BANDS.find(b => a <= b.maxAge) || AGE_BANDS[AGE_BANDS.length - 1];
+}
+export const deptOf = (age, senior) => { const b = bandOf(age, senior); return b ? b.dept : ''; };
+export const tierOfAge = (age, senior) => { const b = bandOf(age, senior); return b ? b.tier : 'youth'; };
+
+/** 이름·나이·장년 여부 → 저장/표시용 프로필(나이로 기수·부서·가격대를 계산) */
+export function profileFrom(p) {
+  const age = Number(p && p.age) || 0;
+  const senior = !!(p && p.senior);
+  return {
+    name: String((p && p.name) || '').trim(),
+    age,
+    gi: giFromAge(age),
+    dept: deptOf(age, senior),
+    senior,
+    tier: tierOfAge(age, senior)
+  };
+}
+
+/** 예전(기수만 저장된) 프로필도 나이·부서가 채워지도록 */
+export function hydrateProfile(p) {
+  if (!p) return null;
+  const age = Number(p.age) || (Number(p.gi) > 0 ? AGE_BASE - Number(p.gi) : 0);
+  return { ...p, ...profileFrom({ name: p.name, age, senior: p.senior }) };
+}
+
+/** 주문 카드용 한 줄: 29세(11기) · 청년3부 · 청년처 */
+export function whoTag(o) {
+  if (!o) return '';
+  const age = Number(o.age) || (Number(o.gi) > 0 ? AGE_BASE - Number(o.gi) : 0);
+  const p = profileFrom({ name: o.name, age, senior: o.senior });
+  const tier = o.tier || p.tier;
+  const agePart = p.age ? (p.gi > 0 ? `${p.age}세(${p.gi}기)` : `${p.age}세`) : (p.gi > 0 ? `${p.gi}기` : '');
+  return [agePart, o.dept || p.dept, tierShort(tier)].filter(Boolean).join(' · ');
+}
 
 export function priceOf(menu, tier) {
   return Number(tier === 'college' ? menu.college : menu.youth) || 0;
@@ -199,12 +255,13 @@ export function watchConfig(cb) {
   }, err => { console.warn('config', err); cb({ ...DEFAULT_CONFIG }); });
 }
 
-/* ---------------- 회원(이름·기수) 기억 ---------------- */
+/* ---------------- 회원(이름·나이 → 기수·부서) 기억 ---------------- */
 export async function saveMember(profile) {
   const uid = deviceUid();
+  const p = profileFrom(profile);
   const data = {
-    uid, name: profile.name, gi: Number(profile.gi) || 0,
-    senior: !!profile.senior, tier: tierOf(profile.gi, profile.senior),
+    uid, name: p.name, age: p.age, gi: p.gi, dept: p.dept,
+    senior: p.senior, tier: p.tier,
     updatedAt: Date.now()
   };
   localStorage.setItem('cafe.profile', JSON.stringify(data));
