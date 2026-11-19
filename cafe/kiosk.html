@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="세종카페">
 <meta name="theme-color" content="#08080a">
 <title>세종월드교회 카페 · 키오스크</title>
-<link rel="stylesheet" href="./style.css?v=16">
+<link rel="stylesheet" href="./style.css?v=17">
 <style>
   /* ---- 키오스크(태블릿) · 다크 글래스 ---- */
   .kiosk { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
@@ -238,9 +238,9 @@
 <script type="module">
 import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierShort,
-  priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, doc, addDoc, setDoc, onSnapshot, query, where,
+  priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, doc, addDoc, setDoc, getDoc, getDocs, onSnapshot, query, where,
   copyText, profileFrom, hydrateProfile, whoTag, ageTag, tierName, menuMatches, hhmm, itemsSummary, memberKeyOf, pushTokensOf
-} from './core.js?v=16';
+} from './core.js?v=17';
 
 lockZoom();
 
@@ -490,10 +490,20 @@ $('#kOrder').onclick = async () => {
     /* 이름+나이로 회원키를 만들고, members에 있는 회원이면 그 계정에 연결합니다.
        → 같은 사람이 폰 앱에서도 같은 주문·알림을 볼 수 있습니다. */
     const key = memberKeyOf({ name: c.name, age: c.age });
-    const known = S.members.find(m => (m.memberKey || memberKeyOf(m)) === key)
+    let known = S.members.find(m => (m.memberKey || memberKeyOf(m)) === key)
       || S.members.find(m => String(m.name || '') === c.name && Number(m.age) === Number(c.age));
-    if (known && known.uid) {
-      try { await setDoc(doc(db, 'members', known.uid), { memberKey: key, updatedAt: Date.now() }, { merge: true }); } catch (e) { console.warn('member link', e); }
+    /* 최근 목록(12명)에 없으면 같은 이름_나이 회원을 서버에서 한 번 더 찾아봅니다 */
+    if (!known || !(known.uid || known.accountId)) {
+      try {
+        const qs = await getDocs(query(collection(db, 'members'), where('memberKey', '==', key)));
+        const docs = qs.docs.map(d4 => ({ id: d4.id, ...d4.data() }));
+        const found = docs.find(m => m.accountId || m.pwHash) || docs.find(m => m.uid) || docs[0];
+        if (found) known = found;
+      } catch (e) { console.warn('member find', e); }
+    }
+    const muid = known ? (known.uid || known.accountId || known.id || '') : '';
+    if (muid) {
+      try { await setDoc(doc(db, 'members', muid), { memberKey: key, updatedAt: Date.now() }, { merge: true }); } catch (e) { console.warn('member link', e); }
     } else {
       try {
         await setDoc(doc(collection(db, 'members')), {
@@ -504,7 +514,7 @@ $('#kOrder').onclick = async () => {
     }
     const ref = await addDoc(collection(db, 'orders'), {
       name: c.name.slice(0, 12), age: c.age, gi: c.gi, dept: c.dept, senior: !!c.senior, tier: c.tier,
-      uid: 'kiosk', memberKey: key, memberUid: (known && known.uid) || '', channel: 'kiosk', mode: 'onsite',
+      uid: 'kiosk', memberKey: key, memberUid: muid, channel: 'kiosk', mode: 'onsite',
       /* 폰 앱에서 알림을 켜 둔 회원이면 그 기기 토큰을 주문에 복사 → 키오스크 주문도 본인 폰으로 알림 */
       fcmTokens: pushTokensOf(known),
       items: items.map(i => ({ id: i.id, name: i.name, option: i.option || '', price: i.price, qty: i.qty })),

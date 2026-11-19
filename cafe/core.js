@@ -327,6 +327,50 @@ export function memberKeyOf(p) {
   return age ? `${name}_${age}` : name;
 }
 
+/* ---------------- 계정(아이디·비밀번호) ---------------- */
+/* 손님 폰 앱은 members/{아이디} 문서를 계정으로 씁니다.
+   · 아이디는 영문·숫자·한글 2~16자, 문서 id 로 그대로 씀 (소문자로 맞춰 저장)
+   · 비밀번호는 그대로 저장하지 않고 SHA-256(아이디:솔트:비밀번호) 해시만 저장 */
+export const ACCT_RE = /^[a-z0-9가-힣]{2,16}$/;
+export const acctOf = v => String(v == null ? '' : v).trim().toLowerCase();
+
+/** 가입 폼에 쓸 아이디 검사 — 문제가 없으면 빈 문자열 */
+export function acctProblem(id) {
+  const a = acctOf(id);
+  if (!a) return '아이디를 적어 주세요';
+  if (!ACCT_RE.test(a)) return '아이디는 영문·숫자·한글 2~16자로 적어 주세요';
+  return '';
+}
+export const pwProblem = pw => String(pw == null ? '' : pw).length < 4 ? '비밀번호는 4자 이상으로 적어 주세요' : '';
+
+/** SHA-256 16진 문자열 (crypto.subtle 이 없는 아주 오래된 웹뷰는 대체 해시로) */
+export async function sha256Hex(text) {
+  const s = String(text == null ? '' : text);
+  try {
+    if (typeof crypto !== 'undefined' && crypto.subtle) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+      return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (e) { console.warn('sha256', e); }
+  let h1 = 0x811c9dc5, h2 = 0x01000193;
+  for (let i = 0; i < s.length; i++) {
+    h1 = Math.imul(h1 ^ s.charCodeAt(i), 16777619) >>> 0;
+    h2 = (h2 + s.charCodeAt(i) * (i + 7)) >>> 0;
+  }
+  return 'f' + h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
+}
+
+export function newSalt() {
+  try {
+    const a = new Uint8Array(6);
+    crypto.getRandomValues(a);
+    return Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
+  } catch (e) { return String(Date.now().toString(16)) + Math.random().toString(16).slice(2, 8); }
+}
+
+/** 계정 문서에 저장하는 비밀번호 해시 */
+export const pwHashOf = (acct, salt, pw) => sha256Hex(`${acctOf(acct)}:${salt || ''}:${pw == null ? '' : pw}`);
+
 /* ---------------- 회원(이름·나이 → 기수·부서) 기억 ---------------- */
 export async function saveMember(profile) {
   const uid = deviceUid();
