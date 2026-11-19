@@ -273,6 +273,8 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 .btn.accent { background: linear-gradient(180deg, #f6dcc2, #e9bd94); color: #2a1d12; border-color: transparent; }
 .btn.ok { background: rgba(134, 217, 168, .16); color: var(--ok); border-color: rgba(134, 217, 168, .3); }
 .btn.warn { background: rgba(242, 174, 116, .16); color: var(--warn); border-color: rgba(242, 174, 116, .32); }
+.btn.danger { background: rgba(240, 138, 128, .13); color: #f4a49b; border-color: rgba(240, 138, 128, .34); }
+.btn.danger:active { background: rgba(240, 138, 128, .24); border-color: rgba(240, 138, 128, .55); color: #ffb7af; }
 .btn.ghost { background: transparent; box-shadow: none; }
 .btn.sm { padding: 7px 11px; font-size: 12px; border-radius: 10px; }
 .btn.block { width: 100%; }
