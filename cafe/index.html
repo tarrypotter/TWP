@@ -710,7 +710,7 @@ function renderMe() {
         <div class="hdr-mark" style="width:44px;height:44px;border-radius:14px;font-size:20px">👤</div>
         <div class="grow">
           <b style="font-size:16px">${p ? esc(p.name) : '아직 가입 전'}</b>
-          <div class="small sub">${p ? `${esc(whoTag(p))} · ${tierLabel(tier())}` : '이름과 나이를 등록해 주세요'}</div>
+          <div class="small sub">${p ? esc(whoTag(p)) : '이름과 나이를 등록해 주세요'}</div>
         </div>
         <span class="badge">${p ? tierLabel(tier()) : '가격 미적용'}</span>
       </div>
@@ -774,7 +774,7 @@ function updateSuTier() {
   $('#suTier').textContent = `${giTxt} · ${pr.dept} · ${tierLabel(pr.tier)}`;
   $('#suCalc').textContent = age >= 37 || pr.gi <= 0
     ? `${age}세 · 장년부로 계산됩니다`
-    : `나이 ${age}세 → ${pr.gi}기 · ${pr.dept}`;
+    : `기수는 40 − 나이로 자동 계산됩니다`;
 }
 $('#suName').oninput = () => { };
 $('#suAge').oninput = () => { $('#suAge').value = $('#suAge').value.replace(/[^0-9]/g, ''); updateSuTier(); };
@@ -786,6 +786,7 @@ $('#signupSave').onclick = async () => {
   if (!age || age < 15 || age > 99) return toast('나이를 숫자로 적어 주세요 (15~99)');
   S.profile = await saveMember({ name, age, senior: $('#suSenior').checked });
   renderTierPill(); renderMenu(); renderCart();
+  if (S.view === 'me') renderMe();
   $('#sheetSignup').classList.remove('open');
   toast(`${name}님 · ${S.profile.gi > 0 ? S.profile.gi + '기 · ' : ''}${S.profile.dept} · ${tierLabel(tier())} 적용`);
 };

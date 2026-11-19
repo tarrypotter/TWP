@@ -371,7 +371,7 @@ function showDone(orderId, total, c) {
   ov.innerHTML = `
     <div class="big">주문이 접수되었습니다</div>
     <div class="no">#${shortId(orderId)}</div>
-    <div style="font-size:15px;opacity:.95">${esc(c.name)}님 · ${esc(whoTag(c))} · ${tierLabel(c.tier)}</div>
+    <div style="font-size:15px;opacity:.95">${esc(c.name)}님 · ${esc(whoTag(c))}</div>
     <div class="box">
       <div style="font-size:13px;opacity:.9">결제 금액</div>
       <b>${won(total)}</b>
