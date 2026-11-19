@@ -26,6 +26,18 @@
   .k-search-meta .btn { margin-left: 6px; }
   @media (max-width: 720px) { .k-top .k-search { max-width: none; } .k-top .k-name span { display: none; } }
 
+  /* 실시간 주문 현황 */
+  #kBoardBtn.on { background: var(--brand-soft); color: var(--brand-2); border-color: rgba(233, 189, 148, .32); }
+  #kBoardBtn .n { font-variant-numeric: tabular-nums; }
+  #kBoardCard { max-height: 78dvh; overflow-y: auto; scrollbar-width: none; }
+  #kBoardCard::-webkit-scrollbar { display: none; }
+  .kb-sec { padding: 16px 0 4px; font-size: 11px; letter-spacing: .14em; color: var(--muted); font-weight: 800; }
+  .kb-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-top: 1px solid var(--line); }
+  .kb-no { flex: 0 0 auto; font-size: 12px; font-weight: 800; letter-spacing: .06em; color: var(--brand); }
+  .kb-nm { flex: 0 0 auto; max-width: 28%; font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kb-mn { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: var(--sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kb-empty { padding: 28px 0; text-align: center; color: var(--muted); font-size: 13px; }
+
   .k-body { flex: 1 1 auto; min-height: 0; display: flex; overflow: hidden; }
 
   /* 왼쪽: 카테고리 + 메뉴 그리드 */
@@ -137,6 +149,7 @@
       </div>
     </div>
     <div class="k-right">
+      <button class="badge" id="kBoardBtn" type="button">실시간 현황 0건</button>
       <span class="badge gray" id="kStatus">연결 중…</span>
     </div>
   </header>
@@ -183,18 +196,19 @@
 </div>
 
 <div class="modal" id="kModal"><div class="m-card" id="kModalCard"></div></div>
+<div class="modal" id="kBoard"><div class="m-card" id="kBoardCard"></div></div>
 <div class="done-ov" id="kDone"></div>
 
 <script type="module">
 import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort,
-  priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, addDoc, onSnapshot,
-  copyText, profileFrom, hydrateProfile, whoTag, menuMatches
+  priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, addDoc, onSnapshot, query, where,
+  copyText, profileFrom, hydrateProfile, whoTag, menuMatches, hhmm, itemsSummary
 } from './core.js?v=6';
 
 lockZoom();
 
-const S = { menus: [], cart: {}, cat: 'all', q: '', cfg: { ...DEFAULT_CONFIG }, members: [], modalItem: null, modalQty: 1, modalOpt: '' };
+const S = { menus: [], cart: {}, cat: 'all', q: '', queue: [], cfg: { ...DEFAULT_CONFIG }, members: [], modalItem: null, modalQty: 1, modalOpt: '' };
 const $ = s => document.querySelector(s);
 const el = (t, c, h) => { const n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; };
 let toastTimer;
@@ -231,6 +245,39 @@ onSnapshot(collection(db, 'members'), snap => {
     .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)).slice(0, 12);
   renderMembers();
 }, () => { });
+
+/* 실시간 주문 현황 */
+onSnapshot(query(collection(db, 'orders'), where('status', 'in', ['new', 'made'])), snap => {
+  S.queue = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+  const btn = $('#kBoardBtn');
+  btn.textContent = `실시간 현황 ${S.queue.length}건`;
+  btn.classList.toggle('on', S.queue.length > 0);
+  if ($('#kBoard').classList.contains('open')) renderBoardPane();
+}, () => { });
+
+function renderBoardPane() {
+  const q = S.queue || [];
+  const wait = q.filter(o => o.status === 'new');
+  const pick = q.filter(o => o.status === 'made');
+  const row = (o, kind) => `<div class="kb-row">
+      <span class="kb-no">#${shortId(o.id)}</span>
+      <b class="kb-nm">${esc(o.name || '손님')}</b>
+      <span class="kb-mn">${esc(itemsSummary(o.items))}</span>
+      <span class="badge ${kind === 'pick' ? 'ok' : 'warn'}">${kind === 'pick' ? '픽업 대기' : '조리 중'}</span>
+    </div>`;
+  let html = `<div class="between"><b style="font-size:19px">실시간 주문 현황</b><button class="btn sm ghost" id="kBoardClose" type="button">닫기</button></div>
+    <div class="tiny muted mt6"><span class="live-dot" style="display:inline-block;vertical-align:middle;margin-right:6px"></span>주문이 들어오면 바로 바뀝니다 · ${q.length}건 진행 중</div>`;
+  if (!q.length) {
+    html += `<div class="kb-empty">지금은 대기 중인 주문이 없어요 ☕</div>`;
+  } else {
+    if (pick.length) html += `<div class="kb-sec">픽업 대기 · ${pick.length}</div>` + pick.map(o => row(o, 'pick')).join('');
+    if (wait.length) html += `<div class="kb-sec">조리 중 · ${wait.length}</div>` + wait.map(o => row(o, 'wait')).join('');
+  }
+  $('#kBoardCard').innerHTML = html;
+  $('#kBoardClose').onclick = () => $('#kBoard').classList.remove('open');
+}
+$('#kBoardBtn').onclick = () => { renderBoardPane(); $('#kBoard').classList.add('open'); };
+$('#kBoard').onclick = e => { if (e.target.id === 'kBoard') $('#kBoard').classList.remove('open'); };
 
 function renderMembers() {
   const box = $('#kMembers');

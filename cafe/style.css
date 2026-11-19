@@ -165,6 +165,23 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 .fav-pop { animation: favpop .34s var(--spring); }
 @keyframes favpop { 0% { transform: scale(.8); } 55% { transform: scale(1.22); } 100% { transform: scale(1); } }
 
+/* ---------- 실시간 주문 현황 ---------- */
+.live-board {
+  margin: 14px 16px 4px; border-radius: 18px; overflow: hidden;
+  background: var(--card); border: 1px solid var(--line); box-shadow: var(--card-shadow);
+}
+.lb-hdr { display: flex; align-items: center; gap: 8px; padding: 12px 14px; background: rgba(255, 255, 255, .03); border-bottom: 1px solid var(--line); }
+.lb-hdr b { font-size: 12.5px; letter-spacing: -.01em; }
+.lb-hdr em { margin-left: auto; font-style: normal; font-size: 11px; color: var(--muted); }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; background: var(--ok); box-shadow: 0 0 0 3px rgba(134, 217, 168, .16); animation: livepulse 1.9s ease-in-out infinite; }
+@keyframes livepulse { 0%, 100% { opacity: 1; } 50% { opacity: .34; } }
+.lb-sec { padding: 11px 14px 3px; font-size: 10.5px; font-weight: 800; letter-spacing: .12em; color: var(--muted); }
+.lb-row { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-top: 1px solid var(--line); }
+.lb-no { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; color: var(--brand); flex: 0 0 auto; }
+.lb-name { font-size: 12.5px; font-weight: 700; flex: 0 0 auto; max-width: 34%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-menu { flex: 1 1 auto; min-width: 0; font-size: 11.5px; color: var(--sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-empty { padding: 16px 14px; font-size: 12px; color: var(--muted); text-align: center; }
+
 /* ---------- 배지 ---------- */
 .badge {
   display: inline-flex; align-items: center; gap: 3px; padding: 3px 8px; border-radius: 999px;

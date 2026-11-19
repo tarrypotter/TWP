@@ -281,7 +281,7 @@
 import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort,
   priceOf, deviceUid, shortId, timeAgo, hhmm, esc, lockZoom, ensureMenus, saveMember, localProfile,
-  hydrateProfile, profileFrom, whoTag, menuMatches,
+  hydrateProfile, profileFrom, whoTag, menuMatches, itemsSummary,
   watchConfig, collection, doc, addDoc, getDoc, setDoc, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
   beep, buzz, notify, askNotifyPermission
 } from './core.js?v=6';
@@ -299,6 +299,7 @@ const S = {
   mode: 'pre',
   pay: 'transfer',
   orders: [],
+  queue: [],           // 카페 전체 진행 중 주문(실시간 현황)
   opt: null,          // {menu, option, qty}
   q: '',              // 메뉴 검색어
   fav: [],            // 즐겨찾기 메뉴 id
@@ -344,6 +345,12 @@ onSnapshot(query(collection(db, 'orders'), where('uid', '==', uid)), snap => {
   checkAlerts();
   if (S.view === 'orders') renderOrders();
 });
+
+/* ---------------- 카페 실시간 현황(전광판) ---------------- */
+onSnapshot(query(collection(db, 'orders'), where('status', 'in', ['new', 'made'])), snap => {
+  S.queue = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+  if (S.view === 'orders') renderBoard();
+}, err => console.warn('queue', err));
 
 /* ---------------- 알림(제조 완료 / 미입금 요청) ---------------- */
 const seenKey = 'cafe.seen.' + uid;
@@ -778,15 +785,41 @@ function showDone(orderId, total, items) {
 $('#doneClose').onclick = () => { $('#sheetDone').classList.remove('open'); setView('orders'); };
 $('#doneOk').onclick = () => { $('#sheetDone').classList.remove('open'); setView('orders'); };
 
+/* ---------------- 카페 실시간 현황(전광판) ---------------- */
+function boardInner() {
+  const q = S.queue || [];
+  const wait = q.filter(o => o.status === 'new');
+  const pick = q.filter(o => o.status === 'made');
+  const row = (o, kind) => `<div class="lb-row">
+      <span class="lb-no">#${shortId(o.id)}</span>
+      <b class="lb-name">${esc(o.name || '손님')}</b>
+      <span class="lb-menu">${esc(itemsSummary(o.items))}</span>
+      <span class="badge ${kind === 'pick' ? 'ok' : 'warn'}">${kind === 'pick' ? '픽업 대기' : '조리 중'}</span>
+    </div>`;
+  let html = `<div class="lb-hdr"><span class="live-dot"></span><b>지금 카페 실시간</b><em>${q.length ? `${q.length}건 진행 중` : '대기 없음'}</em></div>`;
+  if (!q.length) {
+    html += `<div class="lb-empty">지금은 주문이 밀려 있지 않아요 ☕</div>`;
+  } else {
+    if (wait.length) html += `<div class="lb-sec">조리 중 · ${wait.length}</div>` + wait.map(o => row(o, 'wait')).join('');
+    if (pick.length) html += `<div class="lb-sec">픽업 대기 · ${pick.length}</div>` + pick.map(o => row(o, 'pick')).join('');
+  }
+  return `<div class="live-board">${html}</div>`;
+}
+function renderBoard() {
+  const box = $('#liveBoard');
+  if (box) box.innerHTML = boardInner();
+  else if (S.view === 'orders') renderOrders();
+}
+
 /* ---------------- 주문내역 ---------------- */
 function renderOrders() {
   const root = $('#view-orders');
+  let html = `<div id="liveBoard">${boardInner()}</div>`;
   if (!S.orders.length) {
-    root.innerHTML = `<div class="empty" style="padding-top:60px"><span class="e-ico">🧾</span><b>아직 주문이 없어요</b><span>메뉴에서 음료를 골라 주문해 보세요</span></div>`;
-    return;
-  }
-  root.innerHTML = `<div class="sec-title"><b>내 주문</b><span class="small muted">실시간으로 상태가 바뀝니다</span></div>` +
-    S.orders.map(o => {
+    html += `<div class="empty" style="padding:34px 20px"><span class="e-ico">🧾</span><b>내 주문이 아직 없어요</b><span>메뉴에서 음료를 골라 주문해 보세요</span></div>`;
+  } else {
+    html += `<div class="sec-title"><b>내 주문</b><span class="small muted">실시간으로 상태가 바뀝니다</span></div>`;
+    html += S.orders.map(o => {
       const st = o.status === 'done' ? '<span class="badge ok">완료</span>'
         : o.madeAt ? '<span class="badge warn">제조 완료 · 받아 가세요</span>'
         : '<span class="badge">접수 · 준비 중</span>';
@@ -819,6 +852,8 @@ function renderOrders() {
         </div>` : `<div class="note" style="margin:10px 0 0;border-style:solid;border-color:rgba(134,217,168,.28);background:rgba(134,217,168,.08);color:var(--ok)">입금이 확인되어 주문이 완료되었습니다 ✓</div>`}
       </div>`;
     }).join('');
+  }
+  root.innerHTML = html;
   root.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
     const ok = await copyText(S.cfg.account); toast(ok ? '계좌번호를 복사했어요' : '복사 실패');
   });
