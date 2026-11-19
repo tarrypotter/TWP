@@ -113,6 +113,8 @@ export const tierName = (id) => (TIERS.find(t => t.id === id) || {}).name || (id
 /* ---------------- 공통 설정(계좌·PIN) ---------------- */
 export const DEFAULT_CONFIG = {
   pin: '0000',
+  /* 매장 PIN과는 별개인 관리자(특수) PIN — 메뉴·설정처럼 민감한 작업에 한 번 더 씀 */
+  masterPin: '1111',
   bank: '카카오뱅크',
   holder: '김정훈',
   account: '3333-27425-7330',

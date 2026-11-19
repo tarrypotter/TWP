@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="세종카페">
 <meta name="theme-color" content="#08080a">
 <title>세종월드교회 카페 · 사장님</title>
-<link rel="stylesheet" href="./style.css?v=17">
+<link rel="stylesheet" href="./style.css?v=18">
 <style>
   /* ---- 사장님 화면 · 다크 글래스 ---- */
   .pin-wrap { height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
@@ -103,6 +103,12 @@
   .o-cin .btn { flex: 0 0 auto; white-space: nowrap; }
   .newflash { animation: flash 1.2s ease-out 2; }
   @keyframes flash { 0% { box-shadow: 0 0 0 0 rgba(242, 174, 116, .5); } 100% { box-shadow: 0 0 0 16px rgba(242, 174, 116, 0); } }
+  /* ---- 관리자(특수) PIN ---- */
+  .pin-seg { display: flex; gap: 4px; padding: 4px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; }
+  .pin-seg button { flex: 1 1 0; padding: 10px 6px; border-radius: 11px; font-size: 13px; font-weight: 800; color: var(--sub); }
+  .pin-seg button.on { background: linear-gradient(180deg, #fff, #e7e7ed); color: #0b0b0e; }
+  #sheetMaster .pin-dots { margin: 16px 0 18px; }
+  #sheetMaster .keypad button { padding: 14px 0; font-size: 18px; }
 </style>
 </head>
 <body>
@@ -115,6 +121,7 @@
       <b style="font-size:18px">사장님 모드</b>
       <p class="small sub mt6">세종월드교회 카페 · 주문·메뉴 관리</p>
       <p class="tiny muted mt6">초기 PIN은 <b>0000</b> 입니다. 로그인 후 설정에서 바꿀 수 있어요.</p>
+      <p class="tiny muted mt6" style="margin-top:4px">메뉴·설정 변경은 <b>관리자 PIN</b>을 한 번 더 받습니다.</p>
     </div>
     <div class="pin-dots" id="pinDots"><i></i><i></i><i></i><i></i></div>
     <div class="keypad" id="keypad"></div>
@@ -130,6 +137,7 @@
       <div class="hdr-mark">☕</div>
       <div class="hdr-title"><b>사장님 · 세종월드교회 카페</b><span>OWNER CONSOLE</span></div>
       <div class="hdr-spacer"></div>
+      <span class="badge warn hide" id="masterBadge" style="margin-right:6px">관리자 권한</span>
       <button class="btn sm" id="lockBtn" type="button">잠금</button>
     </div>
     <div class="a-tabs">
@@ -200,11 +208,31 @@
 <section class="sheet" id="sheetPin" aria-hidden="true">
   <div class="sheet-hdr"><b>PIN 변경</b><button class="btn sm ghost" id="pinClose" type="button" style="margin-left:auto">닫기</button></div>
   <div class="sheet-body">
+    <div class="pin-seg" id="pinSeg">
+      <button data-pink="store" class="on" type="button">매장 PIN</button>
+      <button data-pink="master" type="button">관리자 PIN</button>
+    </div>
+    <p class="tiny muted" id="pinHint" style="min-height:32px;margin:0 2px 12px;line-height:1.55"></p>
     <label class="field"><span>현재 PIN</span><input class="input" id="pinOld" inputmode="numeric" maxlength="4" placeholder="0000"></label>
     <label class="field"><span>새 PIN (숫자 4자리)</span><input class="input" id="pinNew" inputmode="numeric" maxlength="4" placeholder="1234"></label>
-    <p class="tiny muted">사장님 화면 주소는 <b>cafe/admin.html</b> 이고, PIN은 Firestore config/app 문서에 저장됩니다.</p>
+    <p class="tiny muted">매장 PIN과 관리자 PIN은 <b>서로 다른 값</b>이어야 합니다. PIN은 Firestore config/app 문서에 저장됩니다.</p>
   </div>
   <div class="sheet-foot"><button class="btn primary block" id="pinSave" type="button">PIN 저장</button></div>
+</section>
+
+<!-- ================= 관리자(특수) PIN 시트 ================= -->
+<section class="sheet fit" id="sheetMaster" aria-hidden="true">
+  <div class="sheet-hdr">
+    <b>관리자 PIN</b><span class="badge warn">특수 권한</span>
+    <button class="btn sm ghost" id="masterClose" type="button" style="margin-left:auto">취소</button>
+  </div>
+  <div class="sheet-body">
+    <p class="small sub" id="masterReason" style="margin-bottom:4px">메뉴·설정 변경은 관리자 PIN이 필요합니다.</p>
+    <div class="pin-dots" id="masterDots"><i></i><i></i><i></i><i></i></div>
+    <div class="keypad" id="masterKeypad"></div>
+    <div class="pin-err" id="masterErr"></div>
+    <p class="tiny muted" style="text-align:center;margin-top:2px">관리자 권한은 <b>잠금</b>을 누를 때까지 이 화면에 유지됩니다.</p>
+  </div>
 </section>
 
 <script type="module">
@@ -215,7 +243,7 @@ import {
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, getDoc, query, orderBy,
   limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary, whoTag, menuMatches, memberKeyOf, arrayUnion,
   sendPush, pushTokensOf, registerPush, pushTokenLocal, pushAvailable
-} from './core.js?v=17';
+} from './core.js?v=18';
 
 lockZoom();
 
@@ -229,7 +257,7 @@ function toast(msg) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1900);
 }
 
-const S = { cfg: { ...DEFAULT_CONFIG }, orders: [], menus: [], tab: 'orders', filter: 'active', editing: null, authed: false, mq: '' };
+const S = { cfg: { ...DEFAULT_CONFIG }, orders: [], menus: [], tab: 'orders', filter: 'active', editing: null, authed: false, master: false, mq: '' };
 
 /* ---------------- PIN ---------------- */
 /* 인증은 이 화면이 열려 있는 동안만 메모리에 둡니다 (storage에 남기지 않음).
@@ -271,12 +299,76 @@ function unlock() {
 }
 function lock() {
   S.authed = false;
+  S.master = false;                 // 특수(관리자) 권한도 함께 잠깁니다
+  closeMaster(false);
+  renderMasterState();
+  if (S.tab === 'settings') setTab('orders');
   pinBuf = ''; drawDots();
   $('#pinErr').textContent = '';
   $('#app').classList.add('hide');
   $('#pinGate').classList.remove('hide');
 }
 $('#lockBtn').onclick = lock;
+
+/* ---------------- 관리자(특수) PIN ----------------
+   매장 PIN(기본 0000)으로 들어온 뒤, 메뉴·설정처럼 민감한 작업은
+   관리자 PIN(기본 1111)을 한 번 더 받아 이 화면 세션에서만 열어 둡니다. */
+function storePinOf() { return String(S.cfg.pin || DEFAULT_CONFIG.pin); }
+function masterPinOf() {
+  const m = String(S.cfg.masterPin || DEFAULT_CONFIG.masterPin);
+  return m === storePinOf() ? String(DEFAULT_CONFIG.masterPin) : m;
+}
+function renderMasterState() {
+  const b = $('#masterBadge');
+  if (b) b.classList.toggle('hide', !S.master);
+}
+
+let masterBuf = '', masterResolve = null;
+$('#masterKeypad').innerHTML = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'clear', '0', 'del'].map(k =>
+  `<button type="button" data-mk="${k}" class="${k === 'clear' || k === 'del' ? 'wide' : ''}">${k === 'clear' ? '지우기' : k === 'del' ? '⌫' : k}</button>`).join('');
+$('#masterKeypad').querySelectorAll('[data-mk]').forEach(b => b.onclick = () => pressMaster(b.dataset.mk));
+
+function drawMasterDots() {
+  document.querySelectorAll('#masterDots i').forEach((d, i) => d.classList.toggle('on', i < masterBuf.length));
+}
+function pressMaster(k) {
+  $('#masterErr').textContent = '';
+  if (k === 'del') masterBuf = masterBuf.slice(0, -1);
+  else if (k === 'clear') masterBuf = '';
+  else if (masterBuf.length < 4) masterBuf += k;
+  drawMasterDots();
+  if (masterBuf.length === 4) setTimeout(checkMaster, 120);
+}
+function checkMaster() {
+  if (masterBuf === masterPinOf()) {
+    S.master = true;
+    renderMasterState();
+    toast('관리자 권한을 열었어요');
+    buzz(30);
+    closeMaster(true);
+  } else {
+    $('#masterErr').textContent = '관리자 PIN이 맞지 않습니다';
+    $('#masterDots').classList.add('shake');
+    buzz(60);
+    setTimeout(() => { $('#masterDots').classList.remove('shake'); masterBuf = ''; drawMasterDots(); }, 340);
+  }
+}
+/** 관리자 PIN이 필요한 동작 앞에서 부릅니다. 이미 열려 있으면 묻지 않고 통과. */
+function askMaster(reason) {
+  if (S.master) return Promise.resolve(true);
+  $('#masterReason').textContent = reason || '이 작업은 관리자 PIN이 필요합니다';
+  $('#masterErr').textContent = '';
+  masterBuf = ''; drawMasterDots();
+  $('#sheetMaster').classList.add('open');
+  return new Promise(res => { masterResolve = res; });
+}
+function closeMaster(ok) {
+  $('#sheetMaster').classList.remove('open');
+  const r = masterResolve; masterResolve = null;
+  masterBuf = ''; drawMasterDots();
+  if (r) r(!!ok);
+}
+$('#masterClose').onclick = () => closeMaster(false);
 
 /* 뒤로가기로 되살아난 화면(bfcache)도 다시 잠급니다 */
 window.addEventListener('pageshow', e => { if (e.persisted) lock(); });
@@ -345,7 +437,12 @@ function pushAlert(title, body, kind) {
 
 /* ---------------- 탭 ---------------- */
 document.querySelectorAll('.a-tabs button').forEach(b => b.onclick = () => setTab(b.dataset.tab));
-function setTab(t) {
+async function setTab(t) {
+  /* 설정 화면에는 눈에 안 보이는 민감한 것(계좌·PIN·가격 그룹)이 모여 있어 들어갈 때 관리자 PIN을 받습니다 */
+  if (t === 'settings' && !S.master) {
+    const ok = await askMaster('설정 화면은 관리자 PIN이 필요합니다');
+    if (!ok) return;
+  }
   S.tab = t;
   document.querySelectorAll('.a-tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
   $('#tab-orders').classList.toggle('hide', t !== 'orders');
@@ -535,6 +632,7 @@ async function confirmPaid(id, btn) {
   } catch (e) { console.error(e); toast('처리 실패'); btn.disabled = false; }
 }
 async function removeOrder(id) {
+  if (!await askMaster('주문 삭제는 관리자 PIN이 필요합니다')) return;
   if (!confirm('이 주문을 삭제할까요? 손님 화면에서도 사라집니다.')) return;
   try { await deleteDoc(doc(db, 'orders', id)); toast('삭제했어요'); }
   catch (e) { toast('삭제 실패'); }
@@ -559,7 +657,10 @@ function renderMenus() {
   q.oninput = () => { S.mq = q.value; $('#menuSearch').classList.toggle('has-q', !!q.value); fillMenuListBox(); };
   q.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); q.blur(); } };
   $('#menuQClear').onclick = () => { S.mq = ''; q.value = ''; $('#menuSearch').classList.remove('has-q'); fillMenuListBox(); q.focus(); };
-  $('#menuAdd').onclick = () => openMenuSheet(null);
+  $('#menuAdd').onclick = async () => {
+    if (!await askMaster('새 메뉴 추가는 관리자 PIN이 필요합니다')) return;
+    openMenuSheet(null);
+  };
   fillMenuListBox();
 }
 
@@ -602,7 +703,10 @@ function fillMenuListBox() {
   }
   html += `<p class="tiny muted" style="text-align:center;padding:18px 16px 26px">메뉴 변경은 손님 화면·키오스크에 실시간으로 반영됩니다.</p>`;
   root.innerHTML = html;
-  root.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openMenuSheet(S.menus.find(m => m.id === b.dataset.edit)));
+  root.querySelectorAll('[data-edit]').forEach(b => b.onclick = async () => {
+    if (!await askMaster('메뉴 가격·정보 수정은 관리자 PIN이 필요합니다')) return;
+    openMenuSheet(S.menus.find(m => m.id === b.dataset.edit));
+  });
   root.querySelectorAll('[data-sold]').forEach(b => b.onclick = async () => {
     const m = S.menus.find(x => x.id === b.dataset.sold);
     try { await updateDoc(doc(db, 'menus', m.id), { soldout: !m.soldout, updatedAt: Date.now() }); toast(m.soldout ? '판매 재개' : '품절 처리'); }
@@ -639,6 +743,7 @@ function openMenuSheet(m) {
 }
 $('#menuClose').onclick = () => $('#sheetMenu').classList.remove('open');
 $('#menuSave').onclick = async () => {
+  if (!await askMaster('메뉴 저장은 관리자 PIN이 필요합니다')) return;
   const name = $('#eName').value.trim();
   const youth = parseInt($('#eYouth').value.replace(/[^0-9]/g, ''), 10);
   const college = parseInt($('#eCollege').value.replace(/[^0-9]/g, ''), 10);
@@ -669,6 +774,7 @@ $('#menuSave').onclick = async () => {
 };
 $('#menuDelete').onclick = async () => {
   if (!S.editing) return;
+  if (!await askMaster('메뉴 삭제는 관리자 PIN이 필요합니다')) return;
   if (!confirm(`"${S.editing.name}" 메뉴를 삭제할까요?`)) return;
   try { await deleteDoc(doc(db, 'menus', S.editing.id)); $('#sheetMenu').classList.remove('open'); toast('삭제했어요'); }
   catch (e) { toast('삭제 실패'); }
@@ -697,7 +803,8 @@ function renderTierBox() {
   $('#tierAdd').onclick = () => openTierSheet(null);
 }
 
-function openTierSheet(id) {
+async function openTierSheet(id) {
+  if (!await askMaster('가격 그룹 변경은 관리자 PIN이 필요합니다')) return;
   editingTier = id || null;
   const t = id ? getTiers().find(x => x.id === id) : null;
   $('#tierSheetTitle').textContent = t ? '가격 그룹 수정' : '가격 그룹 추가';
@@ -718,7 +825,8 @@ async function saveTiers(list, msg) {
     toast(msg);
   } catch (e) { console.error(e); toast('저장 실패'); }
 }
-function deleteTier(id) {
+async function deleteTier(id) {
+  if (!await askMaster('가격 그룹 삭제는 관리자 PIN이 필요합니다')) return;
   const t = getTiers().find(x => x.id === id);
   if (!t) return;
   if (!confirm(`"${t.name}" 가격 그룹을 삭제할까요? 이 그룹 가격을 적어 둔 메뉴는 청년처 가격으로 나갑니다.`)) return;
@@ -727,7 +835,8 @@ function deleteTier(id) {
 $('#tierClose').onclick = () => $('#sheetTier').classList.remove('open');
 $('#tMin').oninput = () => { $('#tMin').value = $('#tMin').value.replace(/[^0-9]/g, ''); };
 $('#tMax').oninput = () => { $('#tMax').value = $('#tMax').value.replace(/[^0-9]/g, ''); };
-$('#tierSave').onclick = () => {
+$('#tierSave').onclick = async () => {
+  if (!await askMaster('가격 그룹 저장은 관리자 PIN이 필요합니다')) return;
   const name = $('#tName').value.trim();
   const min = parseInt($('#tMin').value.replace(/[^0-9]/g, ''), 10);
   const maxRaw = $('#tMax').value.replace(/[^0-9]/g, '');
@@ -756,7 +865,7 @@ function renderSettings() {
     <div class="sec-h">운영</div>
     <div class="box" style="margin:0 16px">
       <button class="set-row" id="setPin" type="button" style="width:100%;text-align:left">
-        <div class="si"><b>사장님 PIN 변경</b><span>이 화면은 열 때마다 PIN 4자리를 다시 받습니다</span></div><span class="badge">변경</span>
+        <div class="si"><b>PIN 변경 (매장 · 관리자)</b><span>매장 PIN은 이 화면 입장용, 관리자 PIN은 메뉴·설정 변경용</span></div><span class="badge">변경</span>
       </button>
       <button class="set-row" id="setNoti" type="button" style="width:100%;text-align:left">
         <div class="si"><b>새 주문 알림</b><span>이 화면을 켜 두면 소리·진동·브라우저 알림</span></div><span class="badge ok">켜기</span>
@@ -804,7 +913,12 @@ function renderSettings() {
       <div class="set-row" id="pushTest" style="cursor:pointer"><div class="si"><b>잠금화면 푸시 테스트</b><span>이 기기의 알림 권한을 켜고 실제 푸시를 보내 확인합니다</span></div><span class="badge">보내기</span></div>
     </div>`;
 
-  $('#setPin').onclick = () => { $('#pinOld').value = ''; $('#pinNew').value = ''; $('#sheetPin').classList.add('open'); };
+  $('#setPin').onclick = async () => {
+    if (!await askMaster('PIN 변경은 관리자 PIN이 필요합니다')) return;
+    $('#pinOld').value = ''; $('#pinNew').value = '';
+    setPinKind('store');
+    $('#sheetPin').classList.add('open');
+  };
   renderTierBox();
   $('#setNoti').onclick = async () => {
     const r = await askNotifyPermission();
@@ -829,6 +943,7 @@ function renderSettings() {
   };
   $('#copyAccount').onclick = async () => { await copyText(`${S.cfg.bank} ${S.cfg.account}`); toast('계좌번호를 복사했어요'); };
   $('#saveCfg').onclick = async () => {
+    if (!await askMaster('계좌 정보 수정은 관리자 PIN이 필요합니다')) return;
     try {
       await setDoc(doc(db, 'config', 'app'), {
         bank: $('#cBank').value.trim(), holder: $('#cHolder').value.trim(),
@@ -838,10 +953,12 @@ function renderSettings() {
     } catch (e) { toast('저장 실패'); }
   };
   $('#reseed').onclick = async () => {
+    if (!await askMaster('메뉴 초기화는 관리자 PIN이 필요합니다')) return;
     if (!confirm('메뉴를 사진 기준 32개로 다시 채울까요? 직접 추가한 메뉴는 그대로 남습니다.')) return;
     try { const r = await ensureMenus(true); toast(`${r.seeded}개 메뉴를 다시 채웠어요`); } catch (e) { toast('초기화 실패'); }
   };
   $('#clearDone').onclick = async () => {
+    if (!await askMaster('주문 삭제는 관리자 PIN이 필요합니다')) return;
     if (!confirm('완료된 주문을 모두 삭제할까요?')) return;
     try {
       const snap = await getDocs(collection(db, 'orders'));
@@ -851,6 +968,7 @@ function renderSettings() {
     } catch (e) { toast('삭제 실패'); }
   };
   $('#clearAll').onclick = async () => {
+    if (!await askMaster('주문 삭제는 관리자 PIN이 필요합니다')) return;
     if (!confirm('"테스트" 이름의 주문을 모두 삭제할까요?')) return;
     try {
       const snap = await getDocs(collection(db, 'orders'));
@@ -861,14 +979,33 @@ function renderSettings() {
   };
 }
 $('#pinClose').onclick = () => $('#sheetPin').classList.remove('open');
+
+let pinKind = 'store';
+function setPinKind(k) {
+  pinKind = k === 'master' ? 'master' : 'store';
+  $('#pinSeg').querySelectorAll('[data-pink]').forEach(b => b.classList.toggle('on', b.dataset.pink === pinKind));
+  $('#pinHint').innerHTML = pinKind === 'master'
+    ? '관리자 PIN은 <b>메뉴 추가·가격 수정·설정 변경</b>처럼 민감한 작업을 할 때 한 번 더 씁니다. (초기 <b>1111</b>)'
+    : '매장 PIN은 이 화면에 들어올 때 씁니다. <b>주문 처리·품절 표시</b>까지 할 수 있어요. (초기 <b>0000</b>)';
+  $('#pinOld').placeholder = pinKind === 'master' ? '1111' : '0000';
+  $('#pinOld').value = ''; $('#pinNew').value = '';
+}
+$('#pinSeg').querySelectorAll('[data-pink]').forEach(b => b.onclick = () => setPinKind(b.dataset.pink));
+$('#pinOld').oninput = () => { $('#pinOld').value = $('#pinOld').value.replace(/[^0-9]/g, ''); };
+$('#pinNew').oninput = () => { $('#pinNew').value = $('#pinNew').value.replace(/[^0-9]/g, ''); };
+
 $('#pinSave').onclick = async () => {
   const old = $('#pinOld').value.trim(), np = $('#pinNew').value.trim();
-  if (old !== String(S.cfg.pin || DEFAULT_CONFIG.pin)) return toast('현재 PIN이 맞지 않습니다');
+  const cur = pinKind === 'master' ? masterPinOf() : storePinOf();
+  if (old !== cur) return toast(pinKind === 'master' ? '현재 관리자 PIN이 맞지 않습니다' : '현재 매장 PIN이 맞지 않습니다');
   if (!/^\d{4}$/.test(np)) return toast('새 PIN은 숫자 4자리로 정해 주세요');
+  const other = pinKind === 'master' ? storePinOf() : masterPinOf();
+  if (np === other) return toast('매장 PIN과 관리자 PIN은 서로 달라야 합니다');
   try {
-    await setDoc(doc(db, 'config', 'app'), { pin: np, updatedAt: Date.now() }, { merge: true });
+    await setDoc(doc(db, 'config', 'app'), pinKind === 'master' ? { masterPin: np, updatedAt: Date.now() } : { pin: np, updatedAt: Date.now() }, { merge: true });
+    S.cfg = { ...S.cfg, ...(pinKind === 'master' ? { masterPin: np } : { pin: np }) };
     $('#sheetPin').classList.remove('open');
-    toast('PIN을 바꿨어요');
+    toast(pinKind === 'master' ? '관리자 PIN을 바꿨어요' : '매장 PIN을 바꿨어요');
   } catch (e) { toast('저장 실패'); }
 };
 
