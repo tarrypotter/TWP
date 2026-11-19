@@ -442,6 +442,7 @@ onSnapshot(collection(db, 'orders'), snap => {
   S.orders = all.filter(isMine).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   S.queue = all.filter(o => o.status === 'new' || o.status === 'made').sort((a, b) => (a.ts || 0) - (b.ts || 0));
   tidySettledChats();
+  clearSettledAlerts();
   checkAlerts();
   updateChatDot();
   if (S.view === 'orders') renderOrders();
@@ -457,6 +458,15 @@ function tidySettledChats() {
     try { if (localStorage.getItem(key)) continue; localStorage.setItem(key, '1'); } catch (e) { return; }
     updateDoc(doc(db, 'orders', o.id), { chat: [], chatClearedAt: Date.now() }).catch(e => console.warn('chat clean', e));
   }
+}
+
+/* 입금까지 끝난 주문의 배너(미입금 요청·나왔습니다·채팅)는 바로 내립니다 */
+function clearSettledAlerts() {
+  const settled = new Set(S.orders.filter(isSettled).map(o => o.id));
+  if (!settled.size) return;
+  document.querySelectorAll('#alertStack .alert[data-order]').forEach(b => {
+    if (settled.has(b.dataset.order)) b.remove();
+  });
 }
 
 /* ---------------- 알림(제조 완료 / 미입금 요청) ---------------- */
@@ -498,6 +508,7 @@ function pushAlert(kind, o) {
   const stack = $('#alertStack');
   const ready = kind === 'ready';
   const box = el('div', 'alert ' + (ready ? 'ready' : 'pay'));
+  box.dataset.order = o.id;
   box.innerHTML = ready
     ? `<span class="a-ico">✅</span><div class="grow"><b>${esc(o.name)}님, 나왔습니다!</b><span>#${shortId(o.id)} · 카운터에서 받아 가세요</span></div>`
     : `<span class="a-ico">💰</span><div class="grow"><b>미입금 결제 요청</b><span>#${shortId(o.id)} · ${esc(S.cfg.bank)} ${esc(S.cfg.account)}</span></div>`;
@@ -523,6 +534,7 @@ function pushAlert(kind, o) {
 function pushChatAlert(o, text) {
   const stack = $('#alertStack');
   const box = el('div', 'alert ready');
+  box.dataset.order = o.id;
   box.innerHTML = `<span class="a-ico">💬</span><div class="grow"><b>사장님 · #${shortId(o.id)}</b><span>${esc(text)}</span></div>`;
   const x = el('button', 'a-x', '✕');
   x.onclick = e => { e.stopPropagation(); box.remove(); };
