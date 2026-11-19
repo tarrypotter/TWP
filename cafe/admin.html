@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2b211a">
 <title>세종월드교회 카페 · 사장님</title>
-<link rel="stylesheet" href="./style.css?v=5">
+<link rel="stylesheet" href="./style.css?v=6">
 <style>
   /* ---- 사장님 화면 · 다크 글래스 ---- */
   .pin-wrap { height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
@@ -174,8 +174,8 @@ import {
   db, BRAND, CATS, CAT_NAME, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort, priceOf, shortId,
   timeAgo, hhmm, esc, lockZoom, ensureMenus, ensureConfig, watchConfig, copyText,
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, query, orderBy,
-  limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary, whoTag
-} from './core.js?v=5';
+  limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary, whoTag, menuMatches
+} from './core.js?v=6';
 
 lockZoom();
 
@@ -189,10 +189,11 @@ function toast(msg) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1900);
 }
 
-const S = { cfg: { ...DEFAULT_CONFIG }, orders: [], menus: [], tab: 'orders', filter: 'active', editing: null, authed: false };
+const S = { cfg: { ...DEFAULT_CONFIG }, orders: [], menus: [], tab: 'orders', filter: 'active', editing: null, authed: false, mq: '' };
 
 /* ---------------- PIN ---------------- */
-const PIN_KEY = 'cafe.admin.ok';
+/* 인증은 이 화면이 열려 있는 동안만 메모리에 둡니다 (storage에 남기지 않음).
+   → 새로고침·재접속할 때마다 PIN 키패드부터 다시 뜹니다. */
 let pinBuf = '';
 $('#keypad').innerHTML = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'clear', '0', 'del'].map(k =>
   `<button type="button" data-k="${k}" class="${k === 'clear' || k === 'del' ? 'wide' : ''}">${k === 'clear' ? '지우기' : k === 'del' ? '⌫' : k}</button>`).join('');
@@ -212,7 +213,6 @@ function drawDots() {
 async function checkPin() {
   const pin = String(S.cfg.pin || DEFAULT_CONFIG.pin);
   if (pinBuf === pin) {
-    sessionStorage.setItem(PIN_KEY, '1');
     unlock();
   } else {
     $('#pinErr').textContent = 'PIN이 맞지 않습니다';
@@ -223,27 +223,45 @@ async function checkPin() {
 }
 function unlock() {
   S.authed = true;
+  $('#pinErr').textContent = '';
+  pinBuf = ''; drawDots();
   $('#pinGate').classList.add('hide');
   $('#app').classList.remove('hide');
   bootData();
 }
-$('#lockBtn').onclick = () => {
-  sessionStorage.removeItem(PIN_KEY);
-  pinBuf = ''; drawDots(); S.authed = false;
-  $('#app').classList.add('hide'); $('#pinGate').classList.remove('hide');
-};
+function lock() {
+  S.authed = false;
+  pinBuf = ''; drawDots();
+  $('#pinErr').textContent = '';
+  $('#app').classList.add('hide');
+  $('#pinGate').classList.remove('hide');
+}
+$('#lockBtn').onclick = lock;
+
+/* 뒤로가기로 되살아난 화면(bfcache)도 다시 잠급니다 */
+window.addEventListener('pageshow', e => { if (e.persisted) lock(); });
 
 /* ---------------- 설정 ---------------- */
 watchConfig(c => {
   S.cfg = c;
-  if ($('#tab-settings')) renderSettings();
+  if (S.authed && $('#tab-settings')) renderSettings();
 });
 
 /* ---------------- 데이터 ---------------- */
 let unsubOrders = null, unsubMenus = null;
 let knownIds = new Set();
+let booted = false;
+
+function renderAll() {
+  renderOrders(); renderTabs();
+  if (S.tab === 'menus') renderMenus();
+  if (S.tab === 'settings') renderSettings();
+}
 
 async function bootData() {
+  // 잠금 → 다시 해제할 때 구독이 겹치지 않도록 한 번만 연결합니다
+  if (booted) { renderAll(); return; }
+  booted = true;
   try { await ensureConfig(); } catch (e) { }
   try { await ensureMenus(); } catch (e) { console.warn('seed', e); }
 
@@ -407,10 +425,34 @@ async function removeOrder(id) {
 function renderMenus() {
   const root = $('#tab-menus');
   if (!root) return;
-  let html = `<div class="pad" style="padding-bottom:4px"><button class="btn primary block" id="menuAdd" type="button">+ 새 메뉴 추가</button></div>`;
+  if ($('#menuListBox')) { $('#menuSearch').classList.toggle('has-q', !!S.mq.trim()); fillMenuListBox(); return; }
+  root.innerHTML = `
+    <div class="search-wrap">
+      <div class="searchbar ${S.mq ? 'has-q' : ''}" id="menuSearch">
+        <span class="s-ico">🔍</span>
+        <input id="menuQ" type="text" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="메뉴 이름 · 설명으로 찾기">
+        <button class="s-clear" id="menuQClear" type="button" aria-label="검색어 지우기">✕</button>
+      </div>
+    </div>
+    <div class="pad" style="padding-bottom:4px"><button class="btn primary block" id="menuAdd" type="button">+ 새 메뉴 추가</button></div>
+    <div id="menuListBox"></div>`;
+  const q = $('#menuQ');
+  q.oninput = () => { S.mq = q.value; $('#menuSearch').classList.toggle('has-q', !!q.value); fillMenuListBox(); };
+  q.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); q.blur(); } };
+  $('#menuQClear').onclick = () => { S.mq = ''; q.value = ''; $('#menuSearch').classList.remove('has-q'); fillMenuListBox(); q.focus(); };
+  $('#menuAdd').onclick = () => openMenuSheet(null);
+  fillMenuListBox();
+}
+
+function fillMenuListBox() {
+  const root = $('#menuListBox');
+  if (!root) return;
+  const q = S.mq.trim();
+  let html = '', total = 0;
   for (const c of CATS) {
-    const items = S.menus.filter(m => m.cat === c.key);
+    const items = S.menus.filter(m => m.cat === c.key && menuMatches(m, S.mq));
     if (!items.length) continue;
+    total += items.length;
     html += `<div class="sec-h">${c.name} · ${items.length}</div>`;
     for (const m of items) {
       html += `<div class="m-row">
@@ -424,9 +466,18 @@ function renderMenus() {
       </div>`;
     }
   }
+  if (q) {
+    html = `<div class="search-meta" style="padding:12px 16px 0">‘<b>${esc(q)}</b>’ ${total ? `${total}개 찾았어요` : '검색 결과가 없어요'}</div>` + html;
+  }
+  if (!total) {
+    html += `<div class="empty" style="padding:36px 20px">
+      <span class="e-ico">${q ? '🔍' : '☕'}</span>
+      <b>${q ? '찾는 메뉴가 없어요' : '등록된 메뉴가 없어요'}</b>
+      <span>${q ? '다른 낱말로 찾아보세요' : '위의 새 메뉴 추가로 시작하세요'}</span>
+    </div>`;
+  }
   html += `<p class="tiny muted" style="text-align:center;padding:18px 16px 26px">메뉴 변경은 손님 화면·키오스크에 실시간으로 반영됩니다.</p>`;
   root.innerHTML = html;
-  $('#menuAdd').onclick = () => openMenuSheet(null);
   root.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openMenuSheet(S.menus.find(m => m.id === b.dataset.edit)));
   root.querySelectorAll('[data-sold]').forEach(b => b.onclick = async () => {
     const m = S.menus.find(x => x.id === b.dataset.sold);
@@ -585,8 +636,9 @@ $('#pinSave').onclick = async () => {
 
 /* ---------------- 시작 ---------------- */
 (async function boot() {
-  await ensureConfig();
-  if (sessionStorage.getItem(PIN_KEY) === '1') unlock();
+  // 저장된 인증 상태를 읽지 않습니다. 접속·새로고침할 때마다 PIN 화면부터 시작합니다.
+  try { await ensureConfig(); } catch (e) { }
+  lock();
 })();
 </script>
 </body>

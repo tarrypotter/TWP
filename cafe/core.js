@@ -199,6 +199,16 @@ export function hhmm(ts) {
   return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 }
 
+/* ---------------- 메뉴 검색 ---------------- */
+/** 이름·설명·태그로 메뉴를 찾습니다. 띄어 쓴 낱말은 모두 들어 있어야 하고, 빈 검색어는 전부 통과 */
+export function menuMatches(menu, q) {
+  const tokens = String(q == null ? '' : q).toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (!tokens.length) return true;
+  const hay = [menu && menu.name, menu && menu.desc, ...((menu && menu.tags) || [])]
+    .filter(Boolean).join(' ').toLowerCase();
+  return tokens.every(t => hay.includes(t));
+}
+
 export function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }

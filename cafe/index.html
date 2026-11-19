@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#f6f1e9">
 <meta name="format-detection" content="telephone=no">
 <title>세종월드교회 카페 · 주문</title>
-<link rel="stylesheet" href="./style.css?v=5">
+<link rel="stylesheet" href="./style.css?v=6">
 <style>
   /* ---- 손님 앱 전용 · 다크 글래스 ---- */
   .tier-pill {
@@ -281,10 +281,10 @@
 import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort,
   priceOf, deviceUid, shortId, timeAgo, hhmm, esc, lockZoom, ensureMenus, saveMember, localProfile,
-  hydrateProfile, profileFrom, whoTag,
-  watchConfig, collection, doc, addDoc, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
+  hydrateProfile, profileFrom, whoTag, menuMatches,
+  watchConfig, collection, doc, addDoc, getDoc, setDoc, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
   beep, buzz, notify, askNotifyPermission
-} from './core.js?v=5';
+} from './core.js?v=6';
 
 lockZoom();
 
@@ -300,6 +300,8 @@ const S = {
   pay: 'transfer',
   orders: [],
   opt: null,          // {menu, option, qty}
+  q: '',              // 메뉴 검색어
+  fav: [],            // 즐겨찾기 메뉴 id
   ready: false
 };
 const uid = deviceUid();
@@ -411,42 +413,113 @@ $('#tierPill').onclick = () => {
   else { setView('me'); }
 };
 
-/* ---------------- 메뉴 화면 ---------------- */
-function renderMenu() {
-  const root = $('#view-menu');
-  if (!S.ready) {
-    root.innerHTML = '<div style="padding-top:14px">' + Array(6).fill('<div class="skel"></div>').join('') + '</div>';
-    return;
-  }
-  if (!S.menus.length) {
-    root.innerHTML = `<div class="empty"><span class="e-ico">☕</span><b>메뉴를 준비하고 있어요</b><span>사장님이 메뉴를 등록하면 여기에 보입니다</span></div>`;
-    return;
-  }
-  const list = S.cat === 'all' ? CATS : CATS.filter(c => c.key === S.cat);
-  let html = `
-    <div class="hero">
-      <b>${S.profile ? `${esc(S.profile.name)}님, 무엇을 드릴까요?` : '이름과 나이를 등록해 주세요'}</b>
-      <p>${S.profile ? `${whoTag(S.profile)} 적용 중` : '나이만 적으면 기수·부서와 가격이 자동으로 정해져요'}</p>
-      <div class="hero-row">
-        <span class="hero-chip">미리 주문 가능</span>
-        <span class="hero-chip">계좌이체 · 현금</span>
-        <span class="hero-chip">나오면 알림</span>
-      </div>
-    </div>
-    <div class="note">결제 단말기가 없어 <b>계좌이체(${esc(S.cfg.bank)} ${esc(S.cfg.holder)})</b> 또는 <b>현장 현금</b>으로 결제합니다.</div>
-    <div class="chips" id="catChips">
-      <button class="chip ${S.cat === 'all' ? 'on' : ''}" data-cat="all" type="button">전체</button>
-      ${CATS.map(c => `<button class="chip ${S.cat === c.key ? 'on' : ''}" data-cat="${c.key}" type="button">${c.name}</button>`).join('')}
-    </div>`;
+/* ---------------- 메뉴 즐겨찾기 ---------------- */
+const FAV_KEY = 'cafe.fav.' + uid;
+let favAt = 0;   // 즐겨찾기를 마지막으로 바꾼 시각 (기기 ↔ Firestore 비교용)
 
-  for (const c of list) {
-    const items = S.menus.filter(m => m.cat === c.key);
-    if (!items.length) continue;
+function loadFavLocal() {
+  try {
+    const v = JSON.parse(localStorage.getItem(FAV_KEY) || 'null');
+    if (Array.isArray(v)) { S.fav = v.filter(x => typeof x === 'string'); favAt = 0; }
+    else if (v && Array.isArray(v.ids)) { S.fav = v.ids.filter(x => typeof x === 'string'); favAt = Number(v.at) || 0; }
+    else { S.fav = []; favAt = 0; }
+  } catch (e) { S.fav = []; favAt = 0; }
+}
+function saveFavLocal() {
+  try { localStorage.setItem(FAV_KEY, JSON.stringify({ ids: S.fav, at: favAt })); } catch (e) { }
+}
+function saveFavRemote() {
+  favAt = Date.now();
+  saveFavLocal();
+  setDoc(doc(db, 'members', uid),
+    { uid, name: S.profile?.name || '', fav: S.fav, favAt, updatedAt: favAt }, { merge: true })
+    .catch(e => console.warn('fav save', e));
+}
+async function pullFav() {
+  try {
+    const snap = await getDoc(doc(db, 'members', uid));
+    if (!snap.exists()) return;
+    const d = snap.data();
+    const remote = Array.isArray(d.fav) ? d.fav.filter(x => typeof x === 'string') : [];
+    const remoteAt = Number(d.favAt) || 0;
+    if (remoteAt > favAt) {
+      // 다른 기기에서 더 나중에 바꾼 기록이 있으면 그것을 따릅니다
+      S.fav = remote; favAt = remoteAt; saveFavLocal(); renderMenu();
+    } else if (!favAt && remote.length) {
+      // 이 기기에 기록이 없을 때(처음 접속)만 서버 목록을 합쳐 둡니다
+      S.fav = Array.from(new Set([...remote, ...S.fav])); favAt = Date.now(); saveFavLocal(); renderMenu();
+    }
+  } catch (e) { console.warn('fav pull', e); }
+}
+const isFav = id => S.fav.includes(id);
+let favBump = null;
+function toggleFav(id) {
+  const on = !isFav(id);
+  S.fav = on ? [...S.fav, id] : S.fav.filter(x => x !== id);
+  favBump = id;
+  saveFavRemote();
+  toast(on ? '★ 즐겨찾기에 담아 두었어요' : '즐겨찾기에서 뺐어요');
+  buzz(18);
+  renderChips(); fillMenuList();
+}
+
+/* ---------------- 메뉴 화면 ---------------- */
+const favCount = () => S.menus.filter(m => isFav(m.id)).length;
+
+function menuGroups() {
+  const favOnly = S.cat === 'fav';
+  const cats = (S.cat === 'all' || favOnly) ? CATS : CATS.filter(c => c.key === S.cat);
+  const out = [];
+  for (const c of cats) {
+    const items = S.menus.filter(m => m.cat === c.key && (!favOnly || isFav(m.id)) && menuMatches(m, S.q));
+    if (items.length) out.push({ cat: c, items });
+  }
+  return out;
+}
+
+function renderChips() {
+  const box = $('#catChips');
+  if (!box) return;
+  const n = favCount();
+  box.innerHTML = `
+    <button class="chip ${S.cat === 'all' ? 'on' : ''}" data-cat="all" type="button">전체</button>
+    <button class="chip ${S.cat === 'fav' ? 'on' : ''}" data-cat="fav" type="button">★ 즐겨찾기${n ? ` ${n}` : ''}</button>
+    ${CATS.map(c => `<button class="chip ${S.cat === c.key ? 'on' : ''}" data-cat="${c.key}" type="button">${c.name}</button>`).join('')}`;
+  box.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    S.cat = b.dataset.cat;
+    renderChips(); fillMenuList();
+    const chips = $('#catChips');
+    if (chips) chips.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+function fillMenuList() {
+  const box = $('#menuList');
+  if (!box) return;
+  const groups = menuGroups();
+  const total = groups.reduce((a, g) => a + g.items.length, 0);
+  const q = S.q.trim();
+  let html = '';
+  if (q) {
+    html += `<div class="search-meta" style="padding:6px 16px 0">‘<b>${esc(q)}</b>’ ${total ? `${total}종 찾았어요` : '검색 결과가 없어요'}</div>`;
+  }
+  if (!total) {
+    const favEmpty = S.cat === 'fav' && !favCount();
+    html += `<div class="empty" style="padding:40px 20px">
+      <span class="e-ico">${favEmpty ? '☆' : '🔍'}</span>
+      <b>${favEmpty ? '아직 즐겨찾기한 메뉴가 없어요' : q ? '찾는 메뉴가 없어요' : '메뉴가 없어요'}</b>
+      <span>${favEmpty ? '메뉴 오른쪽 ☆ 를 누르면 여기에 모아 둘 수 있어요' : q ? '다른 낱말로 찾아보세요' : '사장님이 메뉴를 등록하면 여기에 보입니다'}</span>
+      ${q ? '<button class="btn sm mt14" id="clearQ" type="button">검색어 지우기</button>' : ''}
+    </div>`;
+  }
+  for (const g of groups) {
+    const c = g.cat, items = g.items;
     html += `<div class="cat-head"><b>${c.name}</b><div class="line"></div><em>${items.length}종</em></div>`;
     if (c.key === 'handdrip') html += `<div class="note" style="margin:0 16px 8px">⏳ ${esc(HANDDRIP_NOTE)}</div>`;
     html += `<div class="pad" style="padding-top:0;padding-bottom:2px">`;
     for (const m of items) {
       const p = priceFor(m);
+      const on = isFav(m.id);
       const tags = (m.tags || []).map(t => `<span class="badge ${/BEST/.test(t) ? '' : /NEW/.test(t) ? 'new' : /HOT/.test(t) ? 'hot' : 'gray'}">${esc(t)}</span>`).join('');
       const priceHtml = p != null
         ? `<div class="menu-price tnum">${won(p)}</div>`
@@ -458,23 +531,74 @@ function renderMenu() {
           ${m.temp === 'both' ? '<div class="menu-desc">HOT / ICED</div>' : m.temp === 'hot' && !(m.tags || []).includes('ONLY HOT') ? '<div class="menu-desc">HOT</div>' : ''}
         </div>
         ${priceHtml}
+        <button class="fav-btn ${on ? 'on' : ''}" data-fav="${m.id}" type="button" aria-pressed="${on}" aria-label="${on ? '즐겨찾기 해제' : '즐겨찾기에 담기'}">${on ? '★' : '☆'}</button>
         <button class="menu-add" data-add="${m.id}" type="button" ${m.soldout ? 'disabled' : ''}>+</button>
       </div>`;
     }
     html += `</div>`;
   }
-  root.innerHTML = html;
-
-  root.querySelectorAll('#catChips .chip').forEach(b => b.onclick = () => {
-    S.cat = b.dataset.cat; renderMenu();
-    const chips = document.querySelector('#catChips');
-    if (chips) chips.scrollIntoView({ block: 'nearest' });
-  });
-  root.querySelectorAll('[data-add]').forEach(b => b.onclick = e => {
+  box.innerHTML = html;
+  box.querySelectorAll('[data-fav]').forEach(b => b.onclick = e => { e.stopPropagation(); toggleFav(b.dataset.fav); });
+  box.querySelectorAll('[data-add]').forEach(b => b.onclick = e => {
     e.stopPropagation();
     const m = S.menus.find(x => x.id === b.dataset.add);
     if (m) pickItem(m);
   });
+  const cq = $('#clearQ');
+  if (cq) cq.onclick = () => setQ('');
+  if (favBump) {
+    const fb = box.querySelector(`[data-fav="${favBump}"]`);
+    if (fb) fb.classList.add('fav-pop');
+    favBump = null;
+  }
+}
+
+function setQ(v) {
+  S.q = v;
+  const wrap = $('#menuSearch'), inp = $('#menuQ');
+  if (wrap) wrap.classList.toggle('has-q', !!v);
+  if (inp && inp.value !== v) inp.value = v;
+  fillMenuList();
+}
+
+function renderMenu(force) {
+  const root = $('#view-menu');
+  if (!S.ready) {
+    root.innerHTML = '<div style="padding-top:14px">' + Array(6).fill('<div class="skel"></div>').join('') + '</div>';
+    return;
+  }
+  if (!S.menus.length) {
+    root.innerHTML = `<div class="empty"><span class="e-ico">☕</span><b>메뉴를 준비하고 있어요</b><span>사장님이 메뉴를 등록하면 여기에 보입니다</span></div>`;
+    return;
+  }
+  if (!force && $('#menuList')) { renderChips(); fillMenuList(); return; }
+  root.innerHTML = `
+    <div class="hero">
+      <b>${S.profile ? `${esc(S.profile.name)}님, 무엇을 드릴까요?` : '이름과 나이를 등록해 주세요'}</b>
+      <p>${S.profile ? `${whoTag(S.profile)} 적용 중` : '나이만 적으면 기수·부서와 가격이 자동으로 정해져요'}</p>
+      <div class="hero-row">
+        <span class="hero-chip">미리 주문 가능</span>
+        <span class="hero-chip">계좌이체 · 현금</span>
+        <span class="hero-chip">나오면 알림</span>
+      </div>
+    </div>
+    <div class="note">결제 단말기가 없어 <b>계좌이체(${esc(S.cfg.bank)} ${esc(S.cfg.holder)})</b> 또는 <b>현장 현금</b>으로 결제합니다.</div>
+    <div class="search-wrap">
+      <div class="searchbar ${S.q ? 'has-q' : ''}" id="menuSearch">
+        <span class="s-ico">🔍</span>
+        <input id="menuQ" type="text" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="메뉴 이름 · 설명으로 찾기" value="${esc(S.q)}">
+        <button class="s-clear" id="menuQClear" type="button" aria-label="검색어 지우기">✕</button>
+      </div>
+    </div>
+    <div class="chips" id="catChips"></div>
+    <div id="menuList"></div>`;
+
+  const inp = $('#menuQ');
+  inp.oninput = () => { S.q = inp.value; $('#menuSearch').classList.toggle('has-q', !!inp.value); fillMenuList(); };
+  inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } };
+  $('#menuQClear').onclick = () => { setQ(''); inp.focus(); };
+  renderChips();
+  fillMenuList();
 }
 
 /* ---------------- 아이템 옵션 ---------------- */
@@ -785,7 +909,7 @@ $('#signupSave').onclick = async () => {
   if (!name) return toast('이름을 적어 주세요');
   if (!age || age < 15 || age > 99) return toast('나이를 숫자로 적어 주세요 (15~99)');
   S.profile = await saveMember({ name, age, senior: $('#suSenior').checked });
-  renderTierPill(); renderMenu(); renderCart();
+  renderTierPill(); renderMenu(true); renderCart();
   if (S.view === 'me') renderMe();
   $('#sheetSignup').classList.remove('open');
   toast(`${name}님 · ${S.profile.gi > 0 ? S.profile.gi + '기 · ' : ''}${S.profile.dept} · ${tierLabel(tier())} 적용`);
@@ -809,8 +933,10 @@ document.querySelectorAll('.dock button').forEach(b => b.onclick = () => setView
 /* ---------------- 시작 ---------------- */
 (async function boot() {
   document.querySelector('#payHint').innerHTML = `계좌이체 · <b>${esc(S.cfg.bank)} ${esc(S.cfg.account)}</b> (예금주 ${esc(S.cfg.holder)})`;
+  loadFavLocal();
   renderTierPill(); renderMenu();
   try { await ensureMenus(); } catch (e) { console.warn('seed', e); }
+  pullFav();
   if (!S.profile) setTimeout(() => openSignup(true), 320);
 })();
 </script>

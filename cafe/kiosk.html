@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#f6f1e9">
 <title>세종월드교회 카페 · 키오스크</title>
-<link rel="stylesheet" href="./style.css?v=5">
+<link rel="stylesheet" href="./style.css?v=6">
 <style>
   /* ---- 키오스크(태블릿) · 다크 글래스 ---- */
   .kiosk { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
@@ -18,6 +18,13 @@
   .k-top .k-name b { font-size: 17px; letter-spacing: -.02em; }
   .k-top .k-name span { display: block; font-size: 9.5px; letter-spacing: .18em; color: var(--muted); font-weight: 700; }
   .k-top .k-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .k-top .k-search { flex: 1 1 auto; max-width: 360px; min-width: 0; }
+  .k-top .k-search .searchbar { padding: 0 10px 0 12px; }
+  .k-top .k-search .searchbar input { padding: 9px 0; font-size: 16px; }
+  .k-search-meta { display: flex; align-items: center; gap: 8px; padding: 14px 2px 4px; font-size: 12px; color: var(--muted); }
+  .k-search-meta b { color: var(--brand-2); }
+  .k-search-meta .btn { margin-left: auto; }
+  @media (max-width: 720px) { .k-top .k-search { max-width: none; } .k-top .k-name span { display: none; } }
 
   .k-body { flex: 1 1 auto; min-height: 0; display: flex; overflow: hidden; }
 
@@ -122,6 +129,13 @@
   <header class="k-top">
     <div class="hdr-mark" style="width:40px;height:40px;border-radius:13px;font-size:20px">☕</div>
     <div class="k-name"><b>세종월드교회 카페</b><span>SEJONG WORLD CAFE · 키오스크</span></div>
+    <div class="k-search">
+      <div class="searchbar" id="kSearch">
+        <span class="s-ico">🔍</span>
+        <input id="kQ" type="text" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="메뉴 이름 · 설명으로 찾기">
+        <button class="s-clear" id="kQClear" type="button" aria-label="검색어 지우기">✕</button>
+      </div>
+    </div>
     <div class="k-right">
       <span class="badge gray" id="kStatus">연결 중…</span>
     </div>
@@ -175,12 +189,12 @@
 import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort,
   priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, addDoc, onSnapshot,
-  copyText, profileFrom, hydrateProfile, whoTag
-} from './core.js?v=5';
+  copyText, profileFrom, hydrateProfile, whoTag, menuMatches
+} from './core.js?v=6';
 
 lockZoom();
 
-const S = { menus: [], cart: {}, cat: 'all', cfg: { ...DEFAULT_CONFIG }, members: [], modalItem: null, modalQty: 1, modalOpt: '' };
+const S = { menus: [], cart: {}, cat: 'all', q: '', cfg: { ...DEFAULT_CONFIG }, members: [], modalItem: null, modalQty: 1, modalOpt: '' };
 const $ = s => document.querySelector(s);
 const el = (t, c, h) => { const n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; };
 let toastTimer;
@@ -242,10 +256,13 @@ function render() {
   // 그리드
   const list = S.cat === 'all' ? CATS : CATS.filter(c => c.key === S.cat);
   const t = tier();
+  const q = S.q.trim();
   let html = '';
+  let shown = 0;
   for (const c of list) {
-    const items = S.menus.filter(m => m.cat === c.key);
+    const items = S.menus.filter(m => m.cat === c.key && menuMatches(m, S.q));
     if (!items.length) continue;
+    shown += items.length;
     html += `<div class="k-cat-title"><b>${c.name}</b><div class="line"></div></div>`;
     if (c.key === 'handdrip') html += `<div class="note" style="margin:0 0 8px">⏳ ${esc(HANDDRIP_NOTE)}</div>`;
     html += '<div class="k-grid">';
@@ -261,8 +278,15 @@ function render() {
     }
     html += '</div>';
   }
-  $('#kGridInner').innerHTML = html || '<div class="empty"><b>메뉴를 준비 중입니다</b></div>';
+  if (q) html = `<div class="k-search-meta">‘<b>${esc(q)}</b>’ ${shown ? `${shown}종 찾았어요` : '검색 결과가 없어요'}<button class="btn sm" id="kQClear2" type="button">검색어 지우기</button></div>` + html;
+  if (!shown) {
+    html += q
+      ? '<div class="empty"><span class="e-ico">🔍</span><b>찾는 메뉴가 없어요</b><span>다른 낱말로 찾아보세요</span></div>'
+      : '<div class="empty"><b>메뉴를 준비 중입니다</b></div>';
+  }
+  $('#kGridInner').innerHTML = html;
   $('#kGridInner').querySelectorAll('[data-i]').forEach(b => b.onclick = () => pick(b.dataset.i));
+  const c2 = $('#kQClear2'); if (c2) c2.onclick = () => clearQ();
 
   // 장바구니
   const lines = Object.entries(S.cart);
@@ -285,6 +309,21 @@ function render() {
   $('#kTier').textContent = named() ? `${c.gi > 0 ? c.gi + '기 · ' : ''}${c.dept} · ${tierShort(c.tier)}` : '이름·나이 입력';
   $('#kTier').className = named() ? 'badge' : 'badge gray';
 }
+
+/* 메뉴 검색 */
+function clearQ() {
+  S.q = '';
+  $('#kQ').value = '';
+  $('#kSearch').classList.remove('has-q');
+  render();
+}
+$('#kQ').oninput = e => {
+  S.q = e.target.value;
+  $('#kSearch').classList.toggle('has-q', !!S.q.trim());
+  render();
+};
+$('#kQ').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } };
+$('#kQClear').onclick = () => { clearQ(); $('#kQ').focus(); };
 
 /* 옵션 모달 */
 function pick(id) {
@@ -394,6 +433,7 @@ function showDone(orderId, total, c) {
 
 function resetAll(ask) {
   S.cart = {}; $('#kMsg').value = ''; $('#kName').value = ''; $('#kAge').value = '';
+  S.q = ''; $('#kQ').value = ''; $('#kSearch').classList.remove('has-q');
   $('#kSenior').checked = false; $('#kDone').classList.remove('open');
   const btn = $('#kOrder'); btn.disabled = false; btn.textContent = '주문하기';
   render();
