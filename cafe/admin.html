@@ -380,9 +380,12 @@ async function shopMsg(o, text, kind = 'msg') {
 async function sendOrderPush(o, { title, body, tag }) {
   try {
     let tokens = pushTokensOf(o);
-    if (!tokens.length && o.memberUid) {
-      const s = await getDoc(doc(db, 'members', o.memberUid));
-      if (s.exists()) tokens = pushTokensOf(s.data());
+    if (!tokens.length) {
+      const muid = o.memberUid || (o.uid && o.uid !== 'kiosk' ? o.uid : '');
+      if (muid) {
+        const s = await getDoc(doc(db, 'members', muid));
+        if (s.exists()) tokens = pushTokensOf(s.data());
+      }
     }
     if (!tokens.length) return;
     const r = await sendPush(tokens, {

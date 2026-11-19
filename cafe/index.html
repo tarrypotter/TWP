@@ -909,7 +909,6 @@ $('#orderSubmit').onclick = async () => {
       tier: tier(),
       uid,
       memberKey: memberKeyOf({ name: S.profile.name, age: S.profile.age }),
-      fcmTime: Date.now(),
       fcmTokens: pushTokenLocal() ? [pushTokenLocal()] : [],
       channel: 'phone',
       mode: S.mode,
