@@ -421,6 +421,70 @@ export async function askNotifyPermission() {
   } catch (e) { return 'error'; }
 }
 
+/* ---------------- 백그라운드 푸시 (FCM + Cloudflare Worker) ----------------
+   앱이 꺼져 있어도 잠금화면에 뜨는 알림.
+   · vapidKey : Firebase 웹 푸시 인증서 공개키 (공개되어도 안전)
+   · endpoint : Cloudflare Worker 주소 (서비스 계정 키는 Worker 시크릿에만 있음)
+   · key      : Worker와 맞춘 공유 키 (x-push-key 헤더) */
+export const PUSH = {
+  vapidKey: 'BGIEFHxqBhxJw5B96jmbe-SscsNovzOgEI-s561gSlAZX8lpB2_F31W2QEpwNwBAwak3bF9NsEpYfMZ2B-QhkZQ',
+  endpoint: 'https://sejong-cafe-push.ai330928.workers.dev/send',
+  key: 'sce_f2527cc150fc9a7846d325aaf627787a'
+};
+
+const PUSH_TOKEN_KEY = 'cafe.fcm';
+const MESSAGING_URL = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js';
+
+/** 이 기기에 저장된 FCM 등록 토큰 */
+export function pushTokenLocal() {
+  try { const v = JSON.parse(localStorage.getItem(PUSH_TOKEN_KEY) || 'null'); return (v && v.token) || ''; } catch (e) { return ''; }
+}
+export function clearPushTokenLocal() { try { localStorage.removeItem(PUSH_TOKEN_KEY); } catch (e) { } }
+export const pushAvailable = () => !!PUSH.endpoint && 'serviceWorker' in navigator && 'Notification' in window;
+
+/** 알림 권한이 있으면 FCM 토큰을 받아 이 기기·members/{uid} 에 저장합니다. */
+export async function registerPush(uid) {
+  if (!pushAvailable() || Notification.permission !== 'granted') return '';
+  try {
+    const mod = await import(MESSAGING_URL);
+    if (mod.isSupported && !(await mod.isSupported())) return '';
+    const reg = await navigator.serviceWorker.ready;
+    const messaging = mod.getMessaging(app);
+    const token = await mod.getToken(messaging, { vapidKey: PUSH.vapidKey, serviceWorkerRegistration: reg });
+    if (!token) return '';
+    const prev = pushTokenLocal();
+    localStorage.setItem(PUSH_TOKEN_KEY, JSON.stringify({ token, at: Date.now() }));
+    if (uid && token !== prev) {
+      try { await setDoc(doc(db, 'members', uid), { fcmTokens: arrayUnion(token), fcmAt: Date.now() }, { merge: true }); }
+      catch (e) { console.warn('fcm save', e); }
+    }
+    return token;
+  } catch (e) { console.warn('push register', e); return pushTokenLocal(); }
+}
+
+/** 주문·회원 문서에서 FCM 토큰을 모읍니다 (중복 제거) */
+export function pushTokensOf(...list) {
+  const out = [];
+  list.forEach(o => (o && Array.isArray(o.fcmTokens) ? o.fcmTokens : []).forEach(t => {
+    if (typeof t === 'string' && t.length > 20) out.push(t);
+  }));
+  return Array.from(new Set(out));
+}
+
+/** Worker 로 실제 푸시 발송 */
+export async function sendPush(tokens, { title, body, url, tag } = {}) {
+  const list = Array.from(new Set((tokens || []).filter(t => typeof t === 'string' && t.length > 20)));
+  if (!PUSH.endpoint || !list.length) return { ok: false, skipped: true, sent: 0 };
+  try {
+    const res = await fetch(PUSH.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-push-key': PUSH.key },
+      body: JSON.stringify({ tokens: list, title: title || '세종월드교회 카페', body: body || '', url, tag })
+    });
+    return await res.json();
+  } catch (e) { console.warn('push send', e); return { ok: false, sent: 0, error: String(e && e.message || e) }; }
+}
+
 /* 앱 셸이 실제로 잘리지 않는지 확인용 */
 export function fitCheck(root) {
   const el = root || document.documentElement;

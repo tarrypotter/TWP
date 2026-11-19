@@ -13,7 +13,7 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="stylesheet" href="./style.css?v=13">
+<link rel="stylesheet" href="./style.css?v=14">
 <style>
   /* ---- 손님 앱 전용 · 다크 글래스 ---- */
   .tier-pill {
@@ -362,8 +362,8 @@ import {
   priceOf, deviceUid, shortId, timeAgo, hhmm, esc, lockZoom, ensureMenus, saveMember, localProfile,
   hydrateProfile, whoTag, tierName, getTiers, menuMatches, itemsSummary, memberKeyOf, giFromAge,
   watchConfig, collection, doc, addDoc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
-  beep, buzz, notify, askNotifyPermission
-} from './core.js?v=13';
+  beep, buzz, notify, askNotifyPermission, registerPush, pushTokenLocal, pushTokensOf, PUSH, pushAvailable
+} from './core.js?v=14';
 
 lockZoom();
 
@@ -909,6 +909,8 @@ $('#orderSubmit').onclick = async () => {
       tier: tier(),
       uid,
       memberKey: memberKeyOf({ name: S.profile.name, age: S.profile.age }),
+      fcmTime: Date.now(),
+      fcmTokens: pushTokenLocal() ? [pushTokenLocal()] : [],
       channel: 'phone',
       mode: S.mode,
       items: items.map(i => ({ id: i.id, name: i.name, option: i.option || '', price: i.price, qty: i.qty })),
@@ -1111,7 +1113,11 @@ function bindNotiCta(root) {
   if (!b) return;
   b.onclick = async () => {
     const r = await askNotifyPermission();
-    if (r === 'granted') { toast('알림이 켜졌어요'); notify('알림 준비 완료', '음료가 나오면 알려드릴게요 ☕'); }
+    if (r === 'granted') {
+      toast('알림이 켜졌어요');
+      notify('알림 준비 완료', '음료가 나오면 알려드릴게요 ☕');
+      registerPush(uid).then(tk => { if (tk) toast('잠금화면 알림도 켜졌어요'); }).catch(() => { });
+    }
     else toast('알림 권한이 허용되지 않았어요');
     renderChat();
   };
@@ -1299,6 +1305,7 @@ function logout() {
     localStorage.removeItem(FAV_KEY);          // 즐겨찾기
     localStorage.removeItem(seenKey);          // 확인한 알림 기록
     localStorage.removeItem('cafe.uid');       // 기기 식별자 → 다음 사람은 새 기록으로 시작
+    localStorage.removeItem('cafe.fcm');       // 이 기기의 푸시 토큰
   } catch (e) { }
   S.profile = null; S.fav = []; S.cart = {};
   location.reload();
@@ -1373,6 +1380,8 @@ setInterval(() => {
   renderTierPill(); renderMenu();
   try { await ensureMenus(); } catch (e) { console.warn('seed', e); }
   pullFav();
+  // 이미 알림을 허용해 둔 기기는 FCM 토큰을 새로 받아 둡니다(만료·갱신 대비)
+  if (pushAvailable() && Notification.permission === 'granted') registerPush(uid).catch(() => { });
   if (!S.profile) setTimeout(() => openSignup(true), 320);
   // 앱 바로가기(?view=orders · ?view=live)로 들어온 경우 그 화면부터
   const want = new URLSearchParams(location.search).get('view');

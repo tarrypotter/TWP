@@ -1,7 +1,7 @@
 /* 세종월드교회 카페 — 서비스 워커
    원칙: 화면(HTML)·스크립트는 항상 네트워크 우선 → 새 배포가 바로 반영되고,
    네트워크가 끊겼을 때만 캐시로 대신 열어 줍니다. (정적 셸 캐시 충돌 없음) */
-const CACHE = 'sejong-cafe-v4';
+const CACHE = 'sejong-cafe-v5';
 const SHELL = ['./', './index.html', './board.html', './style.css', './core.js', './manifest.json',
   './icon-192.png', './icon-512.png', './icon-180.png'];
 
@@ -65,12 +65,41 @@ self.addEventListener('fetch', event => {
   })());
 });
 
+/* 백그라운드 푸시(FCM) → 잠금화면 알림
+   앱이 꺼져 있어도 여기서 알림을 띄웁니다. */
+self.addEventListener('push', event => {
+  let payload = {};
+  try { payload = event.data ? event.data.json() : {}; }
+  catch (e) { try { payload = { body: event.data.text() }; } catch (_) { payload = {}; } }
+  const n = payload.notification || {};
+  const d = payload.data || {};
+  const title = n.title || d.title || '세종월드교회 카페';
+  const body = n.body || d.body || '';
+  const tag = n.tag || d.tag || 'sejong-cafe';
+  const link = (n.data && n.data.url) || d.url || './';
+  event.waitUntil(self.registration.showNotification(title, {
+    body,
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    tag,
+    renotify: true,
+    vibrate: [180, 90, 180],
+    data: { url: link }
+  }));
+});
+
 /* 알림 클릭 → 앱 열기/포커스 */
 self.addEventListener('notificationclick', event => {
   event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || './';
   event.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const c of all) { if ('focus' in c) return c.focus(); }
-    if (self.clients.openWindow) return self.clients.openWindow('./');
+    for (const c of all) {
+      if ('focus' in c) {
+        try { if ('navigate' in c) await c.navigate(target); } catch (e) { }
+        return c.focus();
+      }
+    }
+    if (self.clients.openWindow) return self.clients.openWindow(target);
   })());
 });
