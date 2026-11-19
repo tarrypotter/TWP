@@ -66,6 +66,8 @@
   }
   .m-row .mi { flex: 1 1 auto; min-width: 0; }
   .m-row .mi b { font-size: 14px; display: block; }
+.m-prices { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.m-prices .badge { font-weight: 700; font-variant-numeric: tabular-nums; }
   .m-row .mi span { font-size: 11px; color: var(--muted); }
   .m-row .mp { font-size: 11.5px; color: var(--sub); text-align: right; white-space: nowrap; }
   .sw { position: relative; width: 42px; height: 25px; border-radius: 999px; background: rgba(255, 255, 255, .12); border: 1px solid var(--line-2); flex: 0 0 auto; transition: .24s var(--spring); }
@@ -148,9 +150,10 @@
     <label class="field"><span>메뉴 이름</span><input class="input" id="eName" maxlength="30" placeholder="예) 카페라떼"></label>
     <label class="field"><span>카테고리</span><select class="select" id="eCat"></select></label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <label class="field"><span>청년처 가격</span><input class="input" id="eYouth" inputmode="numeric" placeholder="3000"></label>
-      <label class="field"><span>대학부 가격</span><input class="input" id="eCollege" inputmode="numeric" placeholder="2000"></label>
+      <label class="field"><span id="lblYouth">청년처 가격</span><input class="input" id="eYouth" inputmode="numeric" placeholder="3000"></label>
+      <label class="field"><span id="lblCollege">대학부 가격</span><input class="input" id="eCollege" inputmode="numeric" placeholder="2000"></label>
     </div>
+    <div id="eCustomPrices"></div>
     <label class="field"><span>온도</span>
       <select class="select" id="eTemp">
         <option value="both">HOT / ICED</option>
@@ -172,6 +175,23 @@
   </div>
 </section>
 
+<!-- ================= 가격 그룹 시트 ================= -->
+<section class="sheet" id="sheetTier" aria-hidden="true">
+  <div class="sheet-hdr"><b id="tierSheetTitle">가격 그룹 추가</b><button class="btn sm ghost" id="tierClose" type="button" style="margin-left:auto">닫기</button></div>
+  <div class="sheet-body">
+    <label class="field"><span>그룹 이름</span><input class="input" id="tName" maxlength="12" placeholder="예) 장년 · 새신자"></label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <label class="field"><span>최소 나이</span><input class="input" id="tMin" inputmode="numeric" maxlength="2" placeholder="37"></label>
+      <label class="field"><span>최대 나이</span><input class="input" id="tMax" inputmode="numeric" maxlength="2" placeholder="99"></label>
+    </div>
+    <label class="field" id="tFallbackWrap"><span>가격이 없을 때 (다른 그룹 기준)</span>
+      <select class="select" id="tFallback"></select>
+    </label>
+    <p class="tiny muted">이 나이 구간의 손님에게는 메뉴의 그룹 가격이 적용되고, 그룹 가격을 안 적은 메뉴는 선택한 기본 가격으로 나갑니다.</p>
+  </div>
+  <div class="sheet-foot"><button class="btn primary block" id="tierSave" type="button">저장</button></div>
+</section>
+
 <!-- ================= PIN 변경 시트 ================= -->
 <section class="sheet" id="sheetPin" aria-hidden="true">
   <div class="sheet-hdr"><b>PIN 변경</b><button class="btn sm ghost" id="pinClose" type="button" style="margin-left:auto">닫기</button></div>
@@ -187,6 +207,7 @@
 import {
   db, BRAND, CATS, CAT_NAME, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort, priceOf, shortId,
   timeAgo, hhmm, esc, lockZoom, ensureMenus, ensureConfig, watchConfig, copyText,
+  getTiers, customTiers, tierName,
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, query, orderBy,
   limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary, whoTag, menuMatches, memberKeyOf, arrayUnion
 } from './core.js?v=12';
@@ -521,14 +542,14 @@ function fillMenuListBox() {
     total += items.length;
     html += `<div class="sec-h">${c.name} · ${items.length}</div>`;
     for (const m of items) {
+      const prices = priceTiers().map(t => `<span class="badge gray tnum">${esc(t.name)} ${won(priceOf(m, t.id))}</span>`).join('');
       html += `<div class="m-row">
         <div class="mi">
-          <b>${esc(m.name)} ${(m.tags || []).map(t => `<span class="badge gray">${esc(t)}</span>`).join('')}</b>
-          <span>${m.soldout ? '품절 · ' : ''}${won(m.youth)} / ${won(m.college)}</span>
+          <b>${esc(m.name)} ${(m.tags || []).map(t => `<span class="badge gray">${esc(t)}</span>`).join('')}${m.soldout ? ' <span class="badge warn">품절</span>' : ''}</b>
+          <div class="m-prices">${prices}</div>
         </div>
-        <div class="mp"><span class="tnum">청년 ${won(m.youth)}</span><br><span class="tnum">대학 ${won(m.college)}</span></div>
         <button class="sw ${m.soldout ? 'on' : ''}" data-sold="${m.id}" type="button" title="품절 토글"><i></i></button>
-        <button class="btn sm" data-edit="${m.id}" type="button">수정</button>
+        <button class="btn sm" data-edit="${m.id}" type="button">가격 수정</button>
       </div>`;
     }
   }
@@ -559,8 +580,19 @@ function openMenuSheet(m) {
   $('#eName').value = m ? m.name : '';
   $('#eCat').innerHTML = CATS.map(c => `<option value="${c.key}">${c.name}</option>`).join('');
   $('#eCat').value = m ? m.cat : 'coffee';
-  $('#eYouth').value = m ? m.youth : '';
-  $('#eCollege').value = m ? m.college : '';
+  $('#lblYouth').textContent = `${tierName('youth')} 가격`;
+  $('#lblCollege').textContent = `${tierName('college')} 가격`;
+  $('#eYouth').value = m ? priceOf(m, 'youth') : '';
+  $('#eCollege').value = m ? priceOf(m, 'college') : '';
+  const customs = customTiers();
+  $('#eCustomPrices').innerHTML = customs.length
+    ? `<div class="sec-h" style="padding:14px 0 4px">추가 가격 그룹</div>` + customs.map(t => {
+      const fb = tierName(t.fallback || 'youth');
+      const have = m && m.prices && m.prices[t.id] != null;
+      return `<label class="field"><span>${esc(t.name)} 가격 (${ageRange(t)} · 비우면 ${esc(fb)} 가격)</span>
+          <input class="input" id="eP_${t.id}" inputmode="numeric" value="${have ? esc(m.prices[t.id]) : ''}" placeholder="비우면 ${esc(fb)} 가격"></label>`;
+    }).join('')
+    : '';
   $('#eTemp').value = m ? (m.temp || 'none') : 'both';
   $('#eFlavors').value = m && (m.flavors || []).length ? m.flavors.join(',') : '';
   $('#eTags').value = m && (m.tags || []).length ? m.tags.join(',') : '';
@@ -574,9 +606,15 @@ $('#menuSave').onclick = async () => {
   const youth = parseInt($('#eYouth').value.replace(/[^0-9]/g, ''), 10);
   const college = parseInt($('#eCollege').value.replace(/[^0-9]/g, ''), 10);
   if (!name) return toast('메뉴 이름을 적어 주세요');
-  if (!youth || !college) return toast('청년처·대학부 가격을 모두 적어 주세요');
+  if (!youth || !college) return toast(`${tierName('youth')}·${tierName('college')} 가격을 모두 적어 주세요`);
+  const prices = {};
+  customTiers().forEach(t => {
+    const inp = document.getElementById('eP_' + t.id);
+    const n = inp ? parseInt(inp.value.replace(/[^0-9]/g, ''), 10) : NaN;
+    if (n > 0) prices[t.id] = n;
+  });
   const data = {
-    name, cat: $('#eCat').value, youth, college, temp: $('#eTemp').value,
+    name, cat: $('#eCat').value, youth, college, prices, temp: $('#eTemp').value,
     flavors: $('#eFlavors').value.split(',').map(s => s.trim()).filter(Boolean),
     tags: $('#eTags').value.split(',').map(s => s.trim().toUpperCase()).filter(Boolean),
     desc: $('#eDesc').value.trim(), soldout: $('#eSoldout').checked, updatedAt: Date.now()
@@ -597,6 +635,78 @@ $('#menuDelete').onclick = async () => {
   if (!confirm(`"${S.editing.name}" 메뉴를 삭제할까요?`)) return;
   try { await deleteDoc(doc(db, 'menus', S.editing.id)); $('#sheetMenu').classList.remove('open'); toast('삭제했어요'); }
   catch (e) { toast('삭제 실패'); }
+};
+
+/* ---------------- 가격 그룹(티어) 관리 ---------------- */
+let editingTier = null;
+const ageRange = t => Number(t.maxAge) >= 99 ? `${t.minAge}세 이상` : `${t.minAge}~${t.maxAge}세`;
+const priceTiers = () => { const ts = getTiers(); const y = ts.find(t => t.id === 'youth'); const c = ts.find(t => t.id === 'college'); return [y, c, ...ts.filter(t => t.id !== 'youth' && t.id !== 'college')].filter(Boolean); };
+
+function renderTierBox() {
+  const box = $('#tierBox');
+  if (!box) return;
+  box.innerHTML = getTiers().map(t => {
+    const fixed = t.id === 'college' || t.id === 'youth';
+    return `<div class="set-row">
+        <div class="si"><b>${esc(t.name)}</b><span>${ageRange(t)}${fixed ? ' · 기본 그룹' : ` · 가격 없으면 ${esc(tierName(t.fallback || 'youth'))}`}</span></div>
+        <button class="btn sm" data-ted="${t.id}" type="button">수정</button>
+        ${fixed ? '' : `<button class="btn sm ghost" data-tdel="${t.id}" type="button" style="color:var(--danger)">삭제</button>`}
+      </div>`;
+  }).join('') + `<button class="set-row" id="tierAdd" type="button" style="width:100%;text-align:left">
+      <div class="si"><b>+ 가격 그룹 추가</b><span>예) 장년 · 새신자 · 다음세대</span></div><span class="badge">추가</span>
+    </button>`;
+  box.querySelectorAll('[data-ted]').forEach(b => b.onclick = () => openTierSheet(b.dataset.ted));
+  box.querySelectorAll('[data-tdel]').forEach(b => b.onclick = () => deleteTier(b.dataset.tdel));
+  $('#tierAdd').onclick = () => openTierSheet(null);
+}
+
+function openTierSheet(id) {
+  editingTier = id || null;
+  const t = id ? getTiers().find(x => x.id === id) : null;
+  $('#tierSheetTitle').textContent = t ? '가격 그룹 수정' : '가격 그룹 추가';
+  $('#tName').value = t ? t.name : '';
+  $('#tMin').value = t ? t.minAge : '';
+  $('#tMax').value = t && Number(t.maxAge) < 99 ? t.maxAge : '';
+  const fixed = !!t && (t.id === 'college' || t.id === 'youth');
+  $('#tFallbackWrap').classList.toggle('hide', fixed);
+  const fb = t ? (t.fallback || 'youth') : 'youth';
+  $('#tFallback').innerHTML = getTiers().filter(x => !t || x.id !== t.id)
+    .map(x => `<option value="${x.id}" ${x.id === fb ? 'selected' : ''}>${esc(x.name)} 가격</option>`).join('');
+  $('#sheetTier').classList.add('open');
+}
+async function saveTiers(list, msg) {
+  try {
+    await setDoc(doc(db, 'config', 'app'), { tiers: list, updatedAt: Date.now() }, { merge: true });
+    $('#sheetTier').classList.remove('open');
+    toast(msg);
+  } catch (e) { console.error(e); toast('저장 실패'); }
+}
+function deleteTier(id) {
+  const t = getTiers().find(x => x.id === id);
+  if (!t) return;
+  if (!confirm(`"${t.name}" 가격 그룹을 삭제할까요? 이 그룹 가격을 적어 둔 메뉴는 청년처 가격으로 나갑니다.`)) return;
+  saveTiers(getTiers().filter(x => x.id !== id).map(x => ({ ...x })), '가격 그룹을 삭제했어요');
+}
+$('#tierClose').onclick = () => $('#sheetTier').classList.remove('open');
+$('#tMin').oninput = () => { $('#tMin').value = $('#tMin').value.replace(/[^0-9]/g, ''); };
+$('#tMax').oninput = () => { $('#tMax').value = $('#tMax').value.replace(/[^0-9]/g, ''); };
+$('#tierSave').onclick = () => {
+  const name = $('#tName').value.trim();
+  const min = parseInt($('#tMin').value.replace(/[^0-9]/g, ''), 10);
+  const maxRaw = $('#tMax').value.replace(/[^0-9]/g, '');
+  const max = maxRaw ? parseInt(maxRaw, 10) : 99;
+  if (!name) return toast('그룹 이름을 적어 주세요');
+  if (!min) return toast('최소 나이를 적어 주세요');
+  if (max < min) return toast('최대 나이는 최소 나이보다 커야 해요');
+  const list = getTiers().map(t => ({ ...t }));
+  if (editingTier) {
+    const i = list.findIndex(t => t.id === editingTier);
+    if (i < 0) return;
+    list[i] = { ...list[i], name, minAge: min, maxAge: max, fallback: $('#tFallback').value || list[i].fallback };
+  } else {
+    list.push({ id: 'c' + Date.now().toString(36).slice(-4), name, minAge: min, maxAge: max, fallback: $('#tFallback').value || 'youth' });
+  }
+  saveTiers(list, editingTier ? '가격 그룹을 수정했어요' : '가격 그룹을 추가했어요');
 };
 
 /* ---------------- 설정 ---------------- */
@@ -630,6 +740,12 @@ function renderSettings() {
       </div>
     </div>
 
+    <div class="sec-h">가격 그룹</div>
+    <div class="pad" style="padding-top:0">
+      <div class="box" id="tierBox"></div>
+      <p class="tiny muted mt6">나이 구간별 가격 그룹입니다. 대학부·청년처 이름과 나이 범위도 고칠 수 있고, 그룹 가격을 안 적은 메뉴는 청년처 가격으로 나갑니다.</p>
+    </div>
+
     <div class="sec-h">데이터</div>
     <div class="box" style="margin:0 16px">
       <button class="set-row" id="reseed" type="button" style="width:100%;text-align:left">
@@ -651,6 +767,7 @@ function renderSettings() {
     </div>`;
 
   $('#setPin').onclick = () => { $('#pinOld').value = ''; $('#pinNew').value = ''; $('#sheetPin').classList.add('open'); };
+  renderTierBox();
   $('#setNoti').onclick = async () => {
     const r = await askNotifyPermission();
     toast(r === 'granted' ? '새 주문 알림이 켜졌어요' : '알림 권한이 허용되지 않았어요');

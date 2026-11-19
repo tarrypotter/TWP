@@ -237,7 +237,7 @@
 import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierShort,
   priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, doc, addDoc, setDoc, onSnapshot, query, where,
-  copyText, profileFrom, hydrateProfile, whoTag, ageTag, menuMatches, hhmm, itemsSummary, memberKeyOf
+  copyText, profileFrom, hydrateProfile, whoTag, ageTag, tierName, menuMatches, hhmm, itemsSummary, memberKeyOf
 } from './core.js?v=12';
 
 lockZoom();
@@ -349,7 +349,7 @@ function render() {
     html += '<div class="k-grid">';
     for (const m of items) {
       const tags = (m.tags || []).map(x => `<span class="badge ${/BEST/.test(x) ? '' : /NEW/.test(x) ? 'new' : /HOT/.test(x) ? 'hot' : 'gray'}">${esc(x)}</span>`).join('');
-      const price = named() ? `<b class="tnum">${won(priceOf(m, t))}</b><span>${tierShort(t)}</span>` : `<b class="tnum">${won(m.youth)}</b><span class="tiny">청년</span><b class="tnum" style="color:var(--sub)">${won(m.college)}</b><span class="tiny">대학</span>`;
+      const price = named() ? `<b class="tnum">${won(priceOf(m, t))}</b><span>${tierShort(t)}</span>` : `<b class="tnum">${won(m.youth)}</b><span class="tiny">${esc(tierName('youth'))}</span><b class="tnum" style="color:var(--sub)">${won(m.college)}</b><span class="tiny">${esc(tierName('college'))}</span>`;
       html += `<button class="k-item ${m.soldout ? 'soldout' : ''}" data-i="${m.id}" type="button" ${m.soldout ? 'disabled' : ''}>
         <div class="n">${esc(m.name)}</div>
         <div class="row wrap" style="gap:4px">${tags}${m.soldout ? '<span class="badge gray">품절</span>' : ''}${m.temp === 'both' ? '<span class="badge gray">HOT/ICED</span>' : ''}</div>

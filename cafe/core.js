@@ -89,6 +89,27 @@ export const SEED = [
 
 export const HANDDRIP_NOTE = '5분 정도 소요되고, 상황에 따라 주문이 어려울 수 있어요.';
 
+/* ---------------- 가격 그룹(티어) ---------------- */
+/* 기본은 대학부·청년처 2그룹. 사장님이 config/app.tiers 에 그룹을 더하면 그 구간이 먼저 적용됩니다. */
+export const DEFAULT_TIERS = [
+  { id: 'college', name: '대학부', minAge: 15, maxAge: 26, fallback: 'youth' },
+  { id: 'youth', name: '청년처', minAge: 27, maxAge: 99, fallback: '' }
+];
+let TIERS = DEFAULT_TIERS.slice();
+
+/** config/app.tiers 를 읽거나 저장할 때마다 현재 그룹표를 맞춰 둡니다 */
+export function setTiers(list) {
+  TIERS = (Array.isArray(list) && list.length ? list : DEFAULT_TIERS)
+    .filter(t => t && t.id && t.name)
+    .map(t => ({ id: String(t.id), name: String(t.name), minAge: Number(t.minAge) || 0, maxAge: Number(t.maxAge) || 99, fallback: t.fallback || '' }));
+  if (!TIERS.some(t => t.id === 'youth')) TIERS.push({ id: 'youth', name: '청년처', minAge: 27, maxAge: 99, fallback: '' });
+  if (!TIERS.some(t => t.id === 'college')) TIERS.unshift({ id: 'college', name: '대학부', minAge: 15, maxAge: 26, fallback: 'youth' });
+}
+export const getTiers = () => TIERS;
+/** 기본 2그룹(대학부·청년처) 외에 사장님이 추가한 그룹 */
+export const customTiers = () => TIERS.filter(t => t.id !== 'college' && t.id !== 'youth');
+export const tierName = (id) => (TIERS.find(t => t.id === id) || {}).name || (id === 'college' ? '대학부' : '청년처');
+
 /* ---------------- 공통 설정(계좌·PIN) ---------------- */
 export const DEFAULT_CONFIG = {
   pin: '0000',
@@ -96,7 +117,8 @@ export const DEFAULT_CONFIG = {
   holder: '김정훈',
   account: '3333-27425-7330',
   toss: '김정훈',
-  note: '결제 단말기가 없어 계좌이체 또는 현장 현금으로 결제합니다.'
+  note: '결제 단말기가 없어 계좌이체 또는 현장 현금으로 결제합니다.',
+  tiers: DEFAULT_TIERS
 };
 
 /* ---------------- 도우미 ---------------- */
@@ -107,8 +129,17 @@ export function tierOf(gi) {
   const g = Number(gi) || 0;
   return g >= 14 ? 'college' : 'youth';
 }
-export const tierLabel = t => t === 'college' ? '대학부 가격' : '청년처 가격';
-export const tierShort = t => t === 'college' ? '대학부' : '청년처';
+export const tierLabel = t => `${tierName(t)} 가격`;
+export const tierShort = t => tierName(t);
+
+/** 나이 → 가격 그룹: 사장님이 추가한 그룹 구간이 먼저, 아니면 대학부(~26세) / 청년처(27세~) */
+export function tierForAge(age) {
+  const a = Number(age) || 0;
+  if (!a) return 'youth';
+  const hit = customTiers().find(t => a >= t.minAge && a <= t.maxAge);
+  if (hit) return hit.id;
+  return a <= 26 ? 'college' : 'youth';
+}
 
 /* ---------------- 나이 → 기수 · 부서 ---------------- */
 // 세종월드교회 카페 기준: 29세(98년생) = 11기, 30세(97년생) = 10기 → 기수 = 40 − 나이
@@ -133,7 +164,7 @@ export function bandOf(age) {
   return AGE_BANDS.find(b => a <= b.maxAge) || AGE_BANDS[AGE_BANDS.length - 1];
 }
 export const deptOf = age => { const b = bandOf(age); return b ? b.dept : ''; };
-export const tierOfAge = age => { const b = bandOf(age); return b ? b.tier : 'youth'; };
+export const tierOfAge = age => tierForAge(age);
 
 /** 이름·나이 → 저장/표시용 프로필 (기수 = 40 − 나이, 37세 이상은 부서 없이 청년처) */
 export function profileFrom(p) {
@@ -175,7 +206,15 @@ export function whoTag(o) {
 }
 
 export function priceOf(menu, tier) {
-  return Number(tier === 'college' ? menu.college : menu.youth) || 0;
+  if (!menu) return 0;
+  const id = tier || 'youth';
+  const own = menu.prices && menu.prices[id];
+  if (own != null && own !== '') return Number(own) || 0;
+  if (id === 'college') return Number(menu.college) || 0;
+  if (id === 'youth') return Number(menu.youth) || 0;
+  // 커스텀 그룹 가격이 없는 메뉴는 폴백(기본 청년처) 가격으로
+  const fb = (TIERS.find(t => t.id === id) || {}).fallback || 'youth';
+  return fb === id ? Number(menu.youth) || 0 : priceOf(menu, fb);
 }
 
 export function deviceUid() {
@@ -262,14 +301,20 @@ export async function ensureConfig() {
   const snap = await getDoc(ref);
   if (!snap.exists()) {
     await setDoc(ref, { ...DEFAULT_CONFIG, updatedAt: Date.now() }, { merge: true });
+    setTiers(DEFAULT_TIERS);
     return DEFAULT_CONFIG;
   }
-  return { ...DEFAULT_CONFIG, ...snap.data() };
+  const cfg = { ...DEFAULT_CONFIG, ...snap.data() };
+  const tiers = Array.isArray(snap.data().tiers) ? snap.data().tiers : DEFAULT_TIERS;
+  setTiers(tiers);
+  return { ...cfg, tiers };
 }
 
 export function watchConfig(cb) {
   return onSnapshot(doc(db, 'config', 'app'), snap => {
-    cb({ ...DEFAULT_CONFIG, ...(snap.exists() ? snap.data() : {}) });
+    const c = { ...DEFAULT_CONFIG, ...(snap.exists() ? snap.data() : {}) };
+    setTiers(c.tiers);
+    cb(c);
   }, err => { console.warn('config', err); cb({ ...DEFAULT_CONFIG }); });
 }
 
