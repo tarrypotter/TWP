@@ -60,7 +60,7 @@
     margin: 0 16px 10px; padding: 14px; border-radius: 17px;
     background: var(--card); border: 1px solid var(--line); box-shadow: var(--card-shadow);
   }
-  .order-card.done { opacity: .56; }
+  .order-card.done { opacity: .78; }
   .o-top { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
   .o-no { font-size: 11.5px; font-weight: 800; color: var(--brand); letter-spacing: .08em; }
   .o-items { font-size: 12.5px; color: var(--sub); }
@@ -164,6 +164,35 @@
   .tieseg-txt { font-size: 11px; color: var(--muted); text-align: center; padding: 22px 16px 30px; }
   .dot-live { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); margin-right: 5px; vertical-align: middle; box-shadow: 0 0 0 3px rgba(233, 189, 148, .16); }
 
+  /* ---- 더보기(분야별 메뉴) ---- */
+  .hdr-menu {
+    width: 36px; height: 36px; border-radius: 11px; flex: 0 0 auto; display: grid; place-items: center;
+    background: rgba(255, 255, 255, .05); border: 1px solid var(--line);
+    color: var(--sub); font-size: 16px; line-height: 1; transition: .2s var(--spring);
+  }
+  .hdr-menu:active { transform: scale(.94); background: rgba(255, 255, 255, .1); }
+  .cat-row {
+    display: flex; align-items: center; gap: 11px; width: 100%; margin-bottom: 7px; padding: 13px 13px;
+    border-radius: 15px; text-align: left; background: var(--card); border: 1px solid var(--line);
+    box-shadow: inset 0 1px 0 var(--sheen); transition: .2s var(--spring);
+  }
+  .cat-row:active { transform: scale(.985); }
+  .cat-row .c-ico {
+    width: 32px; height: 32px; border-radius: 10px; flex: 0 0 auto; display: grid; place-items: center;
+    background: rgba(255, 255, 255, .05); border: 1px solid var(--line); font-size: 15px;
+  }
+  .cat-row b { flex: 1 1 auto; min-width: 0; font-size: 14px; letter-spacing: -.01em; }
+  .cat-row .c-n {
+    flex: 0 0 auto; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800;
+    color: var(--muted); background: rgba(255, 255, 255, .05); border: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+  }
+  .cat-row .c-go { flex: 0 0 auto; color: var(--muted); font-size: 15px; }
+  .cat-row.on { border-color: rgba(233, 189, 148, .5); background: var(--brand-soft); }
+  .cat-row.on b { color: var(--brand-2); }
+  .cat-row.on .c-n { color: var(--brand); border-color: rgba(233, 189, 148, .24); background: rgba(233, 189, 148, .1); }
+  .cat-row.on .c-ico { color: var(--brand); border-color: rgba(233, 189, 148, .24); }
+
   /* ---- 주문 3단계 상태 (접수 → 제조완료 → 입금확인) ---- */
   .steps { display: flex; align-items: flex-start; margin: 12px 0 2px; }
   .st { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 62px; flex: 0 0 auto; }
@@ -194,6 +223,7 @@
 
   <header class="hdr">
     <div class="hdr-row">
+      <button class="hdr-menu" id="menuBtn" type="button" aria-label="분야별 메뉴 열기">☰</button>
       <div class="hdr-mark">☕</div>
       <div class="hdr-title">
         <b>세종월드교회 카페</b>
@@ -229,6 +259,15 @@
     <button data-view="me" type="button"><span class="ico">👤</span>내정보</button>
   </nav>
 </div>
+
+<!-- ============ 분야별 메뉴 시트 ============ -->
+<section class="sheet" id="sheetCats" aria-hidden="true">
+  <div class="sheet-hdr"><b>분야별 메뉴</b><button class="btn sm ghost" id="catsClose" type="button" style="margin-left:auto">닫기</button></div>
+  <div class="sheet-body" style="padding-top:12px">
+    <div id="catList"></div>
+    <p class="tiny muted" style="text-align:center;padding:4px 8px 18px">분야를 고르면 메뉴 탭에서 그 분야만 보입니다.</p>
+  </div>
+</section>
 
 <!-- ============ 가입 시트 ============ -->
 <section class="sheet" id="sheetSignup" aria-hidden="true">
@@ -698,6 +737,40 @@ function renderMenu(force) {
   fillMenuList();
 }
 
+/* ---------------- 더보기 · 분야별 메뉴 ---------------- */
+const CAT_ICO = { coffee: '☕', beverage: '🥤', ade: '🍋', handdrip: '🫖', tea: '🍵', dessert: '🧁' };
+
+function catCount(key) {
+  if (key === 'all') return S.menus.filter(m => menuMatches(m, S.q)).length;
+  if (key === 'fav') return S.menus.filter(m => isFav(m.id) && menuMatches(m, S.q)).length;
+  return S.menus.filter(m => m.cat === key && menuMatches(m, S.q)).length;
+}
+
+function renderCatSheet() {
+  const rows = [
+    { key: 'all', name: '전체 메뉴', ico: '☰' },
+    { key: 'fav', name: '즐겨찾기', ico: '★' },
+    ...CATS.map(c => ({ key: c.key, name: c.name, ico: CAT_ICO[c.key] || '•' }))
+  ];
+  const box = $('#catList');
+  box.innerHTML = rows.map(r => `<button class="cat-row ${S.cat === r.key ? 'on' : ''}" data-cat="${r.key}" type="button">
+      <span class="c-ico">${r.ico}</span>
+      <b>${esc(r.name)}</b>
+      <span class="c-n">${catCount(r.key)}</span>
+      <span class="c-go">›</span>
+    </button>`).join('');
+  box.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => {
+    S.cat = b.dataset.cat;
+    $('#sheetCats').classList.remove('open');
+    setView('menu');            // 메뉴 탭으로 이동하면서 renderMenu → renderChips/fillMenuList 가 S.cat 를 반영합니다
+    $('.main').scrollTop = 0;
+    buzz(12);
+  });
+}
+
+$('#menuBtn').onclick = () => { renderCatSheet(); $('#sheetCats').classList.add('open'); };
+$('#catsClose').onclick = () => $('#sheetCats').classList.remove('open');
+
 /* ---------------- 아이템 옵션 ---------------- */
 function pickItem(m) {
   if (!S.profile) { openSignup(true); return; }
@@ -952,6 +1025,7 @@ function orderCard(o) {
     : o.payRequestAt ? '<span class="badge warn">미입금 · 결제 요청</span>'
     : '<span class="badge gray">미입금</span>';
   const paid = o.payStatus === 'paid';
+  const made = !!o.madeAt || paid;     // 입금까지 끝났으면 제조도 끝난 것으로 봅니다
   return `<div class="order-card ${settled ? 'done' : ''}">
     <div class="o-top">
       <span class="o-no">#${shortId(o.id)}</span>
@@ -965,8 +1039,8 @@ function orderCard(o) {
     </div>
     <div class="steps">
       <div class="st ${paid ? 'end' : 'on'}"><i>1</i><span>접수</span></div>
-      <div class="st-line ${o.madeAt ? (paid ? 'end' : 'on') : ''}"></div>
-      <div class="st ${o.madeAt ? (paid ? 'end' : 'on') : ''}"><i>2</i><span>제조 완료</span></div>
+      <div class="st-line ${made ? (paid ? 'end' : 'on') : ''}"></div>
+      <div class="st ${made ? (paid ? 'end' : 'on') : ''}"><i>2</i><span>제조 완료</span></div>
       <div class="st-line ${paid ? 'end' : ''}"></div>
       <div class="st ${paid ? 'end' : ''}"><i>3</i><span>입금 확인</span></div>
     </div>
