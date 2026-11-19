@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2b211a">
+<title>세종월드교회 카페 · 사장님</title>
+<link rel="stylesheet" href="./style.css">
+<style>
+  /* ---- 사장님 화면 · 다크 글래스 ---- */
+  .pin-wrap { height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+  .pin-card { width: min(348px, 100%); }
+  .pin-dots { display: flex; gap: 12px; justify-content: center; margin: 20px 0 24px; }
+  .pin-dots i { width: 13px; height: 13px; border-radius: 50%; background: rgba(255, 255, 255, .12); border: 1px solid var(--line-2); display: block; transition: .22s var(--spring); }
+  .pin-dots i.on { background: var(--brand); border-color: var(--brand); transform: scale(1.14); box-shadow: 0 0 14px rgba(233, 189, 148, .5); }
+  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .keypad button {
+    padding: 17px 0; border-radius: 16px; background: var(--card); border: 1px solid var(--line);
+    font-size: 20px; font-weight: 800; color: var(--ink); box-shadow: inset 0 1px 0 var(--sheen);
+    transition: .18s var(--spring);
+  }
+  .keypad button:active { transform: scale(.96); border-color: var(--line-2); background: rgba(255, 255, 255, .07); }
+  .keypad button.wide { font-size: 13px; color: var(--sub); font-weight: 700; }
+  .pin-err { color: var(--danger); font-size: 12.5px; text-align: center; height: 18px; margin-top: 12px; }
+  .shake { animation: shk .32s; }
+  @keyframes shk { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+  .a-hdr { padding: calc(env(safe-area-inset-top) + 12px) 16px 8px; }
+  .a-tabs { display: flex; gap: 4px; padding: 8px 16px 10px; }
+  .a-tabs button {
+    flex: 1 1 0; padding: 10px 6px; border-radius: 12px; font-size: 13px; font-weight: 800;
+    color: var(--sub); background: rgba(255, 255, 255, .04); border: 1px solid var(--line);
+    transition: .24s var(--spring);
+  }
+  .a-tabs button.on { background: linear-gradient(180deg, #fff, #e7e7ed); color: #0b0b0e; border-color: transparent; box-shadow: 0 10px 22px -16px rgba(255, 255, 255, .7); }
+  .a-tabs button .cnt { display: inline-block; margin-left: 4px; font-size: 10.5px; border-radius: 999px; padding: 1px 6px; background: rgba(255, 255, 255, .1); }
+  .a-tabs button.on .cnt { background: rgba(11, 11, 14, .12); color: #0b0b0e; }
+
+  .o-card {
+    margin: 0 16px 10px; border-radius: 18px; background: var(--card);
+    border: 1px solid var(--line); box-shadow: var(--card-shadow); overflow: hidden;
+  }
+  .o-card.made { border-color: rgba(242, 174, 116, .38); }
+  .o-card.done { opacity: .52; }
+  .o-head { display: flex; align-items: center; gap: 6px; padding: 11px 13px; background: rgba(255, 255, 255, .03); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .o-body { padding: 13px; }
+  .o-name { font-size: 15.5px; font-weight: 800; letter-spacing: -.01em; }
+  .o-items { margin-top: 9px; font-size: 13px; }
+  .o-items .li { display: flex; justify-content: space-between; padding: 3px 0; }
+  .o-items .li span { color: var(--sub); }
+  .o-meta { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
+  .o-msg {
+    margin-top: 10px; background: rgba(233, 189, 148, .09); border: 1px solid rgba(233, 189, 148, .18);
+    border-radius: 12px; padding: 9px 11px; font-size: 12.5px; color: var(--brand-2);
+  }
+  .o-acts { display: flex; gap: 6px; padding: 0 13px 13px; flex-wrap: wrap; }
+  .o-acts .btn { flex: 1 1 auto; min-width: 100px; }
+
+  .m-row {
+    display: flex; align-items: center; gap: 10px; padding: 12px 13px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 15px; margin: 0 16px 7px;
+    box-shadow: inset 0 1px 0 var(--sheen);
+  }
+  .m-row .mi { flex: 1 1 auto; min-width: 0; }
+  .m-row .mi b { font-size: 14px; display: block; }
+  .m-row .mi span { font-size: 11px; color: var(--muted); }
+  .m-row .mp { font-size: 11.5px; color: var(--sub); text-align: right; white-space: nowrap; }
+  .sw { position: relative; width: 42px; height: 25px; border-radius: 999px; background: rgba(255, 255, 255, .12); border: 1px solid var(--line-2); flex: 0 0 auto; transition: .24s var(--spring); }
+  .sw.on { background: rgba(242, 174, 116, .5); border-color: rgba(242, 174, 116, .6); }
+  .sw i { position: absolute; top: 2px; left: 2px; width: 19px; height: 19px; border-radius: 50%; background: #fff; transition: .24s var(--spring); }
+  .sw.on i { left: 20px; }
+
+  .set-row {
+    display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+    background: transparent; border-bottom: 1px solid var(--line); width: 100%; text-align: left;
+  }
+  .set-row:last-child { border-bottom: 0; }
+  .set-row .si { flex: 1 1 auto; min-width: 0; }
+  .set-row .si b { font-size: 13.5px; }
+  .set-row .si span { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .sec-h { padding: 20px 16px 8px; font-size: 10.5px; letter-spacing: .18em; color: var(--muted); font-weight: 800; text-transform: uppercase; }
+  .box { border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
+  .newflash { animation: flash 1.2s ease-out 2; }
+  @keyframes flash { 0% { box-shadow: 0 0 0 0 rgba(242, 174, 116, .5); } 100% { box-shadow: 0 0 0 16px rgba(242, 174, 116, 0); } }
+</style>
+</head>
+<body>
+
+<!-- ================= PIN ================= -->
+<div class="pin-wrap" id="pinGate">
+  <div class="pin-card">
+    <div style="text-align:center">
+      <div class="hdr-mark" style="width:52px;height:52px;border-radius:16px;font-size:26px;margin:0 auto 12px">🔐</div>
+      <b style="font-size:18px">사장님 모드</b>
+      <p class="small sub mt6">세종월드교회 카페 · 주문·메뉴 관리</p>
+      <p class="tiny muted mt6">초기 PIN은 <b>0000</b> 입니다. 로그인 후 설정에서 바꿀 수 있어요.</p>
+    </div>
+    <div class="pin-dots" id="pinDots"><i></i><i></i><i></i><i></i></div>
+    <div class="keypad" id="keypad"></div>
+    <div class="pin-err" id="pinErr"></div>
+    <div style="text-align:center;margin-top:6px"><a class="small muted" href="./index.html">← 손님 화면으로</a></div>
+  </div>
+</div>
+
+<!-- ================= 관리자 ================= -->
+<div id="app" class="shell hide">
+  <header class="hdr a-hdr">
+    <div class="hdr-row">
+      <div class="hdr-mark">☕</div>
+      <div class="hdr-title"><b>사장님 · 세종월드교회 카페</b><span>OWNER CONSOLE</span></div>
+      <div class="hdr-spacer"></div>
+      <button class="btn sm" id="lockBtn" type="button">잠금</button>
+    </div>
+    <div class="a-tabs">
+      <button data-tab="orders" class="on" type="button">주문 <span class="cnt" id="cntOrders">0</span></button>
+      <button data-tab="menus" type="button">메뉴</button>
+      <button data-tab="settings" type="button">설정</button>
+    </div>
+  </header>
+
+  <div class="alert-stack" id="alertStack"></div>
+  <main class="main no-dock" id="main">
+    <section id="tab-orders"></section>
+    <section id="tab-menus" class="hide"></section>
+    <section id="tab-settings" class="hide"></section>
+  </main>
+</div>
+
+<!-- ================= 메뉴 편집 시트 ================= -->
+<section class="sheet" id="sheetMenu" aria-hidden="true">
+  <div class="sheet-hdr"><b id="menuSheetTitle">메뉴 추가</b><button class="btn sm ghost" id="menuClose" type="button" style="margin-left:auto">닫기</button></div>
+  <div class="sheet-body">
+    <label class="field"><span>메뉴 이름</span><input class="input" id="eName" maxlength="30" placeholder="예) 카페라떼"></label>
+    <label class="field"><span>카테고리</span><select class="select" id="eCat"></select></label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <label class="field"><span>청년처 가격</span><input class="input" id="eYouth" inputmode="numeric" placeholder="3000"></label>
+      <label class="field"><span>대학부 가격</span><input class="input" id="eCollege" inputmode="numeric" placeholder="2000"></label>
+    </div>
+    <label class="field"><span>온도</span>
+      <select class="select" id="eTemp">
+        <option value="both">HOT / ICED</option>
+        <option value="iced">ICED 만</option>
+        <option value="hot">HOT 만</option>
+        <option value="none">없음 (디저트)</option>
+      </select>
+    </label>
+    <label class="field"><span>옵션 (쉼표로 구분 · 예: 레몬,자몽)</span><input class="input" id="eFlavors" placeholder="비워두면 온도만 선택"></label>
+    <label class="field"><span>태그 (쉼표로 구분 · 예: BEST,NEW)</span><input class="input" id="eTags" placeholder="BEST / NEW / ONLY ICED"></label>
+    <label class="field"><span>설명</span><input class="input" id="eDesc" maxlength="40" placeholder="예) 딸기 · 블랙티 · 브라운슈가"></label>
+    <label class="check-row"><input type="checkbox" id="eSoldout"><div><b>품절</b><span>체크하면 손님 화면에서 주문할 수 없습니다.</span></div></label>
+  </div>
+  <div class="sheet-foot">
+    <div class="row" style="gap:8px">
+      <button class="btn" id="menuDelete" type="button" style="color:var(--danger)">삭제</button>
+      <button class="btn primary grow" id="menuSave" type="button">저장</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PIN 변경 시트 ================= -->
+<section class="sheet" id="sheetPin" aria-hidden="true">
+  <div class="sheet-hdr"><b>PIN 변경</b><button class="btn sm ghost" id="pinClose" type="button" style="margin-left:auto">닫기</button></div>
+  <div class="sheet-body">
+    <label class="field"><span>현재 PIN</span><input class="input" id="pinOld" inputmode="numeric" maxlength="4" placeholder="0000"></label>
+    <label class="field"><span>새 PIN (숫자 4자리)</span><input class="input" id="pinNew" inputmode="numeric" maxlength="4" placeholder="1234"></label>
+    <p class="tiny muted">사장님 화면 주소는 <b>cafe/admin.html</b> 이고, PIN은 Firestore config/app 문서에 저장됩니다.</p>
+  </div>
+  <div class="sheet-foot"><button class="btn primary block" id="pinSave" type="button">PIN 저장</button></div>
+</section>
+
+<script type="module">
+import {
+  db, BRAND, CATS, CAT_NAME, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort, priceOf, shortId,
+  timeAgo, hhmm, esc, lockZoom, ensureMenus, ensureConfig, watchConfig, copyText,
+  collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, query, orderBy,
+  limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary
+} from './core.js';
+
+lockZoom();
+
+const $ = s => document.querySelector(s);
+const el = (t, c, h) => { const n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; };
+let toastTimer;
+function toast(msg) {
+  let t = $('.toast');
+  if (!t) { t = el('div', 'toast'); document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1900);
+}
+
+const S = { cfg: { ...DEFAULT_CONFIG }, orders: [], menus: [], tab: 'orders', filter: 'active', editing: null, authed: false };
+
+/* ---------------- PIN ---------------- */
+const PIN_KEY = 'cafe.admin.ok';
+let pinBuf = '';
+$('#keypad').innerHTML = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'clear', '0', 'del'].map(k =>
+  `<button type="button" data-k="${k}" class="${k === 'clear' || k === 'del' ? 'wide' : ''}">${k === 'clear' ? '지우기' : k === 'del' ? '⌫' : k}</button>`).join('');
+$('#keypad').querySelectorAll('[data-k]').forEach(b => b.onclick = () => pressPin(b.dataset.k));
+
+function pressPin(k) {
+  $('#pinErr').textContent = '';
+  if (k === 'del') pinBuf = pinBuf.slice(0, -1);
+  else if (k === 'clear') pinBuf = '';
+  else if (pinBuf.length < 4) pinBuf += k;
+  drawDots();
+  if (pinBuf.length === 4) setTimeout(checkPin, 120);
+}
+function drawDots() {
+  document.querySelectorAll('#pinDots i').forEach((d, i) => d.classList.toggle('on', i < pinBuf.length));
+}
+async function checkPin() {
+  const pin = String(S.cfg.pin || DEFAULT_CONFIG.pin);
+  if (pinBuf === pin) {
+    sessionStorage.setItem(PIN_KEY, '1');
+    unlock();
+  } else {
+    $('#pinErr').textContent = 'PIN이 맞지 않습니다';
+    $('#pinDots').classList.add('shake');
+    buzz(60);
+    setTimeout(() => { $('#pinDots').classList.remove('shake'); pinBuf = ''; drawDots(); }, 340);
+  }
+}
+function unlock() {
+  S.authed = true;
+  $('#pinGate').classList.add('hide');
+  $('#app').classList.remove('hide');
+  bootData();
+}
+$('#lockBtn').onclick = () => {
+  sessionStorage.removeItem(PIN_KEY);
+  pinBuf = ''; drawDots(); S.authed = false;
+  $('#app').classList.add('hide'); $('#pinGate').classList.remove('hide');
+};
+
+/* ---------------- 설정 ---------------- */
+watchConfig(c => {
+  S.cfg = c;
+  if ($('#tab-settings')) renderSettings();
+});
+
+/* ---------------- 데이터 ---------------- */
+let unsubOrders = null, unsubMenus = null;
+let knownIds = new Set();
+
+async function bootData() {
+  try { await ensureConfig(); } catch (e) { }
+  try { await ensureMenus(); } catch (e) { console.warn('seed', e); }
+
+  unsubMenus = onSnapshot(collection(db, 'menus'), snap => {
+    S.menus = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(m => m.name)
+      .sort((a, b) => (a.sort || 0) - (b.sort || 0) || String(a.name).localeCompare(String(b.name), 'ko'));
+    renderMenus();
+  });
+
+  unsubOrders = onSnapshot(collection(db, 'orders'), snap => {
+    const prev = S.orders;
+    S.orders = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    // 새 주문 알림
+    for (const o of S.orders) {
+      if (!prev.length || knownIds.has(o.id)) continue;
+      if (o.status === 'new' && (Date.now() - (o.ts || 0)) < 120000) onNewOrder(o);
+      knownIds.add(o.id);
+    }
+    S.orders.forEach(o => knownIds.add(o.id));
+    renderOrders();
+    renderTabs();
+  }, err => { console.warn('orders', err); toast('주문 목록 연결 오류'); });
+}
+
+function onNewOrder(o) {
+  beep('ready'); buzz([220, 90, 220, 90, 320]);
+  notify('새 주문 접수', `${o.name} · ${won(o.total)} · ${channelLabel(o)}`);
+  pushAlert('새 주문이 들어왔습니다', `${o.name} · ${itemsSummary(o.items)}`, 'ready');
+  const card = $('#tab-orders');
+  if (card) card.classList.remove('newflash');
+}
+
+function pushAlert(title, body, kind) {
+  const stack = $('#alertStack');
+  const box = el('div', 'alert ' + (kind === 'pay' ? 'pay' : 'ready'));
+  box.innerHTML = `<span class="a-ico">🔔</span><div class="grow"><b>${esc(title)}</b><span>${esc(body)}</span></div>`;
+  const x = el('button', 'a-x', '✕'); x.onclick = () => box.remove(); box.appendChild(x);
+  stack.appendChild(box);
+  setTimeout(() => box.remove(), 12000);
+}
+
+/* ---------------- 탭 ---------------- */
+document.querySelectorAll('.a-tabs button').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+function setTab(t) {
+  S.tab = t;
+  document.querySelectorAll('.a-tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  $('#tab-orders').classList.toggle('hide', t !== 'orders');
+  $('#tab-menus').classList.toggle('hide', t !== 'menus');
+  $('#tab-settings').classList.toggle('hide', t !== 'settings');
+  $('.main').scrollTop = 0;
+  if (t === 'menus') renderMenus();
+  if (t === 'settings') renderSettings();
+}
+function renderTabs() {
+  const active = S.orders.filter(o => o.status !== 'done').length;
+  const c = $('#cntOrders');
+  if (c) c.textContent = active;
+}
+
+/* ---------------- 주문 ---------------- */
+function renderOrders() {
+  const root = $('#tab-orders');
+  if (!root) return;
+  const cnt = {
+    active: S.orders.filter(o => o.status !== 'done').length,
+    pending: S.orders.filter(o => o.status === 'new').length,
+    made: S.orders.filter(o => o.status === 'made').length,
+    unpaid: S.orders.filter(o => o.payStatus !== 'paid' && o.status !== 'done').length,
+    done: S.orders.filter(o => o.status === 'done').length,
+    all: S.orders.length
+  };
+  const filters = [
+    { k: 'active', n: '진행 중' }, { k: 'pending', n: '미입금·대기' }, { k: 'made', n: '제조완료' },
+    { k: 'unpaid', n: '미입금' }, { k: 'done', n: '입금완료' }, { k: 'all', n: '전체' }
+  ];
+  let list = S.orders;
+  if (S.filter === 'active') list = S.orders.filter(o => o.status !== 'done');
+  if (S.filter === 'pending') list = S.orders.filter(o => o.status === 'new');
+  if (S.filter === 'made') list = S.orders.filter(o => o.status === 'made');
+  if (S.filter === 'unpaid') list = S.orders.filter(o => o.payStatus !== 'paid' && o.status !== 'done');
+  if (S.filter === 'done') list = S.orders.filter(o => o.status === 'done');
+
+  let html = `<div class="chips">${filters.map(f => `<button class="chip ${S.filter === f.k ? 'on' : ''}" data-f="${f.k}" type="button">${f.n} ${cnt[f.k]}</button>`).join('')}</div>`;
+  if (!list.length) {
+    html += `<div class="empty" style="padding-top:40px"><span class="e-ico">🧾</span><b>${S.filter === 'active' ? '진행 중인 주문이 없어요' : '해당 주문이 없어요'}</b><span>새 주문이 들어오면 이 화면에 바로 뜹니다</span></div>`;
+  }
+  for (const o of list) {
+    const ch = o.channel === 'kiosk' ? '키오스크 현장' : (o.mode === 'pre' ? '폰 미리주문' : '폰 현장주문');
+    const chCls = o.channel === 'kiosk' ? 'new' : '';
+    const st = o.status === 'done' ? '<span class="badge ok">결제 완료</span>'
+      : o.madeAt ? '<span class="badge warn">제조 완료</span>' : '<span class="badge">접수</span>';
+    const pay = o.payStatus === 'paid' ? '<span class="badge ok">입금 확인</span>'
+      : o.payRequestAt ? '<span class="badge warn">미입금 요청함</span>' : '<span class="badge gray">미입금</span>';
+    html += `<div class="o-card ${o.status === 'done' ? 'done' : o.madeAt ? 'made' : ''}">
+      <div class="o-head">
+        <span class="o-no" style="color:var(--brand);font-weight:800">#${shortId(o.id)}</span>
+        <span class="badge ${chCls}">${esc(ch)}</span>
+        ${st}${pay}
+        <span style="margin-left:auto" class="tiny muted">${hhmm(o.ts)} · ${timeAgo(o.ts)}</span>
+      </div>
+      <div class="o-body">
+        <div class="between">
+          <div class="o-name">${esc(o.name)} <span class="small sub" style="font-weight:700">${esc(String(o.gi))}기 · ${tierShort(o.tier)}</span></div>
+          <b class="tnum" style="color:var(--brand);font-size:16px">${won(o.total)}</b>
+        </div>
+        <div class="o-items">${(o.items || []).map(i => `<div class="li"><span>${esc(i.name)}${i.option ? ` (${esc(i.option)})` : ''} × ${i.qty}</span><b class="tnum">${won(i.price * i.qty)}</b></div>`).join('')}</div>
+        <div class="o-meta">
+          <span class="badge gray">${o.payMethod === 'cash' ? '현장 현금' : '계좌이체'}</span>
+          ${o.madeAt ? `<span class="badge gray">완료 알림 ${hhmm(o.madeAt)}</span>` : ''}
+          ${o.payRequestAt ? `<span class="badge gray">입금 요청 ${hhmm(o.payRequestAt)}</span>` : ''}
+          ${o.paidAt ? `<span class="badge ok">입금 ${hhmm(o.paidAt)}</span>` : ''}
+        </div>
+        ${o.message ? `<div class="o-msg">💬 ${esc(o.message)}</div>` : ''}
+      </div>
+      <div class="o-acts">
+        ${o.status !== 'done' ? `<button class="btn ${o.madeAt ? 'done' : 'ok'} sm" data-made="${o.id}" type="button">${o.madeAt ? '완료 알림 다시 보내기' : '제조 완료 알림'}</button>` : ''}
+        ${o.payStatus !== 'paid' ? `<button class="btn warn sm" data-pay="${o.id}" type="button">미입금 요청</button>
+        <button class="btn primary sm" data-confirm="${o.id}" type="button">입금 확인 → 완료</button>` : `<span class="badge ok" style="align-self:center">결제 완료된 주문</span>`}
+        <button class="btn sm ghost" data-del="${o.id}" type="button" style="flex:0 0 auto;color:var(--muted)">삭제</button>
+      </div>
+    </div>`;
+  }
+  root.innerHTML = html;
+  root.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { S.filter = b.dataset.f; renderOrders(); });
+  root.querySelectorAll('[data-made]').forEach(b => b.onclick = () => sendMade(b.dataset.made, b));
+  root.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => sendPayRequest(b.dataset.pay, b));
+  root.querySelectorAll('[data-confirm]').forEach(b => b.onclick = () => confirmPaid(b.dataset.confirm, b));
+  root.querySelectorAll('[data-del]').forEach(b => b.onclick = () => removeOrder(b.dataset.del));
+}
+
+async function sendMade(id, btn) {
+  try {
+    btn.disabled = true;
+    await updateDoc(doc(db, 'orders', id), { madeAt: Date.now(), status: 'made', notifiedAt: Date.now() });
+    toast('손님에게 "나왔습니다" 알림을 보냈어요');
+    buzz(40);
+  } catch (e) { console.error(e); toast('알림 전송 실패'); btn.disabled = false; }
+}
+async function sendPayRequest(id, btn) {
+  try {
+    btn.disabled = true;
+    await updateDoc(doc(db, 'orders', id), { payRequestAt: Date.now() });
+    toast('미입금 결제 요청을 보냈어요');
+    buzz(40);
+  } catch (e) { console.error(e); toast('요청 전송 실패'); btn.disabled = false; }
+}
+async function confirmPaid(id, btn) {
+  try {
+    btn.disabled = true;
+    await updateDoc(doc(db, 'orders', id), { payStatus: 'paid', paidAt: Date.now(), status: 'done' });
+    toast('입금 확인 · 주문 완료 처리했어요');
+  } catch (e) { console.error(e); toast('처리 실패'); btn.disabled = false; }
+}
+async function removeOrder(id) {
+  if (!confirm('이 주문을 삭제할까요? 손님 화면에서도 사라집니다.')) return;
+  try { await deleteDoc(doc(db, 'orders', id)); toast('삭제했어요'); }
+  catch (e) { toast('삭제 실패'); }
+}
+
+/* ---------------- 메뉴 ---------------- */
+function renderMenus() {
+  const root = $('#tab-menus');
+  if (!root) return;
+  let html = `<div class="pad" style="padding-bottom:4px"><button class="btn primary block" id="menuAdd" type="button">+ 새 메뉴 추가</button></div>`;
+  for (const c of CATS) {
+    const items = S.menus.filter(m => m.cat === c.key);
+    if (!items.length) continue;
+    html += `<div class="sec-h">${c.name} · ${items.length}</div>`;
+    for (const m of items) {
+      html += `<div class="m-row">
+        <div class="mi">
+          <b>${esc(m.name)} ${(m.tags || []).map(t => `<span class="badge gray">${esc(t)}</span>`).join('')}</b>
+          <span>${m.soldout ? '품절 · ' : ''}${won(m.youth)} / ${won(m.college)}</span>
+        </div>
+        <div class="mp"><span class="tnum">청년 ${won(m.youth)}</span><br><span class="tnum">대학 ${won(m.college)}</span></div>
+        <button class="sw ${m.soldout ? 'on' : ''}" data-sold="${m.id}" type="button" title="품절 토글"><i></i></button>
+        <button class="btn sm" data-edit="${m.id}" type="button">수정</button>
+      </div>`;
+    }
+  }
+  html += `<p class="tiny muted" style="text-align:center;padding:18px 16px 26px">메뉴 변경은 손님 화면·키오스크에 실시간으로 반영됩니다.</p>`;
+  root.innerHTML = html;
+  $('#menuAdd').onclick = () => openMenuSheet(null);
+  root.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openMenuSheet(S.menus.find(m => m.id === b.dataset.edit)));
+  root.querySelectorAll('[data-sold]').forEach(b => b.onclick = async () => {
+    const m = S.menus.find(x => x.id === b.dataset.sold);
+    try { await updateDoc(doc(db, 'menus', m.id), { soldout: !m.soldout, updatedAt: Date.now() }); toast(m.soldout ? '판매 재개' : '품절 처리'); }
+    catch (e) { toast('변경 실패'); }
+  });
+}
+
+function openMenuSheet(m) {
+  S.editing = m;
+  $('#menuSheetTitle').textContent = m ? '메뉴 수정' : '메뉴 추가';
+  $('#menuDelete').classList.toggle('hide', !m);
+  $('#eName').value = m ? m.name : '';
+  $('#eCat').innerHTML = CATS.map(c => `<option value="${c.key}">${c.name}</option>`).join('');
+  $('#eCat').value = m ? m.cat : 'coffee';
+  $('#eYouth').value = m ? m.youth : '';
+  $('#eCollege').value = m ? m.college : '';
+  $('#eTemp').value = m ? (m.temp || 'none') : 'both';
+  $('#eFlavors').value = m && (m.flavors || []).length ? m.flavors.join(',') : '';
+  $('#eTags').value = m && (m.tags || []).length ? m.tags.join(',') : '';
+  $('#eDesc').value = m ? (m.desc || '') : '';
+  $('#eSoldout').checked = !!m?.soldout;
+  $('#sheetMenu').classList.add('open');
+}
+$('#menuClose').onclick = () => $('#sheetMenu').classList.remove('open');
+$('#menuSave').onclick = async () => {
+  const name = $('#eName').value.trim();
+  const youth = parseInt($('#eYouth').value.replace(/[^0-9]/g, ''), 10);
+  const college = parseInt($('#eCollege').value.replace(/[^0-9]/g, ''), 10);
+  if (!name) return toast('메뉴 이름을 적어 주세요');
+  if (!youth || !college) return toast('청년처·대학부 가격을 모두 적어 주세요');
+  const data = {
+    name, cat: $('#eCat').value, youth, college, temp: $('#eTemp').value,
+    flavors: $('#eFlavors').value.split(',').map(s => s.trim()).filter(Boolean),
+    tags: $('#eTags').value.split(',').map(s => s.trim().toUpperCase()).filter(Boolean),
+    desc: $('#eDesc').value.trim(), soldout: $('#eSoldout').checked, updatedAt: Date.now()
+  };
+  try {
+    if (S.editing) await updateDoc(doc(db, 'menus', S.editing.id), data);
+    else {
+      data.sort = (Math.max(0, ...S.menus.map(m => m.sort || 0)) + 10);
+      const ref = doc(collection(db, 'menus'));
+      await setDoc(ref, data);
+    }
+    $('#sheetMenu').classList.remove('open');
+    toast(S.editing ? '메뉴를 수정했어요' : '메뉴를 추가했어요');
+  } catch (e) { console.error(e); toast('저장 실패'); }
+};
+$('#menuDelete').onclick = async () => {
+  if (!S.editing) return;
+  if (!confirm(`"${S.editing.name}" 메뉴를 삭제할까요?`)) return;
+  try { await deleteDoc(doc(db, 'menus', S.editing.id)); $('#sheetMenu').classList.remove('open'); toast('삭제했어요'); }
+  catch (e) { toast('삭제 실패'); }
+};
+
+/* ---------------- 설정 ---------------- */
+function renderSettings() {
+  const root = $('#tab-settings');
+  if (!root) return;
+  const done = S.orders.filter(o => o.status === 'done').length;
+  const test = S.orders.filter(o => o.name === '테스트' || o.name === '김테스트').length;
+  root.innerHTML = `
+    <div class="sec-h">운영</div>
+    <div class="box" style="margin:0 16px">
+      <button class="set-row" id="setPin" type="button" style="width:100%;text-align:left">
+        <div class="si"><b>사장님 PIN 변경</b><span>현재 PIN은 **** 로 저장되어 있습니다</span></div><span class="badge">변경</span>
+      </button>
+      <button class="set-row" id="setNoti" type="button" style="width:100%;text-align:left">
+        <div class="si"><b>새 주문 알림</b><span>이 화면을 켜 두면 소리·진동·브라우저 알림</span></div><span class="badge ok">켜기</span>
+      </button>
+    </div>
+
+    <div class="sec-h">계좌 (손님 안내에 표시)</div>
+    <div class="pad" style="padding-top:0">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <label class="field" style="margin:0"><span>은행</span><input class="input" id="cBank" value="${esc(S.cfg.bank)}"></label>
+        <label class="field" style="margin:0"><span>예금주</span><input class="input" id="cHolder" value="${esc(S.cfg.holder)}"></label>
+      </div>
+      <label class="field mt10" style="margin-bottom:8px"><span>계좌번호</span><input class="input" id="cAccount" value="${esc(S.cfg.account)}"></label>
+      <label class="field" style="margin-bottom:8px"><span>토스 표시 이름</span><input class="input" id="cToss" value="${esc(S.cfg.toss)}"></label>
+      <div class="row" style="gap:8px">
+        <button class="btn grow" id="copyAccount" type="button">계좌 복사</button>
+        <button class="btn primary grow" id="saveCfg" type="button">계좌 저장</button>
+      </div>
+    </div>
+
+    <div class="sec-h">데이터</div>
+    <div class="box" style="margin:0 16px">
+      <button class="set-row" id="reseed" type="button" style="width:100%;text-align:left">
+        <div class="si"><b>메뉴판 초기 상태로 되돌리기</b><span>메뉴판 사진 기준 32개 메뉴를 다시 채웁니다</span></div><span class="badge warn">초기화</span>
+      </button>
+      <button class="set-row" id="clearDone" type="button" style="width:100%;text-align:left">
+        <div class="si"><b>완료된 주문 삭제</b><span>지금 ${done}건의 완료 주문이 있습니다</span></div><span class="badge gray">삭제</span>
+      </button>
+      <button class="set-row" id="clearAll" type="button" style="width:100%;text-align:left">
+        <div class="si"><b>테스트 주문 전체 삭제</b><span>"테스트" 이름으로 만든 주문 ${test}건</span></div><span class="badge gray">삭제</span>
+      </button>
+    </div>
+
+    <div class="sec-h">앱</div>
+    <div style="margin:0 16px 24px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--surface)">
+      <a class="set-row" href="./index.html" style="color:inherit"><div class="si"><b>손님 화면 열기</b><span>index.html · 휴대폰 주문</span></div><span class="badge">열기</span></a>
+      <a class="set-row" href="./kiosk.html" style="color:inherit"><div class="si"><b>키오스크 화면 열기</b><span>kiosk.html · 카운터 태블릿</span></div><span class="badge">열기</span></a>
+      <div class="set-row"><div class="si"><b>Firebase 프로젝트</b><span>grace-cafe-twp · Firestore (asia-northeast3)</span></div></div>
+    </div>`;
+
+  $('#setPin').onclick = () => { $('#pinOld').value = ''; $('#pinNew').value = ''; $('#sheetPin').classList.add('open'); };
+  $('#setNoti').onclick = async () => {
+    const r = await askNotifyPermission();
+    toast(r === 'granted' ? '새 주문 알림이 켜졌어요' : '알림 권한이 허용되지 않았어요');
+  };
+  $('#copyAccount').onclick = async () => { await copyText(`${S.cfg.bank} ${S.cfg.account}`); toast('계좌번호를 복사했어요'); };
+  $('#saveCfg').onclick = async () => {
+    try {
+      await setDoc(doc(db, 'config', 'app'), {
+        bank: $('#cBank').value.trim(), holder: $('#cHolder').value.trim(),
+        account: $('#cAccount').value.trim(), toss: $('#cToss').value.trim(), updatedAt: Date.now()
+      }, { merge: true });
+      toast('계좌 정보를 저장했어요');
+    } catch (e) { toast('저장 실패'); }
+  };
+  $('#reseed').onclick = async () => {
+    if (!confirm('메뉴를 사진 기준 32개로 다시 채울까요? 직접 추가한 메뉴는 그대로 남습니다.')) return;
+    try { const r = await ensureMenus(true); toast(`${r.seeded}개 메뉴를 다시 채웠어요`); } catch (e) { toast('초기화 실패'); }
+  };
+  $('#clearDone').onclick = async () => {
+    if (!confirm('완료된 주문을 모두 삭제할까요?')) return;
+    try {
+      const snap = await getDocs(collection(db, 'orders'));
+      let n = 0;
+      for (const d of snap.docs) { if (d.data().status === 'done') { await deleteDoc(d.ref); n++; } }
+      toast(`${n}건 삭제했어요`);
+    } catch (e) { toast('삭제 실패'); }
+  };
+  $('#clearAll').onclick = async () => {
+    if (!confirm('"테스트" 이름의 주문을 모두 삭제할까요?')) return;
+    try {
+      const snap = await getDocs(collection(db, 'orders'));
+      let n = 0;
+      for (const d of snap.docs) { const x = d.data(); if (x.name === '테스트' || x.name === '김테스트') { await deleteDoc(d.ref); n++; } }
+      toast(`${n}건 삭제했어요`);
+    } catch (e) { toast('삭제 실패'); }
+  };
+}
+$('#pinClose').onclick = () => $('#sheetPin').classList.remove('open');
+$('#pinSave').onclick = async () => {
+  const old = $('#pinOld').value.trim(), np = $('#pinNew').value.trim();
+  if (old !== String(S.cfg.pin || DEFAULT_CONFIG.pin)) return toast('현재 PIN이 맞지 않습니다');
+  if (!/^\d{4}$/.test(np)) return toast('새 PIN은 숫자 4자리로 정해 주세요');
+  try {
+    await setDoc(doc(db, 'config', 'app'), { pin: np, updatedAt: Date.now() }, { merge: true });
+    $('#sheetPin').classList.remove('open');
+    toast('PIN을 바꿨어요');
+  } catch (e) { toast('저장 실패'); }
+};
+
+/* ---------------- 시작 ---------------- */
+(async function boot() {
+  await ensureConfig();
+  if (sessionStorage.getItem(PIN_KEY) === '1') unlock();
+})();
+</script>
+</body>
+</html>

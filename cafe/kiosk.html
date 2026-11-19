@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f6f1e9">
+<title>세종월드교회 카페 · 키오스크</title>
+<link rel="stylesheet" href="./style.css">
+<style>
+  /* ---- 키오스크(태블릿) · 다크 글래스 ---- */
+  .kiosk { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+  .k-top {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; background: rgba(10, 10, 13, .82); backdrop-filter: blur(18px) saturate(150%);
+    border-bottom: 1px solid var(--line); z-index: 10;
+  }
+  .k-top .k-name b { font-size: 17px; letter-spacing: -.02em; }
+  .k-top .k-name span { display: block; font-size: 9.5px; letter-spacing: .18em; color: var(--muted); font-weight: 700; }
+  .k-top .k-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+  .k-body { flex: 1 1 auto; min-height: 0; display: flex; overflow: hidden; }
+
+  /* 왼쪽: 카테고리 + 메뉴 그리드 */
+  .k-left { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .k-cats { flex: 0 0 auto; display: flex; gap: 8px; padding: 14px 20px 6px; overflow-x: auto; scrollbar-width: none; }
+  .k-cats::-webkit-scrollbar { display: none; }
+  .k-cats .chip { font-size: 13.5px; padding: 10px 17px; }
+  .k-grid-wrap { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 20px 28px; scrollbar-width: none; }
+  .k-grid-wrap::-webkit-scrollbar { display: none; }
+  .k-cat-title { display: flex; align-items: center; gap: 10px; padding: 16px 2px 9px; }
+  .k-cat-title b { font-size: 11px; letter-spacing: .18em; color: var(--brand); }
+  .k-cat-title .line { flex: 1 1 auto; height: 1px; background: var(--line); }
+  .k-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 10px; }
+  .k-item {
+    text-align: left; padding: 15px 15px 13px; border-radius: 18px; background: var(--card);
+    border: 1px solid var(--line); box-shadow: var(--card-shadow), inset 0 1px 0 var(--sheen);
+    display: flex; flex-direction: column; gap: 7px; min-height: 104px;
+    transition: .22s var(--spring);
+  }
+  .k-item:active { transform: scale(.975); border-color: rgba(233, 189, 148, .45); }
+  .k-item.soldout { opacity: .34; }
+  .k-item .n { font-size: 15px; font-weight: 800; line-height: 1.3; letter-spacing: -.01em; }
+  .k-item .d { font-size: 11px; color: var(--muted); }
+  .k-item .p { margin-top: auto; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .k-item .p b { font-size: 14.5px; color: var(--brand); }
+  .k-item .p span { font-size: 10px; color: var(--muted); }
+
+  /* 오른쪽: 주문서 패널 */
+  .k-right-pane {
+    flex: 0 0 364px; display: flex; flex-direction: column; min-height: 0;
+    border-left: 1px solid var(--line); background: rgba(12, 12, 16, .72);
+    backdrop-filter: blur(14px) saturate(140%);
+  }
+  .k-pane-hdr { flex: 0 0 auto; padding: 15px 16px 11px; border-bottom: 1px solid var(--line); }
+  .k-pane-hdr b { font-size: 14.5px; }
+  .k-cust { display: grid; grid-template-columns: 1fr 82px; gap: 8px; }
+  .k-cust .input { padding: 12px 13px; }
+  .k-cart { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px 16px; scrollbar-width: none; }
+  .k-cart::-webkit-scrollbar { display: none; }
+  .k-lines .k-line { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .k-line .li { flex: 1 1 auto; min-width: 0; }
+  .k-line .li b { font-size: 13px; display: block; }
+  .k-line .li span { font-size: 11px; color: var(--muted); }
+  .k-line .q { display: flex; align-items: center; gap: 6px; }
+  .k-line .q button {
+    width: 30px; height: 30px; border-radius: 10px; background: rgba(255, 255, 255, .06);
+    border: 1px solid var(--line-2); font-size: 15px; font-weight: 700; color: var(--brand-2);
+    transition: .18s var(--spring);
+  }
+  .k-line .q button:active { transform: scale(.92); }
+  .k-line .q b { min-width: 18px; text-align: center; font-size: 13.5px; }
+  .k-pane-foot { flex: 0 0 auto; padding: 13px 16px calc(env(safe-area-inset-bottom) + 14px); border-top: 1px solid var(--line); background: rgba(10, 10, 13, .9); }
+  .k-total { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  .k-total b { font-size: 23px; color: var(--brand); font-variant-numeric: tabular-nums; }
+  .k-big { width: 100%; padding: 16px; border-radius: 16px; font-size: 16px; font-weight: 800; }
+  .k-memchips { display: flex; gap: 6px; overflow-x: auto; padding: 9px 0 2px; scrollbar-width: none; }
+  .k-memchips::-webkit-scrollbar { display: none; }
+  .k-memchips button {
+    flex: 0 0 auto; padding: 7px 12px; border-radius: 999px; background: rgba(255, 255, 255, .05);
+    border: 1px solid var(--line); color: var(--sub); font-size: 12px; font-weight: 700; transition: .18s var(--spring);
+  }
+  .k-memchips button:active { transform: scale(.96); background: var(--brand-soft); color: var(--brand-2); }
+
+  /* 옵션 모달 / 완료 오버레이 */
+  .modal { position: fixed; inset: 0; z-index: 80; display: none; place-items: center; background: rgba(4, 4, 6, .62); backdrop-filter: blur(6px); padding: 20px; }
+  .modal.open { display: grid; }
+  .modal .m-card {
+    width: min(460px, 92vw); border-radius: 24px; padding: 22px;
+    background: linear-gradient(180deg, #16161b, #101014); border: 1px solid var(--line-2);
+    box-shadow: 0 40px 80px -40px #000, inset 0 1px 0 var(--sheen);
+    animation: pop .3s var(--spring);
+  }
+  .done-ov {
+    position: fixed; inset: 0; z-index: 85; display: none; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 28px; background: rgba(8, 8, 11, .96); backdrop-filter: blur(18px);
+  }
+  .done-ov::before {
+    content: ''; position: absolute; width: 620px; height: 620px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(233, 189, 148, .18), transparent 66%); pointer-events: none;
+  }
+  .done-ov.open { display: flex; }
+  .done-ov .big { font-size: 25px; font-weight: 800; letter-spacing: -.02em; }
+  .done-ov .no { font-size: 52px; font-weight: 900; letter-spacing: .06em; margin: 4px 0 2px; color: var(--brand-2); }
+  .done-ov .box {
+    background: rgba(255, 255, 255, .05); border: 1px solid var(--line-2); border-radius: 18px;
+    padding: 16px 20px; margin-top: 18px; min-width: min(420px, 90vw); box-shadow: inset 0 1px 0 var(--sheen);
+  }
+  .done-ov .box b { font-size: 19px; color: var(--brand-2); }
+  .done-ov .cd { margin-top: 20px; font-size: 13px; color: var(--sub); }
+  .done-ov .cd b { font-size: 20px; color: var(--ink); }
+
+  @media (max-width: 880px) {
+    .k-body { flex-direction: column; }
+    .k-right-pane { flex: 0 0 auto; max-height: 48dvh; border-left: 0; border-top: 1px solid var(--line); }
+    .k-grid { grid-template-columns: repeat(auto-fill, minmax(152px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+<div class="kiosk">
+  <header class="k-top">
+    <div class="hdr-mark" style="width:40px;height:40px;border-radius:13px;font-size:20px">☕</div>
+    <div class="k-name"><b>세종월드교회 카페</b><span>SEJONG WORLD CAFE · 키오스크</span></div>
+    <div class="k-right">
+      <span class="badge gray" id="kStatus">연결 중…</span>
+      <a class="btn sm" href="./index.html">휴대폰 주문</a>
+      <a class="btn sm ghost" href="./admin.html" style="font-size:11px;color:var(--muted)">사장님</a>
+    </div>
+  </header>
+
+  <div class="k-body">
+    <section class="k-left">
+      <div class="k-cats" id="kCats"></div>
+      <div class="k-grid-wrap" id="kGrid"><div class="k-grid" id="kGridInner"></div></div>
+    </section>
+
+    <aside class="k-right-pane">
+      <div class="k-pane-hdr">
+        <div class="between"><b>주문서</b><span class="badge" id="kTier">가격 확인 중</span></div>
+        <div class="k-cust mt10">
+          <input class="input" id="kName" placeholder="이름" maxlength="12" autocomplete="off">
+          <input class="input" id="kGi" placeholder="기수" inputmode="numeric" maxlength="2" autocomplete="off">
+        </div>
+        <button class="check-row mt10" id="kSeniorBtn" type="button" style="width:100%;text-align:left">
+          <input type="checkbox" id="kSenior" tabindex="-1" style="pointer-events:none">
+          <div class="grow"><b>만 37세 이상 (장년·권사·집사)</b><span>체크하면 청년처 가격이 적용됩니다</span></div>
+        </button>
+        <div class="k-memchips" id="kMembers"></div>
+      </div>
+
+      <div class="k-cart">
+        <div class="k-lines" id="kLines"></div>
+        <label class="field mt10" style="margin-bottom:0"><span>요청 메시지</span>
+          <textarea class="textarea" id="kMsg" maxlength="120" placeholder="예) 얼음 적게 / 15분 뒤에 갈게요"></textarea>
+        </label>
+        <div class="note mt10" id="kAcctNote"></div>
+      </div>
+
+      <div class="k-pane-foot">
+        <div class="k-total"><span class="sub small">결제할 금액</span><b class="tnum" id="kTotal">0원</b></div>
+        <button class="btn primary k-big" id="kOrder" type="button">주문하기</button>
+        <div class="row mt6" style="gap:6px">
+          <button class="btn sm grow" id="kReset" type="button">처음부터</button>
+          <button class="btn sm grow" id="kAcctCopy" type="button">계좌번호 복사</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="modal" id="kModal"><div class="m-card" id="kModalCard"></div></div>
+<div class="done-ov" id="kDone"></div>
+
+<script type="module">
+import {
+  db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort,
+  priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, addDoc, onSnapshot,
+  copyText
+} from './core.js';
+
+lockZoom();
+
+const S = { menus: [], cart: {}, cat: 'all', cfg: { ...DEFAULT_CONFIG }, members: [], modalItem: null, modalQty: 1, modalOpt: '' };
+const $ = s => document.querySelector(s);
+const el = (t, c, h) => { const n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; };
+let toastTimer;
+function toast(msg) {
+  let t = $('.toast');
+  if (!t) { t = el('div', 'toast'); document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1900);
+}
+
+const cust = () => ({
+  name: $('#kName').value.trim(),
+  gi: Number($('#kGi').value) || 0,
+  senior: $('#kSenior').checked
+});
+const tier = () => { const c = cust(); return tierOf(c.gi, c.senior); };
+const named = () => cust().name.length > 0 && cust().gi > 0;
+
+watchConfig(c => {
+  S.cfg = c;
+  $('#kAcctNote').innerHTML = `결제 단말기가 없어 <b>계좌이체</b>로 결제합니다.<br><b>${esc(c.bank)} ${esc(c.account)}</b> (예금주 ${esc(c.holder)})`;
+  render();
+});
+
+onSnapshot(collection(db, 'menus'), snap => {
+  S.menus = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(m => m.name)
+    .sort((a, b) => (a.sort || 0) - (b.sort || 0) || String(a.name).localeCompare(String(b.name), 'ko'));
+  $('#kStatus').textContent = '실시간 연결됨';
+  $('#kStatus').className = 'badge ok';
+  render();
+}, e => { $('#kStatus').textContent = '연결 오류'; $('#kStatus').className = 'badge warn'; });
+
+onSnapshot(collection(db, 'members'), snap => {
+  S.members = snap.docs.map(d => d.data()).filter(m => m.name)
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)).slice(0, 12);
+  renderMembers();
+}, () => { });
+
+function renderMembers() {
+  const box = $('#kMembers');
+  box.innerHTML = S.members.map((m, i) =>
+    `<button type="button" data-m="${i}">${esc(m.name)} ${esc(String(m.gi))}기${m.senior ? ' · 장년' : ''}</button>`).join('');
+  box.querySelectorAll('[data-m]').forEach(b => b.onclick = () => {
+    const m = S.members[Number(b.dataset.m)];
+    $('#kName').value = m.name; $('#kGi').value = m.gi; $('#kSenior').checked = !!m.senior;
+    render();
+  });
+}
+
+function render() {
+  // 카테고리
+  const cats = $('#kCats');
+  const chips = [{ key: 'all', name: '전체' }, ...CATS];
+  cats.innerHTML = chips.map(c => `<button class="chip ${S.cat === c.key ? 'on' : ''}" data-c="${c.key}" type="button">${c.name}</button>`).join('');
+  cats.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { S.cat = b.dataset.c; render(); });
+
+  // 그리드
+  const list = S.cat === 'all' ? CATS : CATS.filter(c => c.key === S.cat);
+  const t = tier();
+  let html = '';
+  for (const c of list) {
+    const items = S.menus.filter(m => m.cat === c.key);
+    if (!items.length) continue;
+    html += `<div class="k-cat-title"><b>${c.name}</b><div class="line"></div></div>`;
+    if (c.key === 'handdrip') html += `<div class="note" style="margin:0 0 8px">⏳ ${esc(HANDDRIP_NOTE)}</div>`;
+    html += '<div class="k-grid">';
+    for (const m of items) {
+      const tags = (m.tags || []).map(x => `<span class="badge ${/BEST/.test(x) ? '' : /NEW/.test(x) ? 'new' : /HOT/.test(x) ? 'hot' : 'gray'}">${esc(x)}</span>`).join('');
+      const price = named() ? `<b class="tnum">${won(priceOf(m, t))}</b><span>${tierShort(t)}</span>` : `<b class="tnum">${won(m.youth)}</b><span class="tiny">청년</span><b class="tnum" style="color:var(--sub)">${won(m.college)}</b><span class="tiny">대학</span>`;
+      html += `<button class="k-item ${m.soldout ? 'soldout' : ''}" data-i="${m.id}" type="button" ${m.soldout ? 'disabled' : ''}>
+        <div class="n">${esc(m.name)}</div>
+        <div class="row wrap" style="gap:4px">${tags}${m.soldout ? '<span class="badge gray">품절</span>' : ''}${m.temp === 'both' ? '<span class="badge gray">HOT/ICED</span>' : ''}</div>
+        ${m.desc ? `<div class="d">${esc(m.desc)}</div>` : ''}
+        <div class="p">${price}</div>
+      </button>`;
+    }
+    html += '</div>';
+  }
+  $('#kGridInner').innerHTML = html || '<div class="empty"><b>메뉴를 준비 중입니다</b></div>';
+  $('#kGridInner').querySelectorAll('[data-i]').forEach(b => b.onclick = () => pick(b.dataset.i));
+
+  // 장바구니
+  const lines = Object.entries(S.cart);
+  $('#kLines').innerHTML = lines.length ? lines.map(([k, i]) => `
+    <div class="k-line">
+      <div class="li"><b>${esc(i.name)}${i.option ? ` <span class="badge gray">${esc(i.option)}</span>` : ''}</b><span class="tnum">${won(i.price)}</span></div>
+      <div class="q"><button data-dec="${esc(k)}" type="button">−</button><b>${i.qty}</b><button data-inc="${esc(k)}" type="button">+</button></div>
+    </div>`).join('') : '<div class="empty" style="padding:24px 0"><b>음료를 골라 주세요</b></div>';
+  $('#kLines').querySelectorAll('[data-inc]').forEach(b => b.onclick = () => { S.cart[b.dataset.inc].qty++; render(); });
+  $('#kLines').querySelectorAll('[data-dec]').forEach(b => b.onclick = () => {
+    const k = b.dataset.dec; S.cart[k].qty--; if (S.cart[k].qty <= 0) delete S.cart[k]; render();
+  });
+  const total = Object.values(S.cart).reduce((a, i) => a + i.qty * i.price, 0);
+  $('#kTotal').textContent = won(total);
+  $('#kTier').textContent = named() ? `${tierShort(t)} · ${tierLabel(t)}` : '이름·기수 입력';
+  $('#kTier').className = named() ? 'badge' : 'badge gray';
+}
+
+/* 옵션 모달 */
+function pick(id) {
+  const m = S.menus.find(x => x.id === id);
+  if (!m) return;
+  if (!named()) { toast('이름과 기수를 먼저 입력해 주세요'); $('#kName').focus(); return; }
+  const flavors = m.flavors || [];
+  const needTemp = m.temp === 'both';
+  if (!flavors.length && !needTemp) { addToCart(m, '', 1); return; }
+  S.modalItem = m; S.modalQty = 1; S.modalOpt = flavors.length ? flavors[0] : (m.temp === 'hot' ? 'HOT' : 'ICED');
+  renderModal();
+  $('#kModal').classList.add('open');
+}
+function renderModal() {
+  const m = S.modalItem, flavors = m.flavors || [];
+  const t = tier();
+  $('#kModalCard').innerHTML = `
+    <div class="between"><b style="font-size:20px">${esc(m.name)}</b><b style="color:var(--brand);font-size:18px">${won(priceOf(m, t))}</b></div>
+    <div class="mt14"><div class="small sub" style="margin-bottom:6px">${flavors.length ? '맛 선택' : '온도 선택'}</div>
+      <div class="opt-grid">${(flavors.length ? flavors : ['HOT', 'ICED']).map(o =>
+        `<button class="opt-btn ${S.modalOpt === o ? 'on' : ''}" data-o="${esc(o)}" type="button">${esc(o)}${o === 'HOT' ? ' 🔥' : o === 'ICED' ? ' 🧊' : ''}</button>`).join('')}</div></div>
+    <div class="qty mt14">
+      <button id="mQMinus" type="button" style="width:46px;height:46px;border-radius:13px;background:var(--surface-2);border:1px solid var(--line);font-size:22px;color:var(--brand)">−</button>
+      <b style="font-size:22px;min-width:40px;text-align:center">${S.modalQty}</b>
+      <button id="mQPlus" type="button" style="width:46px;height:46px;border-radius:13px;background:var(--surface-2);border:1px solid var(--line);font-size:22px;color:var(--brand)">+</button>
+    </div>
+    <div class="row mt20" style="gap:8px">
+      <button class="btn grow" id="mCancel" type="button">취소</button>
+      <button class="btn primary grow k-big" id="mAdd" type="button">담기</button>
+    </div>`;
+  $('#kModalCard').querySelectorAll('[data-o]').forEach(b => b.onclick = () => { S.modalOpt = b.dataset.o; renderModal(); });
+  $('#mQMinus').onclick = () => { if (S.modalQty > 1) { S.modalQty--; renderModal(); } };
+  $('#mQPlus').onclick = () => { if (S.modalQty < 20) { S.modalQty++; renderModal(); } };
+  $('#mCancel').onclick = () => $('#kModal').classList.remove('open');
+  $('#mAdd').onclick = () => { addToCart(S.modalItem, S.modalOpt, S.modalQty); $('#kModal').classList.remove('open'); };
+}
+
+function addToCart(m, option, qty) {
+  const key = m.id + '|' + option;
+  const price = priceOf(m, tier());
+  if (S.cart[key]) { S.cart[key].qty += qty; S.cart[key].price = price; }
+  else S.cart[key] = { id: m.id, name: m.name, option, price, qty };
+  render();
+}
+
+/* 이름·기수 입력 */
+$('#kName').oninput = render;
+$('#kGi').oninput = () => { $('#kGi').value = $('#kGi').value.replace(/[^0-9]/g, ''); render(); };
+$('#kSeniorBtn').onclick = () => { const c = $('#kSenior'); c.checked = !c.checked; render(); };
+$('#kAcctCopy').onclick = async () => { const ok = await copyText(`${S.cfg.bank} ${S.cfg.account}`); toast(ok ? '계좌번호를 복사했어요' : '복사 실패'); };
+$('#kReset').onclick = () => resetAll(true);
+
+/* 주문 */
+let resetTimer = null;
+$('#kOrder').onclick = async () => {
+  const c = cust();
+  if (!c.name) return toast('이름을 입력해 주세요');
+  if (!c.gi) return toast('기수를 입력해 주세요');
+  const items = Object.values(S.cart);
+  if (!items.length) return toast('주문할 음료를 골라 주세요');
+  const btn = $('#kOrder');
+  btn.disabled = true; btn.textContent = '접수 중…';
+  try {
+    const total = items.reduce((a, i) => a + i.qty * i.price, 0);
+    const ref = await addDoc(collection(db, 'orders'), {
+      name: c.name.slice(0, 12), gi: c.gi, senior: !!c.senior, tier: tierOf(c.gi, c.senior),
+      uid: 'kiosk', channel: 'kiosk', mode: 'onsite',
+      items: items.map(i => ({ id: i.id, name: i.name, option: i.option || '', price: i.price, qty: i.qty })),
+      total,
+      message: ($('#kMsg').value || '').slice(0, 120),
+      payMethod: 'transfer', payStatus: 'unpaid', status: 'new',
+      ts: Date.now(), madeAt: 0, payRequestAt: 0, paidAt: 0
+    });
+    showDone(ref.id, total, c);
+  } catch (e) {
+    console.error(e); toast('주문이 접수되지 않았어요');
+    btn.disabled = false; btn.textContent = '주문하기';
+  }
+};
+
+function showDone(orderId, total, c) {
+  const ov = $('#kDone');
+  let left = 10;
+  ov.innerHTML = `
+    <div class="big">주문이 접수되었습니다</div>
+    <div class="no">#${shortId(orderId)}</div>
+    <div style="font-size:15px;opacity:.95">${esc(c.name)}님 · ${esc(String(c.gi))}기 · ${tierLabel(tierOf(c.gi, c.senior))}</div>
+    <div class="box">
+      <div style="font-size:13px;opacity:.9">결제 금액</div>
+      <b>${won(total)}</b>
+      <div style="font-size:13px;opacity:.9;margin-top:10px">계좌이체</div>
+      <b style="font-size:16px">${esc(S.cfg.bank)} ${esc(S.cfg.account)}</b>
+      <div style="font-size:12.5px;opacity:.9">예금주 ${esc(S.cfg.holder)}</div>
+    </div>
+    <div class="cd"><b id="kCount">${left}</b>초 뒤 다음 손님을 위해 초기화됩니다</div>
+    <button class="btn mt14" id="kDoneNow" type="button" style="background:rgba(255,255,255,.14);color:var(--ink);border-color:var(--line-2)">바로 초기화</button>`;
+  ov.classList.add('open');
+  $('#kDoneNow').onclick = () => { clearInterval(resetTimer); resetAll(false); };
+  clearInterval(resetTimer);
+  resetTimer = setInterval(() => {
+    left--;
+    const n = $('#kCount');
+    if (n) n.textContent = left;
+    if (left <= 0) { clearInterval(resetTimer); resetAll(false); }
+  }, 1000);
+}
+
+function resetAll(ask) {
+  S.cart = {}; $('#kMsg').value = ''; $('#kName').value = ''; $('#kGi').value = '';
+  $('#kSenior').checked = false; $('#kDone').classList.remove('open');
+  const btn = $('#kOrder'); btn.disabled = false; btn.textContent = '주문하기';
+  render();
+  if (ask) toast('처음부터 다시 시작합니다');
+}
+
+$('#kModal').onclick = e => { if (e.target.id === 'kModal') $('#kModal').classList.remove('open'); };
+
+(async function boot() {
+  try { await ensureMenus(); } catch (e) { console.warn(e); }
+  render();
+})();
+</script>
+</body>
+</html>
