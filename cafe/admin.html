@@ -802,7 +802,11 @@ function renderSettings() {
     if (r !== 'granted') return toast('알림 권한을 먼저 허용해 주세요');
     toast('푸시 토큰 받는 중…');
     const tk = await registerPush('');
-    if (!tk) return toast('푸시 토큰을 받지 못했어요 (설정·HTTPS 확인)');
+    if (!tk) {
+      const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const stand = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+      return toast(ios && !stand ? '아이폰은 홈 화면에 추가한 앱에서만 잠금화면 푸시가 옵니다' : '푸시 토큰을 받지 못했어요 (설정·HTTPS 확인)');
+    }
     const res = await sendPush([tk], {
       title: '☕ 세종월드교회 카페',
       body: '푸시 테스트 — 이 알림이 잠금화면에 떴다면 성공입니다.',

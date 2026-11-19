@@ -1103,6 +1103,9 @@ function inAppBrowser() {
 }
 const notifySupported = () => ('Notification' in window) && !inAppBrowser();
 const showNotiCta = () => notifySupported() && Notification.permission === 'default';
+/* 아이폰은 홈 화면에 추가한 PWA에서만 잠금화면 알림이 옵니다 (iOS 16.4+) */
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 const NOTI_CTA = `<button class="noti-cta" id="notiCta" type="button">
     <span class="nc-ico">🔔</span>
     <span class="nc-t"><b>알림 켜기</b><em>제조완료 · 미입금 · 사장님 채팅을 폰으로 받아요</em></span>
@@ -1114,9 +1117,10 @@ function bindNotiCta(root) {
   b.onclick = async () => {
     const r = await askNotifyPermission();
     if (r === 'granted') {
-      toast('알림이 켜졌어요');
-      notify('알림 준비 완료', '음료가 나오면 알려드릴게요 ☕');
-      registerPush(uid).then(tk => { if (tk) toast('잠금화면 알림도 켜졌어요'); }).catch(() => { });
+      const tk = await registerPush(uid).catch(() => '');
+      if (tk) { toast('잠금화면 알림도 켜졌어요'); notify('알림 준비 완료', '음료가 나오면 알려드릴게요 ☕'); }
+      else if (isIOS && !isStandalone()) toast('아이폰은 홈 화면에 추가한 앱에서만 잠금화면 알림이 와요');
+      else { toast('알림이 켜졌어요'); notify('알림 준비 완료', '음료가 나오면 알려드릴게요 ☕'); }
     }
     else toast('알림 권한이 허용되지 않았어요');
     renderChat();
