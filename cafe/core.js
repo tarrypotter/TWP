@@ -346,11 +346,17 @@ export function buzz(pattern = [180, 90, 180]) {
   try { navigator.vibrate && navigator.vibrate(pattern); } catch (e) { }
 }
 
-export function notify(title, body) {
+const NOTI_ICON = './icon-192.png';
+/** OS 알림: 서비스워커가 있으면 showNotification, 없으면 new Notification (아이폰 홈화면앱·안드로이드 크롬 공통) */
+export async function notify(title, body) {
   try {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, { body, icon: './icon.png', badge: './icon.png' });
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const opts = { body, icon: NOTI_ICON, badge: NOTI_ICON, tag: 'sejong-cafe', renotify: true };
+    if ('serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg && reg.showNotification) { await reg.showNotification(title, opts); return; }
     }
+    new Notification(title, opts);
   } catch (e) { }
 }
 
