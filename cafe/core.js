@@ -3,7 +3,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
 import {
   initializeFirestore, getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc,
-  updateDoc, deleteDoc, onSnapshot, query, where, limit, writeBatch, serverTimestamp
+  updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit, writeBatch, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 export const firebaseConfig = {
@@ -25,7 +25,7 @@ try {
 }
 
 export { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
-  onSnapshot, query, where, limit, writeBatch, serverTimestamp };
+  onSnapshot, query, where, orderBy, limit, writeBatch, serverTimestamp };
 
 /* ---------------- 브랜드 ---------------- */
 export const BRAND = {
