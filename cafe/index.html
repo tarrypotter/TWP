@@ -1043,15 +1043,12 @@ function afterCartEdit() {
   renderCart();
   if (!cartList().length) closeOrderSheet();
 }
-function cartTempOf(id) {
-  const m = S.menus.find(x => x.id === id);
-  return m ? m.temp : '';
-}
 // HOT ↔ ICED — 같은 메뉴의 반대 온도 줄이 이미 있으면 수량을 합쳐 한 줄로 정리합니다
 function setCartTemp(key, temp) {
   const i = S.cart[key];
   if (!i) return;
-  if (cartTempOf(i.id) !== 'both' || i.option === temp) return;
+  const m = S.menus.find(x => x.id === i.id);
+  if (!m || m.temp !== 'both' || (m.flavors || []).length || i.option === temp) return;
   const nk = i.id + '|' + temp;
   if (S.cart[nk]) { S.cart[nk].qty = Math.min(20, S.cart[nk].qty + i.qty); delete S.cart[key]; }
   else { delete S.cart[key]; S.cart[nk] = { ...i, option: temp }; }
@@ -1063,8 +1060,12 @@ function renderOrderLines() {
   repricingCart();
   const box = $('#orderLines');
   const rows = Object.entries(S.cart).map(([k, i]) => {
-    const temp = cartTempOf(i.id);
-    const canTemp = temp === 'both';
+    const m = S.menus.find(x => x.id === i.id);
+    const temp = m ? m.temp : '';
+    const hasFlavor = !!(m && (m.flavors || []).length);   // 맛(레몬·자몽)을 고른 메뉴는 온도 대신 맛을 보여 줍니다
+    const canTemp = !hasFlavor && temp === 'both';
+    const tempMark = temp === 'hot' ? 'ONLY HOT' : temp === 'iced' ? 'ONLY ICED' : '';
+    const fix = hasFlavor ? [tempMark, i.option].filter(Boolean).join(' · ') : tempMark;
     return `
     <div class="o-line">
       <div class="ol-top">
@@ -1075,7 +1076,7 @@ function renderOrderLines() {
         ${canTemp ? `<div class="tseg" role="group" aria-label="온도 선택">
           <button type="button" data-temp="HOT" data-k="${esc(k)}" class="${i.option === 'HOT' ? 'on' : ''}">🔥 HOT</button>
           <button type="button" data-temp="ICED" data-k="${esc(k)}" class="${i.option === 'ICED' ? 'on' : ''}">🧊 ICED</button>
-        </div>` : `<span class="ol-fix">${temp === 'hot' ? 'ONLY HOT' : temp === 'iced' ? 'ONLY ICED' : ''}</span>`}
+        </div>` : `<span class="ol-fix">${esc(fix)}</span>`}
         <div class="stepper">
           <button data-dec="${esc(k)}" type="button" aria-label="수량 줄이기"${i.qty <= 1 ? ' disabled' : ''}>−</button>
           <b class="tnum">${i.qty}</b>

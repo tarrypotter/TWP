@@ -410,8 +410,12 @@ function render() {
   }
   const lines = Object.entries(S.cart);
   $('#kLines').innerHTML = lines.length ? lines.map(([k, i]) => {
-    const t3 = cartTemp(i.id);
-    const canTemp = t3 === 'both';
+    const m2 = S.menus.find(x => x.id === i.id);
+    const t3 = m2 ? m2.temp : '';
+    const hasFlavor = !!(m2 && (m2.flavors || []).length);   // 맛(레몬·자몽)을 고른 메뉴는 온도 대신 맛을 보여 줍니다
+    const canTemp = !hasFlavor && t3 === 'both';
+    const tempMark = t3 === 'hot' ? 'ONLY HOT' : t3 === 'iced' ? 'ONLY ICED' : '';
+    const fix = hasFlavor ? [tempMark, i.option].filter(Boolean).join(' · ') : tempMark;
     return `
     <div class="k-line">
       <div class="k-l-top">
@@ -422,7 +426,7 @@ function render() {
         ${canTemp ? `<div class="tseg" role="group" aria-label="온도 선택">
           <button type="button" data-temp="HOT" data-k="${esc(k)}" class="${i.option === 'HOT' ? 'on' : ''}">🔥 HOT</button>
           <button type="button" data-temp="ICED" data-k="${esc(k)}" class="${i.option === 'ICED' ? 'on' : ''}">🧊 ICED</button>
-        </div>` : `<span class="k-fix">${t3 === 'hot' ? 'ONLY HOT' : t3 === 'iced' ? 'ONLY ICED' : ''}</span>`}
+        </div>` : `<span class="k-fix">${esc(fix)}</span>`}
         <div class="q">
           <button data-dec="${esc(k)}" type="button" aria-label="수량 줄이기"${i.qty <= 1 ? ' disabled' : ''}>−</button><b>${i.qty}</b>
           <button data-inc="${esc(k)}" type="button" aria-label="수량 늘리기"${i.qty >= 20 ? ' disabled' : ''}>+</button>
@@ -514,10 +518,11 @@ function addToCart(m, option, qty) {
   render();
 }
 /* HOT ↔ ICED — 같은 메뉴의 반대 온도 줄이 이미 있으면 수량을 합쳐 한 줄로 정리합니다 */
-function cartTemp(id) { const m = S.menus.find(x => x.id === id); return m ? m.temp : ''; }
 function setCartTemp(k, temp) {
   const i = S.cart[k];
-  if (!i || cartTemp(i.id) !== 'both' || i.option === temp) return;
+  if (!i) return;
+  const m = S.menus.find(x => x.id === i.id);
+  if (!m || m.temp !== 'both' || (m.flavors || []).length || i.option === temp) return;
   const nk = i.id + '|' + temp;
   if (S.cart[nk]) { S.cart[nk].qty = Math.min(20, S.cart[nk].qty + i.qty); delete S.cart[k]; }
   else { delete S.cart[k]; S.cart[nk] = { ...i, option: temp }; }
