@@ -265,13 +265,22 @@ export function watchConfig(cb) {
   }, err => { console.warn('config', err); cb({ ...DEFAULT_CONFIG }); });
 }
 
+/* ---------------- 회원 식별 키 (이름_나이) ---------------- */
+/** 키오스크·손님 폰을 같은 사람으로 이어 주는 열쇠: "이름_나이" (공복 정리) */
+export function memberKeyOf(p) {
+  const name = String((p && p.name) || '').trim().replace(/\s+/g, ' ');
+  const age = Number(p && p.age) || 0;
+  if (!name) return '';
+  return age ? `${name}_${age}` : name;
+}
+
 /* ---------------- 회원(이름·나이 → 기수·부서) 기억 ---------------- */
 export async function saveMember(profile) {
   const uid = deviceUid();
   const p = profileFrom(profile);
   const data = {
     uid, name: p.name, age: p.age, gi: p.gi, dept: p.dept,
-    senior: p.senior, tier: p.tier,
+    senior: p.senior, tier: p.tier, memberKey: memberKeyOf(p),
     updatedAt: Date.now()
   };
   localStorage.setItem('cafe.profile', JSON.stringify(data));

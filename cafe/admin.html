@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2b211a">
 <title>세종월드교회 카페 · 사장님</title>
-<link rel="stylesheet" href="./style.css?v=7">
+<link rel="stylesheet" href="./style.css?v=8">
 <style>
   /* ---- 사장님 화면 · 다크 글래스 ---- */
   .pin-wrap { height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
@@ -81,6 +81,17 @@
   .set-row .si span { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
   .sec-h { padding: 20px 16px 8px; font-size: 10.5px; letter-spacing: .18em; color: var(--muted); font-weight: 800; text-transform: uppercase; }
   .box { border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
+  /* ---- 주문별 알림·채팅 ---- */
+  .o-chat { border-top: 1px solid var(--line); padding: 10px 13px 12px; background: rgba(255, 255, 255, .018); }
+  .o-chat .msgs { display: flex; flex-direction: column; gap: 5px; max-height: 190px; overflow-y: auto; margin-bottom: 8px; scrollbar-width: none; }
+  .o-chat .msgs::-webkit-scrollbar { display: none; }
+  .o-chat .msgs:empty { display: none; }
+  .bub { max-width: 86%; padding: 7px 10px; border-radius: 12px; font-size: 12px; line-height: 1.4; word-break: break-word; }
+  .bub.shop { align-self: flex-end; background: var(--brand-soft); border: 1px solid rgba(233, 189, 148, .24); color: var(--brand-2); border-bottom-right-radius: 4px; }
+  .bub.guest { align-self: flex-start; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+  .bub .t { display: block; font-size: 9px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .o-cin { display: flex; gap: 6px; }
+  .o-cin .input { padding: 9px 11px; border-radius: 11px; font-size: 16px; }
   .newflash { animation: flash 1.2s ease-out 2; }
   @keyframes flash { 0% { box-shadow: 0 0 0 0 rgba(242, 174, 116, .5); } 100% { box-shadow: 0 0 0 16px rgba(242, 174, 116, 0); } }
 </style>
@@ -174,8 +185,8 @@ import {
   db, BRAND, CATS, CAT_NAME, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort, priceOf, shortId,
   timeAgo, hhmm, esc, lockZoom, ensureMenus, ensureConfig, watchConfig, copyText,
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, query, orderBy,
-  limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary, whoTag, menuMatches
-} from './core.js?v=7';
+  limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary, whoTag, menuMatches, memberKeyOf
+} from './core.js?v=8';
 
 lockZoom();
 
@@ -321,6 +332,38 @@ function renderTabs() {
   if (c) c.textContent = active;
 }
 
+/* ---------------- 알림·채팅 ---------------- */
+let chats = [];
+onSnapshot(collection(db, 'messages'), snap => {
+  chats = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+  refreshChats();
+}, err => console.warn('chats', err));
+
+const chatsOf = id => chats.filter(m => m.orderId === id);
+function chatBubbles(orderId) {
+  return chatsOf(orderId).map(m => `<div class="bub ${m.from === 'shop' ? 'shop' : 'guest'}">${esc(m.text)}<span class="t">${hhmm(m.ts)}${m.from === 'shop' ? ' · 사장님' : ''}</span></div>`).join('');
+}
+function refreshChats() {
+  document.querySelectorAll('[data-chat]').forEach(box => {
+    const list = box.querySelector('.msgs');
+    if (!list) return;
+    list.innerHTML = chatBubbles(box.dataset.chat);
+    list.scrollTop = list.scrollHeight;
+  });
+}
+async function shopMsg(o, text, kind = 'msg') {
+  const body = String(text || '').trim();
+  if (!body) return;
+  try {
+    await addDoc(collection(db, 'messages'), {
+      orderId: o.id,
+      memberKey: o.memberKey || memberKeyOf({ name: o.name, age: o.age }),
+      uid: o.uid || '', name: o.name || '',
+      from: 'shop', kind, text: body.slice(0, 300), ts: Date.now()
+    });
+  } catch (e) { console.warn('msg', e); toast('메시지 전송 실패'); }
+}
+
 /* ---------------- 주문 ---------------- */
 function renderOrders() {
   const root = $('#tab-orders');
@@ -382,36 +425,69 @@ function renderOrders() {
         <button class="btn primary sm" data-confirm="${o.id}" type="button">입금 확인 → 완료</button>` : `<span class="badge ok" style="align-self:center">결제 완료된 주문</span>`}
         <button class="btn sm ghost" data-del="${o.id}" type="button" style="flex:0 0 auto;color:var(--muted)">삭제</button>
       </div>
+      <div class="o-chat" data-chat="${m.id}">
+        <div class="msgs">${chatBubbles(o.id)}</div>
+        <div class="o-cin">
+          <input class="input" data-cin="${esc(o.id)}" maxlength="200" autocomplete="off" placeholder="손님에게 한마디 (폰 알림으로 전송)">
+          <button class="btn sm primary" data-csend="${esc(o.id)}" type="button">보내기</button>
+        </div>
+      </div>
     </div>`;
   }
+  // 다시 그려도 작성 중인 채팅 입력은 남겨 둡니다
+  const drafts = {};
+  root.querySelectorAll('[data-cin]').forEach(i => { if (i.value) drafts[i.dataset.cin] = i.value; });
   root.innerHTML = html;
+  Object.entries(drafts).forEach(([id, v]) => {
+    const i = root.querySelector(`[data-cin="${id}"]`);
+    if (i) i.value = v;
+  });
   root.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { S.filter = b.dataset.f; renderOrders(); });
   root.querySelectorAll('[data-made]').forEach(b => b.onclick = () => sendMade(b.dataset.made, b));
   root.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => sendPayRequest(b.dataset.pay, b));
   root.querySelectorAll('[data-confirm]').forEach(b => b.onclick = () => confirmPaid(b.dataset.confirm, b));
   root.querySelectorAll('[data-del]').forEach(b => b.onclick = () => removeOrder(b.dataset.del));
+  root.querySelectorAll('[data-csend]').forEach(b => b.onclick = () => {
+    const id = b.dataset.csend;
+    const inp = root.querySelector(`[data-cin="${id}"]`);
+    const o = S.orders.find(x => x.id === id);
+    if (!inp || !o) return;
+    const v = inp.value;
+    if (!v.trim()) return;
+    inp.value = '';
+    shopMsg(o, v);
+  });
+  root.querySelectorAll('[data-cin]').forEach(inp => inp.onkeydown = e => {
+    if (e.key === 'Enter') { e.preventDefault(); const b = root.querySelector(`[data-csend="${inp.dataset.cin}"]`); if (b) b.click(); }
+  });
 }
 
 async function sendMade(id, btn) {
+  const o = S.orders.find(x => x.id === id) || { id };
   try {
     btn.disabled = true;
     await updateDoc(doc(db, 'orders', id), { madeAt: Date.now(), status: 'made', notifiedAt: Date.now() });
+    await shopMsg(o, `☕ ${itemsSummary(o.items) || '주문'} 나왔습니다! 카운터에서 받아 가세요.`, 'ready');
     toast('손님에게 "나왔습니다" 알림을 보냈어요');
     buzz(40);
   } catch (e) { console.error(e); toast('알림 전송 실패'); btn.disabled = false; }
 }
 async function sendPayRequest(id, btn) {
+  const o = S.orders.find(x => x.id === id) || { id };
   try {
     btn.disabled = true;
     await updateDoc(doc(db, 'orders', id), { payRequestAt: Date.now() });
+    await shopMsg(o, `💸 아직 입금 확인이 안 되었어요. ${S.cfg.bank} ${S.cfg.account} 입금 부탁드려요!`, 'pay');
     toast('미입금 결제 요청을 보냈어요');
     buzz(40);
   } catch (e) { console.error(e); toast('요청 전송 실패'); btn.disabled = false; }
 }
 async function confirmPaid(id, btn) {
+  const o = S.orders.find(x => x.id === id) || { id };
   try {
     btn.disabled = true;
     await updateDoc(doc(db, 'orders', id), { payStatus: 'paid', paidAt: Date.now(), status: 'done' });
+    await shopMsg(o, '입금 확인했어요. 주문 완료 처리했습니다. 감사합니다 ☕', 'msg');
     toast('입금 확인 · 주문 완료 처리했어요');
   } catch (e) { console.error(e); toast('처리 실패'); btn.disabled = false; }
 }

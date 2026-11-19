@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#f6f1e9">
 <meta name="format-detection" content="telephone=no">
 <title>세종월드교회 카페 · 주문</title>
-<link rel="stylesheet" href="./style.css?v=7">
+<link rel="stylesheet" href="./style.css?v=8">
 <style>
   /* ---- 손님 앱 전용 · 다크 글래스 ---- */
   .tier-pill {
@@ -122,6 +122,25 @@
 
   .skel { height: 68px; border-radius: 16px; margin: 0 16px 8px; background: linear-gradient(90deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .1), rgba(255, 255, 255, .04)); background-size: 200% 100%; animation: sh 1.3s infinite; }
   @keyframes sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+  /* ---- 알림·채팅 ---- */
+  .chat-thread {
+    margin: 0 16px 10px; border-radius: 18px; overflow: hidden;
+    background: var(--card); border: 1px solid var(--line); box-shadow: var(--card-shadow);
+  }
+  .ct-hdr { display: flex; align-items: center; gap: 8px; padding: 11px 13px; background: rgba(255, 255, 255, .03); border-bottom: 1px solid var(--line); }
+  .ct-hdr b { font-size: 12.5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ct-body { max-height: 232px; overflow-y: auto; overscroll-behavior: contain; padding: 11px 12px; display: flex; flex-direction: column; gap: 6px; scrollbar-width: none; }
+  .ct-body::-webkit-scrollbar { display: none; }
+  .bub { max-width: 84%; padding: 8px 11px; border-radius: 14px; font-size: 12.5px; line-height: 1.45; word-break: break-word; }
+  .bub.shop { align-self: flex-start; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); border-bottom-left-radius: 5px; }
+  .bub.guest { align-self: flex-end; background: var(--brand-soft); border: 1px solid rgba(233, 189, 148, .24); color: var(--brand-2); border-bottom-right-radius: 5px; }
+  .bub .t { display: block; font-size: 9.5px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .ct-in { display: flex; gap: 6px; padding: 9px 10px 11px; border-top: 1px solid var(--line); }
+  .ct-in .input { padding: 9px 12px; border-radius: 12px; }
+  .ct-in .btn { flex: 0 0 auto; }
+  .dock button { position: relative; }
+  .dock button .dot { position: absolute; top: 7px; right: 12px; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 2px var(--glass); }
   .tieseg-txt { font-size: 11px; color: var(--muted); text-align: center; padding: 22px 16px 30px; }
 
   /* ---- 주문 3단계 상태 (접수 → 제조완료 → 입금확인) ---- */
@@ -171,6 +190,7 @@
   <main class="main" id="main">
     <section id="view-menu"></section>
     <section id="view-orders" class="hide"></section>
+    <section id="view-chat" class="hide"></section>
     <section id="view-me" class="hide"></section>
   </main>
 
@@ -182,6 +202,7 @@
   <nav class="dock">
     <button data-view="menu" class="on" type="button"><span class="ico">☕</span>메뉴</button>
     <button data-view="orders" type="button"><span class="ico">🧾</span>주문내역</button>
+    <button data-view="chat" type="button"><span class="dot hide" id="chatDot"></span><span class="ico">💬</span>알림</button>
     <button data-view="me" type="button"><span class="ico">👤</span>내정보</button>
   </nav>
 </div>
@@ -281,10 +302,10 @@
 import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort,
   priceOf, deviceUid, shortId, timeAgo, hhmm, esc, lockZoom, ensureMenus, saveMember, localProfile,
-  hydrateProfile, profileFrom, whoTag, menuMatches, itemsSummary,
+  hydrateProfile, profileFrom, whoTag, menuMatches, itemsSummary, memberKeyOf,
   watchConfig, collection, doc, addDoc, getDoc, setDoc, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
   beep, buzz, notify, askNotifyPermission
-} from './core.js?v=7';
+} from './core.js?v=8';
 
 lockZoom();
 
@@ -300,6 +321,7 @@ const S = {
   pay: 'transfer',
   orders: [],
   queue: [],           // 카페 전체 진행 중 주문(실시간 현황)
+  msgs: [],            // 내 알림·채팅 메시지
   opt: null,          // {menu, option, qty}
   q: '',              // 메뉴 검색어
   fav: [],            // 즐겨찾기 메뉴 id
@@ -339,18 +361,24 @@ onSnapshot(menusQ, snap => {
   renderMenu();
 }, err => { console.warn('menus', err); $('.main').innerHTML = '<div class="empty"><b>메뉴를 불러오지 못했어요</b><span>잠시 후 다시 열어 주세요</span></div>'; });
 
-/* ---------------- 내 주문 실시간 ---------------- */
-onSnapshot(query(collection(db, 'orders'), where('uid', '==', uid)), snap => {
-  S.orders = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+/* ---------------- 내 주문 + 카페 실시간 현황 ---------------- */
+/* 이 기기(uid)로 넣은 주문 + 같은 회원키(이름_나이)로 넣은 키오스크 주문을 모두 내 것으로 봅니다 */
+function isMine(o) {
+  if (!o) return false;
+  if (o.uid && o.uid === uid) return true;
+  const k = memberKeyOf(S.profile || {});
+  if (k && o.memberKey === k) return true;
+  if (S.profile && o.name === S.profile.name && Number(o.age) === Number(S.profile.age)) return true;
+  if (k && !o.memberKey && memberKeyOf({ name: o.name, age: o.age }) === k) return true;
+  return false;
+}
+onSnapshot(collection(db, 'orders'), snap => {
+  const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  S.orders = all.filter(isMine).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  S.queue = all.filter(o => o.status === 'new' || o.status === 'made').sort((a, b) => (a.ts || 0) - (b.ts || 0));
   checkAlerts();
   if (S.view === 'orders') renderOrders();
-});
-
-/* ---------------- 카페 실시간 현황(전광판) ---------------- */
-onSnapshot(query(collection(db, 'orders'), where('status', 'in', ['new', 'made'])), snap => {
-  S.queue = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.ts || 0) - (b.ts || 0));
-  if (S.view === 'orders') renderBoard();
-}, err => console.warn('queue', err));
+}, err => console.warn('orders', err));
 
 /* ---------------- 알림(제조 완료 / 미입금 요청) ---------------- */
 const seenKey = 'cafe.seen.' + uid;
@@ -731,6 +759,7 @@ $('#orderSubmit').onclick = async () => {
       senior: !!S.profile.senior,
       tier: tier(),
       uid,
+      memberKey: memberKeyOf({ name: S.profile.name, age: S.profile.age }),
       channel: 'phone',
       mode: S.mode,
       items: items.map(i => ({ id: i.id, name: i.name, option: i.option || '', price: i.price, qty: i.qty })),
@@ -859,6 +888,115 @@ function renderOrders() {
   });
 }
 
+/* ---------------- 알림·채팅 (사장님 ↔ 손님) ---------------- */
+const CHAT_SEEN_KEY = 'cafe.chatseen.' + uid;
+let chatSeenAt = Number(localStorage.getItem(CHAT_SEEN_KEY) || 0);
+const myKey = () => memberKeyOf(S.profile || {});
+let unsubMsgs = null;
+
+function updateChatDot() {
+  const dot = $('#chatDot');
+  if (!dot) return;
+  const unread = S.msgs.filter(m => m.from === 'shop' && (m.ts || 0) > chatSeenAt).length;
+  dot.classList.toggle('hide', !unread);
+}
+function markChatSeen() {
+  chatSeenAt = Date.now();
+  try { localStorage.setItem(CHAT_SEEN_KEY, String(chatSeenAt)); } catch (e) { }
+  updateChatDot();
+}
+function watchMsgs() {
+  if (unsubMsgs) { unsubMsgs(); unsubMsgs = null; }
+  S.msgs = []; updateChatDot();
+  const k = myKey();
+  if (!k) { if (S.view === 'chat') renderChat(); return; }
+  unsubMsgs = onSnapshot(query(collection(db, 'messages'), where('memberKey', '==', k)), snap => {
+    S.msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+    updateChatDot();
+    if (S.view === 'chat') { if ($('.chat-thread')) updateThreadMsgs(); else renderChat(); }
+  }, err => console.warn('msgs', err));
+}
+
+async function sendChat(orderId, text) {
+  const k = myKey(), body = String(text || '').trim();
+  if (!k || !body) return;
+  try {
+    await addDoc(collection(db, 'messages'), {
+      orderId, memberKey: k, uid, from: 'guest', kind: 'msg',
+      text: body.slice(0, 200), name: S.profile?.name || '', ts: Date.now()
+    });
+    markChatSeen();
+    buzz(15);
+  } catch (e) { console.warn('chat', e); toast('메시지를 보내지 못했어요'); }
+}
+
+function chatThreads() {
+  const by = {};
+  for (const m of S.msgs) { (by[m.orderId] = by[m.orderId] || []).push(m); }
+  const out = [];
+  for (const o of S.orders) {
+    const msgs = by[o.id] || [];
+    if (msgs.length || o.status !== 'done') out.push({ o, msgs });
+  }
+  const lastTs = t => (t.msgs.length ? t.msgs[t.msgs.length - 1].ts : 0) || t.o.ts || 0;
+  return out.sort((a, b) => lastTs(b) - lastTs(a));
+}
+function bubble(m) {
+  return `<div class="bub ${m.from === 'guest' ? 'guest' : 'shop'}">${esc(m.text)}<span class="t">${hhmm(m.ts)}</span></div>`;
+}
+function threadHtml({ o, msgs }) {
+  const st = o.status === 'done' ? '<span class="badge ok">완료</span>'
+    : o.madeAt ? '<span class="badge warn">픽업 대기</span>' : '<span class="badge">조리 중</span>';
+  const empty = '<div class="tiny muted" style="text-align:center;padding:10px 0">사장님이 알림을 보내면 여기에 쌓입니다</div>';
+  return `<div class="chat-thread">
+    <div class="ct-hdr">
+      <span class="lb-no">#${shortId(o.id)}</span>
+      <b>${esc(itemsSummary(o.items) || '주문')}</b>
+      <span style="margin-left:auto">${st}</span>
+    </div>
+    <div class="ct-body" id="gmsgs-${o.id}">${msgs.map(bubble).join('') || empty}</div>
+    <div class="ct-in">
+      <input class="input" id="gin-${o.id}" data-send="${o.id}" maxlength="200" autocomplete="off" placeholder="예) 이체 완료했어요!">
+      <button class="btn primary sm" data-sendbtn="${o.id}" type="button">보내기</button>
+    </div>
+  </div>`;
+}
+function renderChat() {
+  const root = $('#view-chat');
+  if (!S.profile) {
+    root.innerHTML = `<div class="empty" style="padding-top:56px"><span class="e-ico">💬</span><b>이름과 나이를 먼저 등록해 주세요</b><span>등록하면 사장님 알림·채팅이 이 화면으로 옵니다</span></div>`;
+    return;
+  }
+  const threads = chatThreads();
+  if (!threads.length) {
+    root.innerHTML = `<div class="empty" style="padding-top:56px"><span class="e-ico">💬</span><b>아직 대화가 없어요</b><span>주문하면 사장님 알림이 여기로 옵니다</span></div>`;
+    return;
+  }
+  root.innerHTML = `<div class="sec-title"><b>알림 · 채팅</b><span class="small muted">사장님과 실시간</span></div>` + threads.map(threadHtml).join('');
+  root.querySelectorAll('[data-sendbtn]').forEach(b => b.onclick = () => {
+    const id = b.dataset.sendbtn;
+    const inp = document.getElementById('gin-' + id);
+    const v = inp ? inp.value : '';
+    if (!v.trim()) return;
+    inp.value = '';
+    sendChat(id, v);
+  });
+  root.querySelectorAll('[data-send]').forEach(inp => inp.onkeydown = e => {
+    if (e.key === 'Enter') { e.preventDefault(); const b = document.querySelector(`[data-sendbtn="${inp.dataset.send}"]`); if (b) b.click(); }
+  });
+  root.querySelectorAll('.ct-body, .ct-body *').forEach(() => { });
+  root.querySelectorAll('.ct-body').forEach(b => { b.scrollTop = b.scrollHeight; });
+}
+function updateThreadMsgs() {
+  for (const t of chatThreads()) {
+    const box = document.getElementById('gmsgs-' + t.o.id);
+    if (!box) { renderChat(); return; }
+    const empty = '<div class="tiny muted" style="text-align:center;padding:10px 0">사장님이 알림을 보내면 여기에 쌓입니다</div>';
+    box.innerHTML = t.msgs.map(bubble).join('') || empty;
+    box.scrollTop = box.scrollHeight;
+  }
+}
+
 /* ---------------- 내정보 ---------------- */
 function renderMe() {
   const root = $('#view-me');
@@ -946,6 +1084,7 @@ $('#signupSave').onclick = async () => {
   S.profile = await saveMember({ name, age, senior: $('#suSenior').checked });
   renderTierPill(); renderMenu(true); renderCart();
   if (S.view === 'me') renderMe();
+  watchMsgs();
   $('#sheetSignup').classList.remove('open');
   toast(`${name}님 · ${S.profile.gi > 0 ? S.profile.gi + '기 · ' : ''}${S.profile.dept} · ${tierLabel(tier())} 적용`);
 };
@@ -956,10 +1095,12 @@ function setView(v) {
   S.view = v;
   $('#view-menu').classList.toggle('hide', v !== 'menu');
   $('#view-orders').classList.toggle('hide', v !== 'orders');
+  $('#view-chat').classList.toggle('hide', v !== 'chat');
   $('#view-me').classList.toggle('hide', v !== 'me');
   document.querySelectorAll('.dock button').forEach(b => b.classList.toggle('on', b.dataset.view === v));
   $('.main').scrollTop = 0;
   if (v === 'orders') renderOrders();
+  if (v === 'chat') { renderChat(); markChatSeen(); }
   if (v === 'me') renderMe();
   if (v === 'menu') renderMenu();
 }
@@ -970,6 +1111,7 @@ document.querySelectorAll('.dock button').forEach(b => b.onclick = () => setView
   document.querySelector('#payHint').innerHTML = `계좌이체 · <b>${esc(S.cfg.bank)} ${esc(S.cfg.account)}</b> (예금주 ${esc(S.cfg.holder)})`;
   loadFavLocal();
   renderTierPill(); renderMenu();
+  watchMsgs();
   try { await ensureMenus(); } catch (e) { console.warn('seed', e); }
   pullFav();
   if (!S.profile) setTimeout(() => openSignup(true), 320);
