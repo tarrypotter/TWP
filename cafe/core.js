@@ -404,7 +404,11 @@ const NOTI_ICON = './icon-192.png';
 export async function notify(title, body) {
   try {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    const opts = { body, icon: NOTI_ICON, badge: NOTI_ICON, tag: 'sejong-cafe', renotify: true };
+    // 같은 tag 로 계속 덮어쓰면 iOS는 배너 없이 조용히 바꾸는 수가 있어 매번 새 tag 로 띄웁니다
+    const opts = {
+      body, icon: NOTI_ICON, badge: NOTI_ICON, tag: 'sejong-' + Date.now(),
+      renotify: true, silent: false, requireInteraction: false, lang: 'ko'
+    };
     if ('serviceWorker' in navigator) {
       const reg = await navigator.serviceWorker.getRegistration();
       if (reg && reg.showNotification) { await reg.showNotification(title, opts); return; }

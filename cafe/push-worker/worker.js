@@ -48,7 +48,7 @@ export default {
     const tokens = Array.from(new Set((payload.tokens || []).filter(t => typeof t === 'string' && t.length > 20))).slice(0, 200);
     const title = String(payload.title || '세종월드교회 카페').slice(0, 120);
     const body = String(payload.body || '').slice(0, 300);
-    const tag = String(payload.tag || 'sejong-cafe').slice(0, 64);
+    const tag = String(payload.tag || 'sejong-' + Date.now()).slice(0, 64);
     let link = String(payload.url || 'https://tarrypotter.github.io/TWP/cafe/');
     if (!/^https:\/\//.test(link)) link = 'https://tarrypotter.github.io/TWP/cafe/';
 
@@ -71,11 +71,16 @@ export default {
           token,
           notification: { title, body },
           webpush: {
+            /* Urgency: high = APNs priority 10. 이게 없으면 iOS가 '조용한 알림'으로 보내 배너 없이 알림센터에만 쌓입니다.
+               TTL: 86400 = 하루 안에 도착하면 전달 (그 뒤엔 버립니다). */
             headers: { Urgency: 'high', TTL: '86400' },
             notification: {
               title, body,
               icon: ICON, badge: BADGE,
               tag, renotify: true,
+              /* iOS 배너를 막지 않도록 조용한 알림·고정 알림은 끕니다 */
+              silent: false, requireInteraction: false,
+              timestamp: Date.now(), dir: 'ltr', lang: 'ko',
               data: { url: link }
             },
             fcm_options: { link }

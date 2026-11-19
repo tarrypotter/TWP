@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="세종카페">
 <meta name="theme-color" content="#08080a">
 <title>세종월드교회 카페 · 사장님</title>
-<link rel="stylesheet" href="./style.css?v=15">
+<link rel="stylesheet" href="./style.css?v=16">
 <style>
   /* ---- 사장님 화면 · 다크 글래스 ---- */
   .pin-wrap { height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
@@ -215,7 +215,7 @@ import {
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, getDoc, query, orderBy,
   limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary, whoTag, menuMatches, memberKeyOf, arrayUnion,
   sendPush, pushTokensOf, registerPush, pushTokenLocal, pushAvailable
-} from './core.js?v=15';
+} from './core.js?v=16';
 
 lockZoom();
 
@@ -395,7 +395,8 @@ async function sendOrderPush(o, { title, body, tag }) {
     const r = await sendPush(tokens, {
       title, body,
       url: new URL('./index.html?view=orders', location.href).href,
-      tag: tag || ('order-' + o.id)
+      /* 같은 tag 로 덮어쓰면 iOS가 배너 없이 조용히 바꾸는 수가 있어 알림마다 tag 를 다르게 보냅니다 */
+      tag: `${tag || ('order-' + o.id)}-${Date.now().toString(36)}`
     });
     if (r && r.sent) console.info('push sent', r.sent);
   } catch (e) { console.warn('push', e); }

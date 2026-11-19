@@ -13,7 +13,7 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="stylesheet" href="./style.css?v=15">
+<link rel="stylesheet" href="./style.css?v=16">
 <style>
   /* ---- 손님 앱 전용 · 다크 글래스 ---- */
   .tier-pill {
@@ -372,8 +372,8 @@ import {
   priceOf, deviceUid, shortId, timeAgo, hhmm, esc, lockZoom, ensureMenus, saveMember, localProfile,
   hydrateProfile, whoTag, tierName, getTiers, menuMatches, itemsSummary, memberKeyOf, giFromAge,
   watchConfig, collection, doc, addDoc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
-  beep, buzz, notify, askNotifyPermission, registerPush, pushTokenLocal, pushTokensOf, PUSH, pushAvailable
-} from './core.js?v=15';
+  beep, buzz, notify, askNotifyPermission, registerPush, pushTokenLocal, pushTokensOf, PUSH, pushAvailable, sendPush
+} from './core.js?v=16';
 
 lockZoom();
 
@@ -1157,7 +1157,16 @@ function bindNotiCta(root) {
     const r = await askNotifyPermission();
     if (r === 'granted') {
       const tk = await registerPush(uid).catch(() => '');
-      if (tk) { toast('잠금화면 알림도 켜졌어요'); notify('알림 준비 완료', '음료가 나오면 알려드릴게요 ☕'); }
+      if (tk) {
+        // 진짜 푸시(Worker → FCM)로 한 번 보내 봅니다 — 등록·저장·발송이 한 번에 확인됩니다
+        const res = await sendPush([tk], {
+          title: '알림 준비 완료 ☕',
+          body: '음료가 나오면 이렇게 알려드려요',
+          url: location.href, tag: 'ready-' + Date.now()
+        });
+        if (!(res && res.sent)) notify('알림 준비 완료', '음료가 나오면 알려드릴게요 ☕');
+        toast('알림을 켰어요 · 앱을 닫아 둬도 알림이 와요');
+      }
       else if (isIOS && !isStandalone()) toast('아이폰은 홈 화면에 추가한 앱에서만 잠금화면 알림이 와요');
       else { toast('알림이 켜졌어요'); notify('알림 준비 완료', '음료가 나오면 알려드릴게요 ☕'); }
     }
@@ -1333,9 +1342,27 @@ function renderMe() {
       <button class="btn sm mt6" id="copyAcctMe" type="button">계좌번호 복사</button>
     </div>
 
+    <div class="pad" style="padding-top:12px">
+      <button class="btn block" id="pushTestMe" type="button">잠금화면 알림 테스트</button>
+      <p class="tiny muted" style="text-align:center;margin-top:8px">이 기기로 실제 알림을 한 번 보내 봅니다.<br>앱을 닫거나 홈 화면으로 나간 뒤 1~2초 안에 떠야 정상입니다.</p>
+    </div>
+
     <p class="tiny muted" style="text-align:center;padding:20px 16px 30px">${esc(BRAND.name)} · ${esc(BRAND.nameEn)}</p>`;
   $('#editProfile').onclick = () => openSignup(false);
   $('#copyAcctMe').onclick = async () => { const ok = await copyText(S.cfg.account); toast(ok ? '계좌번호를 복사했어요' : '복사 실패'); };
+  const pt = $('#pushTestMe');
+  if (pt) pt.onclick = async () => {
+    const r = await askNotifyPermission();
+    if (r !== 'granted') return toast('알림 권한을 먼저 허용해 주세요');
+    toast('이 기기로 알림을 보내는 중…');
+    const tk = await registerPush(uid).catch(() => '');
+    if (!tk) return toast(isIOS && !isStandalone() ? '아이폰은 홈 화면에 추가한 앱에서만 잠금화면 알림이 와요' : '이 기기의 알림 토큰을 받지 못했어요');
+    const res = await sendPush([tk], {
+      title: '☕ 알림 테스트', body: '이 알림이 배너로 뜨면 정상이에요',
+      url: location.href, tag: 't-' + Date.now()
+    });
+    toast(res && res.sent ? '테스트 알림을 보냈어요' : '발송하지 못했어요 · 잠시 후 다시');
+  };
   const lo = $('#logoutBtn');
   if (lo) lo.onclick = logout;
 }

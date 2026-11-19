@@ -1,7 +1,7 @@
 /* 세종월드교회 카페 — 서비스 워커
    원칙: 화면(HTML)·스크립트는 항상 네트워크 우선 → 새 배포가 바로 반영되고,
    네트워크가 끊겼을 때만 캐시로 대신 열어 줍니다. (정적 셸 캐시 충돌 없음) */
-const CACHE = 'sejong-cafe-v6';
+const CACHE = 'sejong-cafe-v7';
 const SHELL = ['./', './index.html', './board.html', './style.css', './core.js', './manifest.json',
   './icon-192.png', './icon-512.png', './icon-180.png'];
 
@@ -75,14 +75,20 @@ self.addEventListener('push', event => {
   const d = payload.data || {};
   const title = n.title || d.title || '세종월드교회 카페';
   const body = n.body || d.body || '';
-  const tag = n.tag || d.tag || 'sejong-cafe';
+  /* 같은 tag 알림이 이미 떠 있으면 iOS·안드로이드 모두 '교체'로 처리해 배너 없이 조용히 바뀌는 수가 있습니다.
+     그래서 tag 가 없으면 매번 다른 값을 붙입니다. */
+  const tag = n.tag || d.tag || ('sejong-' + Date.now());
   const link = (n.data && n.data.url) || d.url || './';
   event.waitUntil(self.registration.showNotification(title, {
     body,
     icon: './icon-192.png',
     badge: './icon-192.png',
     tag,
-    renotify: true,
+    renotify: true,               // 안드로이드 크롬: 같은 tag 라도 다시 울리게
+    silent: false,                // 조용한 알림으로 내려가지 않게
+    requireInteraction: false,    // iOS 배너를 막지 않게 (자동으로 사라짐)
+    timestamp: Date.now(),
+    lang: 'ko',
     vibrate: [180, 90, 180],
     data: { url: link }
   }));
