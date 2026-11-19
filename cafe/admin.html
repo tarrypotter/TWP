@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2b211a">
 <title>세종월드교회 카페 · 사장님</title>
-<link rel="stylesheet" href="./style.css?v=8">
+<link rel="stylesheet" href="./style.css?v=9">
 <style>
   /* ---- 사장님 화면 · 다크 글래스 ---- */
   .pin-wrap { height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
@@ -185,8 +185,8 @@ import {
   db, BRAND, CATS, CAT_NAME, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort, priceOf, shortId,
   timeAgo, hhmm, esc, lockZoom, ensureMenus, ensureConfig, watchConfig, copyText,
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, query, orderBy,
-  limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary, whoTag, menuMatches, memberKeyOf
-} from './core.js?v=8';
+  limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary, whoTag, menuMatches, memberKeyOf, arrayUnion
+} from './core.js?v=9';
 
 lockZoom();
 
@@ -332,36 +332,18 @@ function renderTabs() {
   if (c) c.textContent = active;
 }
 
-/* ---------------- 알림·채팅 ---------------- */
-let chats = [];
-onSnapshot(collection(db, 'messages'), snap => {
-  chats = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.ts || 0) - (b.ts || 0));
-  refreshChats();
-}, err => console.warn('chats', err));
-
-const chatsOf = id => chats.filter(m => m.orderId === id);
-function chatBubbles(orderId) {
-  return chatsOf(orderId).map(m => `<div class="bub ${m.from === 'shop' ? 'shop' : 'guest'}">${esc(m.text)}<span class="t">${hhmm(m.ts)}${m.from === 'shop' ? ' · 사장님' : ''}</span></div>`).join('');
-}
-function refreshChats() {
-  document.querySelectorAll('[data-chat]').forEach(box => {
-    const list = box.querySelector('.msgs');
-    if (!list) return;
-    list.innerHTML = chatBubbles(box.dataset.chat);
-    list.scrollTop = list.scrollHeight;
-  });
+/* ---------------- 알림·채팅 (주문 문서의 chat 배열) ---------------- */
+const orderChat = o => (o && Array.isArray(o.chat) ? o.chat.slice().sort((a, b) => (a.ts || 0) - (b.ts || 0)) : []);
+function chatBubbles(o) {
+  return orderChat(o).map(m => `<div class="bub ${m.from === 'shop' ? 'shop' : 'guest'}">${esc(m.text)}<span class="t">${hhmm(m.ts)}${m.from === 'shop' ? ' · 사장님' : ''}</span></div>`).join('');
 }
 async function shopMsg(o, text, kind = 'msg') {
   const body = String(text || '').trim();
-  if (!body) return;
-  try {
-    await addDoc(collection(db, 'messages'), {
-      orderId: o.id,
-      memberKey: o.memberKey || memberKeyOf({ name: o.name, age: o.age }),
-      uid: o.uid || '', name: o.name || '',
-      from: 'shop', kind, text: body.slice(0, 300), ts: Date.now()
-    });
-  } catch (e) { console.warn('msg', e); toast('메시지 전송 실패'); }
+  if (!body || !o || !o.id) return;
+  const patch = { chat: arrayUnion({ from: 'shop', kind, text: body.slice(0, 300), ts: Date.now(), name: '사장님' }) };
+  if (!o.memberKey) patch.memberKey = memberKeyOf({ name: o.name, age: o.age });
+  try { await updateDoc(doc(db, 'orders', o.id), patch); }
+  catch (e) { console.warn('msg', e); toast('메시지 전송 실패'); }
 }
 
 /* ---------------- 주문 ---------------- */
@@ -426,7 +408,7 @@ function renderOrders() {
         <button class="btn sm ghost" data-del="${o.id}" type="button" style="flex:0 0 auto;color:var(--muted)">삭제</button>
       </div>
       <div class="o-chat" data-chat="${o.id}">
-        <div class="msgs">${chatBubbles(o.id)}</div>
+        <div class="msgs">${chatBubbles(o)}</div>
         <div class="o-cin">
           <input class="input" data-cin="${esc(o.id)}" maxlength="200" autocomplete="off" placeholder="손님에게 한마디 (폰 알림으로 전송)">
           <button class="btn sm primary" data-csend="${esc(o.id)}" type="button">보내기</button>

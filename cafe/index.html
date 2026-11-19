@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#f6f1e9">
 <meta name="format-detection" content="telephone=no">
 <title>세종월드교회 카페 · 주문</title>
-<link rel="stylesheet" href="./style.css?v=8">
+<link rel="stylesheet" href="./style.css?v=9">
 <style>
   /* ---- 손님 앱 전용 · 다크 글래스 ---- */
   .tier-pill {
@@ -303,9 +303,9 @@ import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort,
   priceOf, deviceUid, shortId, timeAgo, hhmm, esc, lockZoom, ensureMenus, saveMember, localProfile,
   hydrateProfile, profileFrom, whoTag, menuMatches, itemsSummary, memberKeyOf,
-  watchConfig, collection, doc, addDoc, getDoc, setDoc, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
+  watchConfig, collection, doc, addDoc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
   beep, buzz, notify, askNotifyPermission
-} from './core.js?v=8';
+} from './core.js?v=9';
 
 lockZoom();
 
@@ -377,7 +377,9 @@ onSnapshot(collection(db, 'orders'), snap => {
   S.orders = all.filter(isMine).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   S.queue = all.filter(o => o.status === 'new' || o.status === 'made').sort((a, b) => (a.ts || 0) - (b.ts || 0));
   checkAlerts();
+  updateChatDot();
   if (S.view === 'orders') renderOrders();
+  if (S.view === 'chat') { if ($('.chat-thread')) updateThreadMsgs(); else renderChat(); }
 }, err => console.warn('orders', err));
 
 /* ---------------- 알림(제조 완료 / 미입금 요청) ---------------- */
@@ -888,16 +890,20 @@ function renderOrders() {
   });
 }
 
-/* ---------------- 알림·채팅 (사장님 ↔ 손님) ---------------- */
+/* ---------------- 알림·채팅 (사장님 ↔ 손님 · 주문 문서의 chat 배열) ---------------- */
 const CHAT_SEEN_KEY = 'cafe.chatseen.' + uid;
 let chatSeenAt = Number(localStorage.getItem(CHAT_SEEN_KEY) || 0);
-const myKey = () => memberKeyOf(S.profile || {});
-let unsubMsgs = null;
 
+const orderMsgs = o => (o && Array.isArray(o.chat) ? o.chat.slice().sort((a, b) => (a.ts || 0) - (b.ts || 0)) : []);
+function allMyMsgs() {
+  const out = [];
+  for (const o of S.orders) for (const m of orderMsgs(o)) out.push(m);
+  return out;
+}
 function updateChatDot() {
   const dot = $('#chatDot');
   if (!dot) return;
-  const unread = S.msgs.filter(m => m.from === 'shop' && (m.ts || 0) > chatSeenAt).length;
+  const unread = allMyMsgs().filter(m => m.from === 'shop' && (m.ts || 0) > chatSeenAt).length;
   dot.classList.toggle('hide', !unread);
 }
 function markChatSeen() {
@@ -905,25 +911,12 @@ function markChatSeen() {
   try { localStorage.setItem(CHAT_SEEN_KEY, String(chatSeenAt)); } catch (e) { }
   updateChatDot();
 }
-function watchMsgs() {
-  if (unsubMsgs) { unsubMsgs(); unsubMsgs = null; }
-  S.msgs = []; updateChatDot();
-  const k = myKey();
-  if (!k) { if (S.view === 'chat') renderChat(); return; }
-  unsubMsgs = onSnapshot(query(collection(db, 'messages'), where('memberKey', '==', k)), snap => {
-    S.msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.ts || 0) - (b.ts || 0));
-    updateChatDot();
-    if (S.view === 'chat') { if ($('.chat-thread')) updateThreadMsgs(); else renderChat(); }
-  }, err => console.warn('msgs', err));
-}
-
 async function sendChat(orderId, text) {
-  const k = myKey(), body = String(text || '').trim();
-  if (!k || !body) return;
+  const body = String(text || '').trim();
+  if (!body) return;
   try {
-    await addDoc(collection(db, 'messages'), {
-      orderId, memberKey: k, uid, from: 'guest', kind: 'msg',
-      text: body.slice(0, 200), name: S.profile?.name || '', ts: Date.now()
+    await updateDoc(doc(db, 'orders', orderId), {
+      chat: arrayUnion({ from: 'guest', kind: 'msg', text: body.slice(0, 200), name: S.profile?.name || '', ts: Date.now() })
     });
     markChatSeen();
     buzz(15);
@@ -931,35 +924,45 @@ async function sendChat(orderId, text) {
 }
 
 function chatThreads() {
-  const by = {};
-  for (const m of S.msgs) { (by[m.orderId] = by[m.orderId] || []).push(m); }
-  const out = [];
-  for (const o of S.orders) {
-    const msgs = by[o.id] || [];
-    if (msgs.length || o.status !== 'done') out.push({ o, msgs });
-  }
+  const out = S.orders
+    .map(o => ({ o, msgs: orderMsgs(o) }))
+    .filter(t => t.msgs.length || t.o.status !== 'done');
   const lastTs = t => (t.msgs.length ? t.msgs[t.msgs.length - 1].ts : 0) || t.o.ts || 0;
   return out.sort((a, b) => lastTs(b) - lastTs(a));
 }
 function bubble(m) {
   return `<div class="bub ${m.from === 'guest' ? 'guest' : 'shop'}">${esc(m.text)}<span class="t">${hhmm(m.ts)}</span></div>`;
 }
+const THREAD_EMPTY = '<div class="tiny muted" style="text-align:center;padding:10px 0">사장님이 알림을 보내면 여기에 쌓입니다</div>';
 function threadHtml({ o, msgs }) {
   const st = o.status === 'done' ? '<span class="badge ok">완료</span>'
     : o.madeAt ? '<span class="badge warn">픽업 대기</span>' : '<span class="badge">조리 중</span>';
-  const empty = '<div class="tiny muted" style="text-align:center;padding:10px 0">사장님이 알림을 보내면 여기에 쌓입니다</div>';
   return `<div class="chat-thread">
     <div class="ct-hdr">
       <span class="lb-no">#${shortId(o.id)}</span>
       <b>${esc(itemsSummary(o.items) || '주문')}</b>
       <span style="margin-left:auto">${st}</span>
     </div>
-    <div class="ct-body" id="gmsgs-${o.id}">${msgs.map(bubble).join('') || empty}</div>
+    <div class="ct-body" id="gmsgs-${o.id}">${msgs.map(bubble).join('') || THREAD_EMPTY}</div>
     <div class="ct-in">
       <input class="input" id="gin-${o.id}" data-send="${o.id}" maxlength="200" autocomplete="off" placeholder="예) 이체 완료했어요!">
       <button class="btn primary sm" data-sendbtn="${o.id}" type="button">보내기</button>
     </div>
   </div>`;
+}
+function bindThreads(root) {
+  root.querySelectorAll('[data-sendbtn]').forEach(b => b.onclick = () => {
+    const id = b.dataset.sendbtn;
+    const inp = document.getElementById('gin-' + id);
+    const v = inp ? inp.value : '';
+    if (!v.trim()) return;
+    inp.value = '';
+    sendChat(id, v);
+  });
+  root.querySelectorAll('[data-send]').forEach(inp => inp.onkeydown = e => {
+    if (e.key === 'Enter') { e.preventDefault(); const b = document.querySelector(`[data-sendbtn="${inp.dataset.send}"]`); if (b) b.click(); }
+  });
+  root.querySelectorAll('.ct-body').forEach(b => { b.scrollTop = b.scrollHeight; });
 }
 function renderChat() {
   const root = $('#view-chat');
@@ -973,26 +976,13 @@ function renderChat() {
     return;
   }
   root.innerHTML = `<div class="sec-title"><b>알림 · 채팅</b><span class="small muted">사장님과 실시간</span></div>` + threads.map(threadHtml).join('');
-  root.querySelectorAll('[data-sendbtn]').forEach(b => b.onclick = () => {
-    const id = b.dataset.sendbtn;
-    const inp = document.getElementById('gin-' + id);
-    const v = inp ? inp.value : '';
-    if (!v.trim()) return;
-    inp.value = '';
-    sendChat(id, v);
-  });
-  root.querySelectorAll('[data-send]').forEach(inp => inp.onkeydown = e => {
-    if (e.key === 'Enter') { e.preventDefault(); const b = document.querySelector(`[data-sendbtn="${inp.dataset.send}"]`); if (b) b.click(); }
-  });
-  root.querySelectorAll('.ct-body, .ct-body *').forEach(() => { });
-  root.querySelectorAll('.ct-body').forEach(b => { b.scrollTop = b.scrollHeight; });
+  bindThreads(root);
 }
 function updateThreadMsgs() {
   for (const t of chatThreads()) {
     const box = document.getElementById('gmsgs-' + t.o.id);
     if (!box) { renderChat(); return; }
-    const empty = '<div class="tiny muted" style="text-align:center;padding:10px 0">사장님이 알림을 보내면 여기에 쌓입니다</div>';
-    box.innerHTML = t.msgs.map(bubble).join('') || empty;
+    box.innerHTML = t.msgs.map(bubble).join('') || THREAD_EMPTY;
     box.scrollTop = box.scrollHeight;
   }
 }
@@ -1084,7 +1074,6 @@ $('#signupSave').onclick = async () => {
   S.profile = await saveMember({ name, age, senior: $('#suSenior').checked });
   renderTierPill(); renderMenu(true); renderCart();
   if (S.view === 'me') renderMe();
-  watchMsgs();
   $('#sheetSignup').classList.remove('open');
   toast(`${name}님 · ${S.profile.gi > 0 ? S.profile.gi + '기 · ' : ''}${S.profile.dept} · ${tierLabel(tier())} 적용`);
 };
@@ -1111,7 +1100,6 @@ document.querySelectorAll('.dock button').forEach(b => b.onclick = () => setView
   document.querySelector('#payHint').innerHTML = `계좌이체 · <b>${esc(S.cfg.bank)} ${esc(S.cfg.account)}</b> (예금주 ${esc(S.cfg.holder)})`;
   loadFavLocal();
   renderTierPill(); renderMenu();
-  watchMsgs();
   try { await ensureMenus(); } catch (e) { console.warn('seed', e); }
   pullFav();
   if (!S.profile) setTimeout(() => openSignup(true), 320);
