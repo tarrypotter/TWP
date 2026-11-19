@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="카페 현황">
+<meta name="theme-color" content="#08080a">
+<meta name="format-detection" content="telephone=no">
+<title>세종월드교회 카페 · 실시간 주문 현황</title>
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="stylesheet" href="./style.css?v=11">
+<style>
+  /* ---- 전용 전광판 · 멀리서도 읽히는 큰 글자 ---- */
+  .bd-wrap { height: 100dvh; display: flex; flex-direction: column; }
+  .bd-hdr {
+    display: flex; align-items: center; gap: 12px; flex: 0 0 auto;
+    padding: calc(env(safe-area-inset-top) + 16px) 18px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .bd-hdr .hdr-title b { font-size: clamp(15px, 2.6vw, 19px); }
+  .bd-hdr .hdr-title span { font-size: 10px; letter-spacing: .18em; color: var(--muted); }
+  .bd-clock {
+    margin-left: auto; text-align: right; font-variant-numeric: tabular-nums;
+    font-size: clamp(19px, 3.4vw, 26px); font-weight: 900; letter-spacing: -.02em;
+  }
+  .bd-clock span { display: block; font-size: 9.5px; font-weight: 800; letter-spacing: .16em; color: var(--muted); margin-top: 1px; }
+
+  .bd-main { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: calc(env(safe-area-inset-bottom) + 18px); scrollbar-width: none; }
+  .bd-main::-webkit-scrollbar { display: none; }
+
+  .bd-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px 16px 0; }
+  .bd-stat {
+    padding: 14px 16px; border-radius: 18px; border: 1px solid var(--line);
+    background: var(--card); box-shadow: var(--card-shadow);
+  }
+  .bd-stat b { display: block; font-size: clamp(34px, 7vw, 54px); line-height: 1; font-weight: 900; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+  .bd-stat span { display: block; font-size: 11.5px; font-weight: 800; color: var(--muted); margin-top: 6px; letter-spacing: .06em; }
+  .bd-stat.wait { border-color: rgba(242, 174, 116, .26); background: linear-gradient(180deg, rgba(242, 174, 116, .1), rgba(255, 255, 255, .02)); }
+  .bd-stat.wait b { color: var(--warn); }
+  .bd-stat.pick { border-color: rgba(134, 217, 168, .26); background: linear-gradient(180deg, rgba(134, 217, 168, .1), rgba(255, 255, 255, .02)); }
+  .bd-stat.pick b { color: var(--ok); }
+
+  .bd-grid { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 12px 16px 0; }
+  @media (min-width: 780px) { .bd-grid { grid-template-columns: 1fr 1fr; align-items: start; } }
+
+  .bd-card { border-radius: 20px; overflow: hidden; background: var(--card); border: 1px solid var(--line); box-shadow: var(--card-shadow); }
+  .bd-sec { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(255, 255, 255, .03); border-bottom: 1px solid var(--line); }
+  .bd-sec b { font-size: clamp(12.5px, 2vw, 14px); letter-spacing: -.01em; }
+  .bd-sec em { margin-left: auto; font-style: normal; font-size: 12px; font-weight: 800; color: var(--brand); font-variant-numeric: tabular-nums; }
+
+  .bd-row { padding: 13px 16px; border-top: 1px solid var(--line); }
+  .bd-row:first-of-type { border-top: 0; }
+  .bd-top { display: flex; align-items: baseline; gap: 9px; }
+  .bd-no { font-size: clamp(15px, 2.4vw, 18px); font-weight: 900; letter-spacing: .02em; color: var(--brand); font-variant-numeric: tabular-nums; flex: 0 0 auto; }
+  .bd-nm { font-size: clamp(15px, 2.4vw, 18px); font-weight: 800; letter-spacing: -.01em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bd-time { margin-left: auto; flex: 0 0 auto; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .bd-items { margin-top: 4px; font-size: clamp(12.5px, 2vw, 14px); color: var(--sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bd-row.pick .bd-no { color: var(--ok); }
+  .bd-empty { padding: 26px 16px; text-align: center; color: var(--muted); font-size: 12.5px; }
+
+  .bd-foot {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 10px;
+    padding: 10px 18px calc(env(safe-area-inset-bottom) + 12px);
+    border-top: 1px solid var(--line); font-size: 11px; color: var(--muted);
+  }
+  .bd-foot a { margin-left: auto; font-weight: 800; color: var(--brand); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="shell bd-wrap">
+  <header class="bd-hdr">
+    <div class="hdr-mark">☕</div>
+    <div class="hdr-title">
+      <b>실시간 주문 현황</b>
+      <span>SEJONG WORLD CAFE</span>
+    </div>
+    <div class="bd-clock" id="bdClock">--:--<span>NOW</span></div>
+  </header>
+
+  <main class="bd-main" id="bdMain">
+    <div class="bd-stats">
+      <div class="bd-stat wait"><b id="bdWait">0</b><span>조리 중</span></div>
+      <div class="bd-stat pick"><b id="bdPick">0</b><span>픽업 대기</span></div>
+    </div>
+    <div class="bd-grid">
+      <div class="bd-card">
+        <div class="bd-sec"><span class="live-dot"></span><b>조리 중</b><em id="bdWaitN">0</em></div>
+        <div id="bdWaitList"></div>
+      </div>
+      <div class="bd-card">
+        <div class="bd-sec"><span class="live-dot"></span><b>픽업 대기 · 나왔어요</b><em id="bdPickN">0</em></div>
+        <div id="bdPickList"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bd-foot">
+    <span>주문이 들어오면 자동으로 바뀝니다</span>
+    <a href="./index.html">카페 앱 열기 ›</a>
+  </footer>
+</div>
+
+<script type="module">
+import {
+  db, BRAND, shortId, itemsSummary, timeAgo, hhmm, esc, lockZoom, collection, onSnapshot
+} from './core.js?v=11';
+
+lockZoom();
+
+const $ = s => document.querySelector(s);
+const q = { all: [] };
+
+function row(o, kind) {
+  return `<div class="bd-row ${kind}">
+      <div class="bd-top">
+        <span class="bd-no">#${shortId(o.id)}</span>
+        <b class="bd-nm">${esc(o.name || '손님')}</b>
+        <span class="bd-time">${hhmm(o.madeAt || o.ts)} · ${timeAgo(o.madeAt || o.ts)}</span>
+      </div>
+      <div class="bd-items">${esc(itemsSummary(o.items) || '주문')}</div>
+    </div>`;
+}
+
+function draw() {
+  const wait = q.all.filter(o => o.status === 'new');
+  const pick = q.all.filter(o => o.status === 'made');
+  $('#bdWait').textContent = wait.length;
+  $('#bdPick').textContent = pick.length;
+  $('#bdWaitN').textContent = wait.length;
+  $('#bdPickN').textContent = pick.length;
+  const empty = t => `<div class="bd-empty">${t}</div>`;
+  $('#bdWaitList').innerHTML = wait.length ? wait.map(o => row(o, 'wait')).join('') : empty('조리 중인 주문이 없어요');
+  $('#bdPickList').innerHTML = pick.length ? pick.map(o => row(o, 'pick')).join('') : empty('픽업 대기 중인 주문이 없어요');
+}
+
+onSnapshot(collection(db, 'orders'), snap => {
+  q.all = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    .filter(o => o.status === 'new' || o.status === 'made')
+    .sort((a, b) => (a.ts || 0) - (b.ts || 0));
+  draw();
+}, err => {
+  console.warn('orders', err);
+  $('#bdMain').innerHTML = '<div class="bd-empty" style="padding:48px 16px">주문 현황을 불러오지 못했어요<br>잠시 후 자동으로 다시 연결됩니다</div>';
+});
+
+function tick() {
+  const d = new Date();
+  $('#bdClock').innerHTML = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}<span>NOW</span>`;
+}
+tick();
+setInterval(tick, 1000);
+setInterval(draw, 20000);       // '3분 전' 표시 갱신
+document.title = `실시간 주문 현황 · ${BRAND.name}`;
+</script>
+</body>
+</html>

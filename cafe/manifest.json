@@ -16,5 +16,9 @@
     { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "내 주문", "short_name": "내 주문", "url": "./?view=orders" },
+    { "name": "실시간 주문 현황", "short_name": "현황", "url": "./board.html" }
   ]
 }

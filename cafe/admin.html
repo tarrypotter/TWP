@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="세종카페">
 <meta name="theme-color" content="#08080a">
 <title>세종월드교회 카페 · 사장님</title>
-<link rel="stylesheet" href="./style.css?v=10">
+<link rel="stylesheet" href="./style.css?v=11">
 <style>
   /* ---- 사장님 화면 · 다크 글래스 ---- */
   .pin-wrap { height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
@@ -189,7 +189,7 @@ import {
   timeAgo, hhmm, esc, lockZoom, ensureMenus, ensureConfig, watchConfig, copyText,
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, query, orderBy,
   limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary, whoTag, menuMatches, memberKeyOf, arrayUnion
-} from './core.js?v=10';
+} from './core.js?v=11';
 
 lockZoom();
 
@@ -411,11 +411,13 @@ function renderOrders() {
         <button class="btn sm ghost" data-del="${o.id}" type="button" style="flex:0 0 auto;color:var(--muted)">삭제</button>
       </div>
       <div class="o-chat" data-chat="${o.id}">
-        <div class="msgs">${chatBubbles(o)}</div>
+        ${o.status === 'done'
+        ? `<div class="tiny muted" style="text-align:center;padding:6px 0">입금 확인으로 마감된 주문 · 대화 정리됨</div>`
+        : `<div class="msgs">${chatBubbles(o)}</div>
         <div class="o-cin">
           <input class="input" data-cin="${esc(o.id)}" maxlength="200" autocomplete="off" placeholder="손님에게 한마디 (폰 알림으로 전송)">
           <button class="btn sm primary" data-csend="${esc(o.id)}" type="button">보내기</button>
-        </div>
+        </div>`}
       </div>
     </div>`;
   }
@@ -468,12 +470,15 @@ async function sendPayRequest(id, btn) {
   } catch (e) { console.error(e); toast('요청 전송 실패'); btn.disabled = false; }
 }
 async function confirmPaid(id, btn) {
-  const o = S.orders.find(x => x.id === id) || { id };
   try {
     btn.disabled = true;
-    await updateDoc(doc(db, 'orders', id), { payStatus: 'paid', paidAt: Date.now(), status: 'done' });
-    await shopMsg(o, '입금 확인했어요. 주문 완료 처리했습니다. 감사합니다 ☕', 'msg');
-    toast('입금 확인 · 주문 완료 처리했어요');
+    // 입금 확인과 동시에 마감: 상태·입금 표시를 바꾸고 주문 대화(chat)도 비워 둡니다
+    await updateDoc(doc(db, 'orders', id), {
+      payStatus: 'paid', paidAt: Date.now(), status: 'done',
+      chat: [], chatClearedAt: Date.now(), closedAt: Date.now(), notifiedAt: Date.now()
+    });
+    toast('입금 확인 · 주문 완료 · 대화 정리까지 했어요');
+    buzz(40);
   } catch (e) { console.error(e); toast('처리 실패'); btn.disabled = false; }
 }
 async function removeOrder(id) {
