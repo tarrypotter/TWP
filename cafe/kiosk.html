@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="세종카페">
 <meta name="theme-color" content="#08080a">
 <title>세종월드교회 카페 · 키오스크</title>
-<link rel="stylesheet" href="./style.css?v=14">
+<link rel="stylesheet" href="./style.css?v=15">
 <style>
   /* ---- 키오스크(태블릿) · 다크 글래스 ---- */
   .kiosk { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
@@ -96,7 +96,9 @@
   .k-total { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
   .k-total b { font-size: 23px; color: var(--brand); font-variant-numeric: tabular-nums; }
   .k-big { width: 100%; padding: 16px; border-radius: 16px; font-size: 16px; font-weight: 800; }
-  .k-memchips { display: flex; gap: 6px; overflow-x: auto; padding: 9px 0 2px; scrollbar-width: none; }
+  .k-memchips { display: flex; gap: 6px; overflow-x: auto; padding: 9px 2px 2px; scrollbar-width: none;
+    mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent); }
+  .k-memchips:empty { display: none; }
   .k-memchips::-webkit-scrollbar { display: none; }
   .k-memchips button {
     flex: 0 0 auto; padding: 7px 12px; border-radius: 999px; background: rgba(255, 255, 255, .05);
@@ -115,7 +117,7 @@
   }
   .done-ov {
     position: fixed; inset: 0; z-index: 85; display: none; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; padding: 28px; background: rgba(8, 8, 11, .96); backdrop-filter: blur(18px);
+    text-align: center; padding: 28px; background: #08080b; backdrop-filter: blur(18px);
   }
   .done-ov::before {
     content: ''; position: absolute; width: 620px; height: 620px; border-radius: 50%;
@@ -238,11 +240,11 @@ import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierShort,
   priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, doc, addDoc, setDoc, onSnapshot, query, where,
   copyText, profileFrom, hydrateProfile, whoTag, ageTag, tierName, menuMatches, hhmm, itemsSummary, memberKeyOf, pushTokensOf
-} from './core.js?v=14';
+} from './core.js?v=15';
 
 lockZoom();
 
-const S = { menus: [], cart: {}, cat: 'all', q: '', queue: [], cfg: { ...DEFAULT_CONFIG }, members: [], modalItem: null, modalQty: 1, modalOpt: '' };
+const S = { menus: [], cart: {}, cat: 'all', q: '', queue: [], cfg: { ...DEFAULT_CONFIG }, members: [], memberList: [], modalItem: null, modalQty: 1, modalOpt: '' };
 const $ = s => document.querySelector(s);
 const el = (t, c, h) => { const n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; };
 let toastTimer;
@@ -315,13 +317,22 @@ $('#kBoard').onclick = e => { if (e.target.id === 'kBoard') $('#kBoard').classLi
 
 function renderMembers() {
   const box = $('#kMembers');
-  box.innerHTML = S.members.map((m, i) => {
+  if (!box) return;
+  // 같은 사람이 기기를 여러 번 거쳤으면 최근 기록 하나만 남깁니다 (이름_나이 기준)
+  const seen = new Set();
+  const list = S.members.filter(m => {
+    const k = m.memberKey || memberKeyOf(m);
+    if (!k || seen.has(k)) return false;
+    seen.add(k); return true;
+  }).slice(0, 12);
+  S.memberList = list;
+  box.innerHTML = list.map((m, i) => {
     const p = hydrateProfile(m);
     const tag = ageTag(p);
     return `<button type="button" data-m="${i}">${esc(p.name)} ${esc(tag)}</button>`;
   }).join('');
   box.querySelectorAll('[data-m]').forEach(b => b.onclick = () => {
-    const p = hydrateProfile(S.members[Number(b.dataset.m)]);
+    const p = hydrateProfile(S.memberList[Number(b.dataset.m)]);
     $('#kName').value = p.name; $('#kAge').value = p.age || '';
     render();
   });
@@ -369,7 +380,11 @@ function render() {
   $('#kGridInner').querySelectorAll('[data-i]').forEach(b => b.onclick = () => pick(b.dataset.i));
   const c2 = $('#kQClear2'); if (c2) c2.onclick = () => clearQ();
 
-  // 장바구니
+  // 장바구니 — 이름·나이를 바꿔 가격대가 달라지면 담아 둔 줄의 가격도 지금 기준으로 다시 계산합니다
+  for (const i of Object.values(S.cart)) {
+    const m = S.menus.find(x => x.id === i.id);
+    if (m) i.price = priceOf(m, t);
+  }
   const lines = Object.entries(S.cart);
   $('#kLines').innerHTML = lines.length ? lines.map(([k, i]) => `
     <div class="k-line">
@@ -464,6 +479,10 @@ $('#kOrder').onclick = async () => {
   if (!c.age || c.age < 15 || c.age > 99) return toast('나이를 15~99 사이 숫자로 입력해 주세요');
   const items = Object.values(S.cart);
   if (!items.length) return toast('주문할 음료를 골라 주세요');
+  for (const i of items) {
+    const m = S.menus.find(x => x.id === i.id);
+    if (m) i.price = priceOf(m, tier());
+  }
   const btn = $('#kOrder');
   btn.disabled = true; btn.textContent = '접수 중…';
   try {

@@ -448,7 +448,12 @@ export async function registerPush(uid) {
   try {
     const mod = await import(MESSAGING_URL);
     if (mod.isSupported && !(await mod.isSupported())) return '';
-    const reg = await navigator.serviceWorker.ready;
+    // 서비스 워커가 등록되지 않는 환경(시크릿 모드·정책 차단)에서 화면이 멈춰 보이지 않게 기다릴 시간을 정해 둡니다
+    const reg = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise(res => setTimeout(() => res(null), 5000))
+    ]);
+    if (!reg) return '';
     const messaging = mod.getMessaging(app);
     const token = await mod.getToken(messaging, { vapidKey: PUSH.vapidKey, serviceWorkerRegistration: reg });
     if (!token) return '';

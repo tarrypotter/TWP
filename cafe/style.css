@@ -118,6 +118,8 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 
 /* ---------- 칩 ---------- */
 .chips { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 12px 16px 6px; scrollbar-width: none; }
+/* 필터처럼 개수가 정해진 칩 줄은 넘치면 두 줄로 접습니다 (가로 스크롤에 숨기지 않음) */
+.chips.wrap { flex-wrap: wrap; overflow: visible; }
 .chips::-webkit-scrollbar { display: none; }
 .chip {
   flex: 0 0 auto; padding: 8px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 700;
@@ -302,6 +304,18 @@ input, textarea { -webkit-user-select: text; user-select: text; }
   transform: translateY(100%); transition: transform .34s var(--spring); visibility: hidden;
 }
 .sheet.open { transform: translateY(0); visibility: visible; }
+/* 내용이 짧은 시트(가입·옵션·접수)는 화면을 다 덜고 올라오지 않고, 내용만큼만 아래에서 올라옵니다 */
+.sheet.fit {
+  top: auto; height: auto; max-height: 92dvh;
+  border-radius: 22px 22px 0 0; border-top: 1px solid var(--line-2);
+  box-shadow: 0 -26px 70px -24px rgba(0, 0, 0, .9);
+}
+.sheet.fit .sheet-hdr { padding-top: 20px; border-radius: 22px 22px 0 0; border-bottom: 0; }
+.sheet.fit .sheet-body { flex: 0 1 auto; padding-top: 4px; }
+.sheet.fit::before {
+  content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+  width: 38px; height: 4px; border-radius: 99px; background: rgba(255, 255, 255, .18);
+}
 .sheet-hdr {
   flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
   padding: calc(env(safe-area-inset-top) + 12px) 14px 10px;
@@ -329,11 +343,13 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 .dock button.on { color: #0b0b0e; background: linear-gradient(180deg, #ffffff, #e6e6ec); box-shadow: 0 10px 22px -14px rgba(255, 255, 255, .6); }
 .dock button.on .ico { transform: translateY(-1px) scale(1.04); }
 
-/* ---------- 알림 배너 ---------- */
+/* ---------- 알림 배너 ----------
+   화면 위에 겹쳐 띄우지 않고 흐름 안에 놓아, 배너가 뜨면 내용이 그만큼 내려갑니다. */
 .alert-stack {
-  position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 62px);
-  z-index: 55; display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+  flex: 0 0 auto; width: 100%; z-index: 55;
+  display: flex; flex-direction: column; gap: 8px; padding: 0 12px;
 }
+.alert-stack:not(:empty) { padding-top: 10px; }
 .alert {
   pointer-events: auto; border-radius: 16px; padding: 12px 13px; display: flex; gap: 10px; align-items: center;
   background: rgba(14, 14, 18, .94); border: 1px solid var(--line-2);
@@ -358,12 +374,17 @@ input, textarea { -webkit-user-select: text; user-select: text; }
   max-width: 84vw; text-align: center; box-shadow: 0 18px 40px -22px rgba(0, 0, 0, .9);
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+/* 시트가 열려 있으면 아래쪽이 가려지므로 토스트는 위에서 내려옵니다 */
+.toast.top { top: calc(env(safe-area-inset-top) + 66px); bottom: auto; transform: translate(-50%, -12px); }
+.toast.top.show { transform: translate(-50%, 0); }
+/* 시트 뒤 화면은 누를 수 없게 (가입 시트가 필수일 때 뒤로 빠져나가는 일 방지) */
+body.sheet-open .hdr, body.sheet-open .main, body.sheet-open .dock, body.sheet-open .cartbar { pointer-events: none; }
 
 /* ---------- 빈 상태 ---------- */
 .empty { text-align: center; color: var(--muted); padding: 44px 20px; }
 .empty .e-ico { font-size: 30px; display: block; margin-bottom: 12px; opacity: .55; }
 .empty b { display: block; color: var(--sub); font-size: 14px; margin-bottom: 4px; }
-.empty span { font-size: 12px; }
+.empty > span { display: block; font-size: 12px; }
 
 /* ---------- 유틸 ---------- */
 .row { display: flex; align-items: center; gap: 8px; }
