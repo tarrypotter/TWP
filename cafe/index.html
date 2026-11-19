@@ -844,13 +844,7 @@ function renderMe() {
         <div class="kv"><span>청년처 가격</span><b>27세 이상 · 청년3부 · 청년2부 · 청년1부 · 장년부</b></div>
       </div>
       <button class="btn block mt14" id="editProfile" type="button">${p ? '내 정보 수정' : '가입하기'}</button>
-    </div>
-
-    <div class="card mt14" style="margin-left:16px;margin-right:16px;overflow:hidden;box-shadow:none">
-      <button class="list-btn" id="askNoti" type="button"><span class="l-ico">🔔</span><div class="grow">알림 받기</div><span class="l-right" id="notiState">확인</span></button>
-      <a class="list-btn" href="./kiosk.html"><span class="l-ico">🖥️</span><div class="grow">키오스크 모드 (카운터 태블릿)</div><span class="l-right">열기</span></a>
-      <a class="list-btn" href="./admin.html"><span class="l-ico">🔐</span><div class="grow">사장님 모드</div><span class="l-right">PIN</span></a>
-      ${p ? `<button class="list-btn" id="logoutBtn" type="button"><span class="l-ico">🚪</span><div class="grow" style="color:var(--danger)">로그아웃</div><span class="l-right">이 기기 정보 지우기</span></button>` : ''}
+      ${p ? `<button class="btn block mt6" id="logoutBtn" type="button" style="color:var(--danger);border-color:rgba(240,138,128,.3)">로그아웃</button>` : ''}
     </div>
 
     <div class="note" style="margin:14px 16px 0">
@@ -861,19 +855,9 @@ function renderMe() {
 
     <p class="tiny muted" style="text-align:center;padding:20px 16px 30px">${esc(BRAND.name)} · ${esc(BRAND.nameEn)}<br>Firebase project: grace-cafe-twp</p>`;
   $('#editProfile').onclick = () => openSignup(false);
-  $('#askNoti').onclick = async () => {
-    if (!('Notification' in window)) return toast('이 브라우저는 알림을 지원하지 않아요');
-    if (Notification.permission === 'granted') { notify('알림 준비 완료', '음료가 나오면 알려드릴게요'); return toast('이미 알림이 켜져 있어요'); }
-    const r = await askNotifyPermission();
-    toast(r === 'granted' ? '알림이 켜졌어요' : '알림이 꺼져 있어요 (브라우저 설정에서 허용)');
-    renderMe();
-  };
   $('#copyAcctMe').onclick = async () => { const ok = await copyText(S.cfg.account); toast(ok ? '계좌번호를 복사했어요' : '복사 실패'); };
   const lo = $('#logoutBtn');
   if (lo) lo.onclick = logout;
-  const ns = $('#notiState');
-  if ('Notification' in window) ns.textContent = Notification.permission === 'granted' ? '켜짐' : Notification.permission === 'denied' ? '차단됨' : '꺼짐';
-  else ns.textContent = '미지원';
 }
 
 /* ---------------- 로그아웃 ---------------- */
