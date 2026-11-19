@@ -85,7 +85,7 @@
   .k-pane-top { display: flex; align-items: center; gap: 8px; }
   .k-pane-top b { font-size: 14.5px; flex: 0 0 auto; }
   .k-pane-top #kTier { margin-left: auto; }
-  /* 전체 비우기 — 일반 버튼과 섞이지 않게 은은한 붉은 톤 */
+  /* 전체 삭제 — 닫기·일반 버튼과 섞이지 않게 은은한 붉은 톤 */
   .k-clear {
     flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 9px; background: rgba(240, 138, 128, .1);
     border: 1px solid rgba(240, 138, 128, .3); color: #eaa198; font-size: 11.5px; font-weight: 800;
@@ -452,7 +452,7 @@ function render() {
   $('#kLines').querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
     const k = b.dataset.del; if (!S.cart[k]) return;
     const name = S.cart[k].name; delete S.cart[k];
-    render(); toast(`${name} 뺐어요`);
+    render(); toast(`${name} 삭제했어요`);
   });
   $('#kLines').querySelectorAll('[data-temp]').forEach(b => b.onclick = () => setCartTemp(b.dataset.k, b.dataset.temp));
   const total = Object.values(S.cart).reduce((a, i) => a + i.qty * i.price, 0);
@@ -538,7 +538,7 @@ function setCartTemp(k, temp) {
 }
 $('#kClear').onclick = () => {
   if (!Object.keys(S.cart).length) return toast('주문서가 이미 비어 있어요');
-  S.cart = {}; render(); toast('주문서를 비웠어요');
+  S.cart = {}; render(); toast('주문서를 모두 삭제했어요');
 };
 
 /* 이름·기수 입력 */

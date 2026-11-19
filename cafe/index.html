@@ -1101,7 +1101,7 @@ function renderOrderLines() {
   box.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
     const k = b.dataset.del; if (!S.cart[k]) return;
     const name = S.cart[k].name; delete S.cart[k];
-    afterCartEdit(); toast(`${name} 뺐어요`); buzz(15);
+    afterCartEdit(); toast(`${name} 삭제했어요`); buzz(15);
   });
   box.querySelectorAll('[data-temp]').forEach(b => b.onclick = () => setCartTemp(b.dataset.k, b.dataset.temp));
   const total = cartTotal();
@@ -1132,7 +1132,7 @@ $('#orderClear').onclick = () => {
   if (!cartList().length) return;
   S.cart = {};
   renderOrderLines(); renderCart(); closeOrderSheet();
-  toast('주문서를 비웠어요'); buzz(20);
+  toast('주문서를 모두 삭제했어요'); buzz(20);
 };
 
 $('#orderSubmit').onclick = async () => {
