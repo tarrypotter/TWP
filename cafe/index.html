@@ -13,7 +13,7 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="stylesheet" href="./style.css?v=12">
+<link rel="stylesheet" href="./style.css?v=13">
 <style>
   /* ---- 손님 앱 전용 · 다크 글래스 ---- */
   .tier-pill {
@@ -360,10 +360,10 @@
 import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierLabel, tierShort,
   priceOf, deviceUid, shortId, timeAgo, hhmm, esc, lockZoom, ensureMenus, saveMember, localProfile,
-  hydrateProfile, whoTag, tierName, getTiers, menuMatches, itemsSummary, memberKeyOf,
+  hydrateProfile, whoTag, tierName, getTiers, menuMatches, itemsSummary, memberKeyOf, giFromAge,
   watchConfig, collection, doc, addDoc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
   beep, buzz, notify, askNotifyPermission
-} from './core.js?v=12';
+} from './core.js?v=13';
 
 lockZoom();
 
@@ -1247,6 +1247,15 @@ function tierGuideRows() {
   }).join('');
 }
 
+/* 내정보 맨 윗줄: 4기 이상은 기수만, 3기 이하(37세 이상)는 나이만 — 공식은 화면에 쓰지 않습니다 */
+function meKeyRow(p) {
+  if (!p) return `<div class="kv"><span>기수</span><b>나이만 적으면 자동 계산</b></div>`;
+  const age = Number(p.age) || 0;
+  const gi = Number(p.gi) || giFromAge(age);
+  if (gi >= 4) return `<div class="kv"><span>기수</span><b>${gi}기</b></div>`;
+  return `<div class="kv"><span>나이</span><b>${age ? `${age}세` : '-'}</b></div>`;
+}
+
 /* ---------------- 내정보 ---------------- */
 function renderMe() {
   const root = $('#view-me');
@@ -1262,7 +1271,7 @@ function renderMe() {
         <span class="badge">${p ? tierLabel(tier()) : '가격 미적용'}</span>
       </div>
       <div class="mt14">
-        <div class="kv"><span>기수</span><b>40 − 나이 (29세 = 11기)</b></div>
+        ${meKeyRow(p)}
         ${tierGuideRows()}
       </div>
       <button class="btn block mt14" id="editProfile" type="button">${p ? '내 정보 수정' : '가입하기'}</button>
