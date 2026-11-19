@@ -424,8 +424,8 @@ function renderMenu() {
   const list = S.cat === 'all' ? CATS : CATS.filter(c => c.key === S.cat);
   let html = `
     <div class="hero">
-      <b>${esc(BRAND.name)}</b>
-      <p>${S.profile ? `${esc(S.profile.name)}님 · ${esc(String(S.profile.gi))}기 · ${tierLabel(tier())} 적용 중` : '이름과 기수를 등록하면 내 가격으로 주문할 수 있어요'}</p>
+      <b>${S.profile ? `${esc(S.profile.name)}님, 무엇을 드릴까요?` : '이름과 기수를 등록해 주세요'}</b>
+      <p>${S.profile ? `${esc(String(S.profile.gi))}기 · ${tierLabel(tier())} 적용 중` : '등록하면 내 가격으로 바로 주문할 수 있어요'}</p>
       <div class="hero-row">
         <span class="hero-chip">미리 주문 가능</span>
         <span class="hero-chip">계좌이체 · 현금</span>
@@ -678,7 +678,7 @@ function renderOrders() {
           <b class="tnum" style="color:var(--brand);font-size:15px">${won(o.total)}</b>
         </div>
         <div class="steps">
-          <div class="st on"><i>1</i><span>접수</span></div>
+          <div class="st ${o.payStatus === 'paid' ? 'end' : 'on'}"><i>1</i><span>접수</span></div>
           <div class="st-line ${o.madeAt ? (o.payStatus === 'paid' ? 'end' : 'on') : ''}"></div>
           <div class="st ${o.madeAt ? (o.payStatus === 'paid' ? 'end' : 'on') : ''}"><i>2</i><span>제조 완료</span></div>
           <div class="st-line ${o.payStatus === 'paid' ? 'end' : ''}"></div>
