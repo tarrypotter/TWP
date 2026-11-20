@@ -11,7 +11,7 @@
 <meta name="format-detection" content="telephone=no">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.92em%22 font-size=%2290%22>🏛</text></svg>">
 <title>실 예약 · 세종월드교회</title>
-<link rel="stylesheet" href="./style.css?v=10">
+<link rel="stylesheet" href="./style.css?v=11">
 <style>
   .auth .body .seg { margin: 0 0 16px; }
   .auth .btn.block { margin-top: 18px; }
@@ -101,7 +101,7 @@ import {
   profileOf, ageTag, giLine, acctOf, acctProblem, pwProblem, newSalt, pwHashOf,
   getPinConfig, checkPin, savePin, esc, peopleText,
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, query, where, onSnapshot
-} from './core.js?v=10';
+} from './core.js?v=11';
 
 /* ================= 상태 ================= */
 const S = {
@@ -416,7 +416,7 @@ function homeView() {
     + '<p>' + esc(CHURCHES[S.church].name) + ' · ' + dateLabel(todayStr()) + '</p>'
     + '<div class="hero-row"><span class="hero-chip">오늘 승인 <b>' + todayApproved.length + '</b></span>'
     + '<span class="hero-chip">요청 대기 <b>' + pending.length + '</b></span>'
-    + '<span class="hero-chip">내 예약 <b>' + mine.length + '</b></span></div></section>';
+    + (S.user ? '<span class="hero-chip">내 예약 <b>' + mine.length + '</b></span>' : '') + '</div></section>';
 
   h += '<div class="chips">' + ['all'].concat(floors).map(f =>
     '<button type="button" class="chip ' + (S.floor === f ? 'on' : '') + '" data-act="floor" data-floor="' + esc(f) + '">' + (f === 'all' ? '전체' : esc(f)) + '</button>').join('') + '</div>';
@@ -663,12 +663,17 @@ function headerFor() {
     + '<div class="hdr-title"><b>' + esc(t[0]) + '</b><span>' + esc(t[1]) + '</span></div>' + adminBtn() + '</div></div>';
 }
 function adminBtn() {
-  return '<button type="button" class="hdr-btn ' + (S.admin ? 'on' : '') + '" data-act="' + (S.admin ? 'goAdmin' : 'openPin') + '">' + (S.admin ? '✓ 관리자' : '🔒 관리자') + '</button>';
+  /* 성도 화면에는 관리자 진입 버튼을 두지 않습니다 — 관리자는 admin.html 로 들어옵니다 */
+  if (!S.admin) return '';
+  return '<button type="button" class="hdr-btn on" data-act="goAdmin">✓ 관리자</button>';
 }
 function dock() {
   if (S.pick) return '';
   const pc = pendingAll().length;
-  const items = [['home', '⌂', '홈'], ['my', '▤', '내 예약'], ['admin', S.admin ? '✓' : '🔒', '관리자'], ['settings', '⚙', '설정']];
+  /* 성도: 홈 · 내 예약 · 설정 / 관리자 모드: 홈 · 관리자 · 설정 (내 예약은 두지 않습니다) */
+  const items = S.admin
+    ? [['home', '⌂', '홈'], ['admin', '✓', '관리자'], ['settings', '⚙', '설정']]
+    : [['home', '⌂', '홈'], ['my', '▤', '내 예약'], ['settings', '⚙', '설정']];
   return '<nav class="dock">' + items.map(([k, ico, label]) =>
     '<button type="button" class="' + (S.view === k || (k === 'home' && S.view === 'room') ? 'on' : '') + '" data-act="tab" data-tab="' + k + '">'
     + '<span class="ico">' + ico + '</span>' + label + (k === 'admin' && pc ? '<span class="dot-n">' + pc + '</span>' : '') + '</button>').join('') + '</nav>';
