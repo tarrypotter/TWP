@@ -102,7 +102,7 @@ input, textarea { -webkit-user-select: text; user-select: text; }
   flex: 0 0 auto;
 }
 .hdr-btn {
-  flex: 0 0 auto; height: 34px; padding: 0 12px; border-radius: 11px;
+  flex: 0 0 auto; height: 34px; padding: 0 12px; border-radius: 11px; white-space: nowrap;
   border: 1px solid var(--line-2); background: rgba(255, 255, 255, .05);
   font-size: 12px; font-weight: 800; color: var(--sub);
   display: inline-flex; align-items: center; gap: 5px;
@@ -205,14 +205,13 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 .pill.cancelled { color: var(--sub); background: rgba(255, 255, 255, .05); border-color: var(--line); }
 
 /* ---------- 날짜 스트립 ---------- */
-.days { display: flex; gap: 7px; overflow-x: auto; margin: 14px 0 0; padding: 0 16px 4px; scrollbar-width: none; }
-.days::-webkit-scrollbar { display: none; }
+.days { display: flex; gap: 5px; margin: 14px 0 0; padding: 0 16px 4px; }
 .day {
-  flex: 0 0 auto; width: 54px; padding: 8px 0; text-align: center; border-radius: 13px;
+  flex: 1 1 0; min-width: 0; padding: 8px 0; text-align: center; border-radius: 13px;
   border: 1px solid var(--line); background: rgba(255, 255, 255, .04); transition: .2s var(--spring);
 }
-.day small { display: block; font-size: 10.5px; color: var(--muted); font-weight: 700; }
-.day b { display: block; font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 1px; }
+.day small { display: block; font-size: 10px; color: var(--muted); font-weight: 700; }
+.day b { display: block; font-size: 16.5px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 1px; }
 .day.on { background: linear-gradient(180deg, #d8f6ec, #8fd9c2); border-color: transparent; color: #07100d; box-shadow: 0 12px 24px -18px rgba(143, 217, 194, .95); }
 .day.on small { color: rgba(7, 16, 13, .62); }
 .day.today small { color: var(--brand); }
@@ -222,9 +221,8 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 .tl-wrap { margin: 12px 16px 0; }
 .tl {
   position: relative; height: 38px; border-radius: 11px; overflow: hidden;
-  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .035) 0 1px, transparent 1px calc(100% / 7));
-  background-color: rgba(255, 255, 255, .045);
-  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .028));
+  border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--sheen);
 }
 .tl.mini { height: 8px; border-radius: 5px; background-image: none; }
 .tl-bar { position: absolute; top: 5px; bottom: 5px; border-radius: 6px; background: linear-gradient(180deg, #a9ead6, #6ec4aa); }
@@ -271,6 +269,9 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 .timebox .tv { display: flex; align-items: center; justify-content: space-between; margin-top: 3px; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .timebox .tv i { font-style: normal; font-size: 11px; color: var(--muted); }
 .tlist { margin-top: 9px; border: 1px solid var(--line-2); border-radius: 14px; background: rgba(12, 16, 17, .96); max-height: 236px; overflow-y: auto; -webkit-overflow-scrolling: touch; box-shadow: 0 22px 50px -30px #000; }
+.sheet-body .tlist { max-height: none; margin: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; overflow: visible; }
+.sheet-body .trow { padding: 15px 4px; font-size: 16px; }
+#confirmDesc { white-space: pre-line; }
 .trow {
   display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px;
   padding: 12px 14px; border: 0; border-bottom: 1px solid var(--line); background: none;
@@ -304,7 +305,8 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 }
 .stepper button:active { transform: scale(.93); }
 .stepper b { min-width: 58px; text-align: center; font-size: 17px; font-variant-numeric: tabular-nums; }
-.hint { margin-top: 12px; font-size: 11.5px; color: var(--muted); min-height: 16px; line-height: 1.5; }
+.hint { margin: 12px 0 10px; font-size: 11.5px; color: var(--muted); min-height: 16px; line-height: 1.5; }
+.chip.slot { border-color: rgba(143, 217, 194, .3); color: var(--brand-2); background: rgba(143, 217, 194, .08); font-variant-numeric: tabular-nums; }
 .hint.warn { color: var(--danger); }
 .hint b { color: var(--brand-2); }
 

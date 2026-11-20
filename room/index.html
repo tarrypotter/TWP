@@ -22,6 +22,12 @@
 <div id="app"><div class="loading"><i class="spin"></i><span>불러오는 중…</span></div></div>
 <div class="toast" id="toast"></div>
 
+<!-- 시간 선택 -->
+<section class="sheet fit" id="sheetTime" aria-hidden="true">
+  <div class="sheet-hdr"><b id="timeTitle">시작 시간</b><button class="btn sm ghost" data-act="closeSheet" style="margin-left:auto" type="button">닫기</button></div>
+  <div class="sheet-body"><div class="tlist" id="timeBody"></div></div>
+</section>
+
 <!-- 관리자 PIN -->
 <section class="sheet fit" id="sheetPin" aria-hidden="true">
   <div class="sheet-hdr"><b>관리자 모드</b><button class="btn sm ghost" data-act="closeSheet" style="margin-left:auto" type="button">닫기</button></div>
@@ -209,6 +215,26 @@ function pendingAll() {
 }
 function monthDayShort(s) { return (+s.slice(5, 7)) + '/' + (+s.slice(8, 10)); }
 
+function freeSlots(list, date) {
+  const busy = list.filter(isLive).sort((a, b) => toMin(a.start) - toMin(b.start));
+  let cur = DAY_START;
+  if (date === todayStr()) cur = Math.max(cur, Math.min(DAY_END - 30, Math.ceil(nowMin() / 30) * 30));
+  const out = [];
+  busy.forEach(b => {
+    const s = toMin(b.start), e = toMin(b.end);
+    if (s - cur >= 60) out.push([cur, cur + 60]);
+    cur = Math.max(cur, e);
+  });
+  if (DAY_END - cur >= 60) out.push([cur, cur + 60]);
+  return out.slice(0, 4);
+}
+function suggestForm(room, date) {
+  const list = room ? busyOf(S.bookings, room.id, date) : [];
+  const gaps = freeSlots(list, date);
+  if (gaps.length) return { start: fmt(gaps[0][0]), end: fmt(gaps[0][1]), people: 2, reason: '' };
+  return { start: '10:00', end: '11:00', people: 2, reason: '' };
+}
+
 /* ================= 화면 조각 ================= */
 function dayStrip(date, act) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(i));
@@ -243,7 +269,7 @@ function statusPill(b) {
 function bkgCard(b, opts) {
   const o = opts || {};
   const room = roomOf(b.roomId);
-  const mine = S.user && b.acct === S.user.acct;
+  const mine = S.user && b.acct === S.user.acct && !o.admin;
   const dim = b.status === 'rejected' || b.status === 'cancelled';
   let h = '<article class="bkg' + (mine ? ' mine' : '') + (dim ? ' dim' : '') + '">';
   if (o.showRoom) h += '<div class="bkg-room">' + esc(churchName(b.church)) + ' · ' + esc(room ? room.floor : '') + ' · ' + esc(b.roomName || (room && room.name) || '') + '</div>';
@@ -357,13 +383,24 @@ function roomView() {
   let h = '<section class="hero" style="margin-top:14px"><span class="h-kicker">' + esc(CHURCHES[room.church].name) + ' · ' + esc(room.floor) + '</span>'
     + '<b>' + esc(room.name) + '</b>'
     + '<p>' + (S.date === todayStr() ? '오늘' : dateLabel(S.date)) + ' 기준 · 승인된 예약과 요청중인 시간이 표시됩니다</p>'
-    + '<div class="hero-row"><span class="pill ' + st.k + '">' + st.label + '</span>'
-    + (list.length ? '<span class="hero-chip">이 날 예약 <b>' + list.filter(b => b.status === 'approved').length + '</b></span>' : '')
+    + '<div class="hero-row">'
+    + (S.date === todayStr()
+      ? '<span class="pill ' + st.k + '">' + st.label + '</span>'
+      : '<span class="pill ' + (list.filter(b => b.status === 'approved').length ? 'off' : 'free') + '">' + (list.filter(b => b.status === 'approved').length ? '예약 ' + list.filter(b => b.status === 'approved').length + '건' : '예약 없음') + '</span>')
+    + (list.some(b => b.status === 'pending') ? '<span class="hero-chip">요청중 <b>' + list.filter(b => b.status === 'pending').length + '</b></span>' : '')
     + '</div></section>';
 
   h += dayStrip(S.date, 'day');
   h += '<div class="sec-title"><b>예약 현황</b><span>' + dateLabel(S.date) + '</span></div>';
   h += timeline(list, { date: S.date });
+  if (!S.admin) {
+    const gaps = freeSlots(list, S.date);
+    if (gaps.length) {
+      h += '<p class="tiny muted" style="padding:10px 16px 0">빈 시간 · 누르면 아래 요청서에 채워져요</p>';
+      h += '<div class="chips wrap" style="padding:8px 16px 0">' + gaps.map(g =>
+        '<button type="button" class="chip slot" data-act="slot" data-s="' + g[0] + '" data-e="' + g[1] + '">' + fmt(g[0]) + '–' + fmt(g[1]) + '</button>').join('') + '</div>';
+    }
+  }
 
   if (!list.length) {
     h += '<div class="empty" style="padding:24px 20px 8px"><b>이 날은 예약이 없어요</b><span>비어 있는 시간에 요청해 보세요.</span></div>';
@@ -396,7 +433,6 @@ function requestForm(room, list) {
     + timeBox('시작', 'start', f.start)
     + timeBox('종료', 'end', f.end)
     + '</div>';
-  if (S.pick) h += pickList(S.pick, list);
 
   h += '<label class="field"><span>모임 사유</span><input class="input" id="fReason" maxlength="40" placeholder="예: 청년3부 성경공부" value="' + esc(f.reason) + '"></label>';
 
@@ -404,7 +440,7 @@ function requestForm(room, list) {
     + '<button type="button" data-act="people" data-d="-1">−</button><b id="peopleN">' + f.people + '명</b><button type="button" data-act="people" data-d="1">+</button>'
     + '</div></div>';
 
-  h += '<p class="hint ' + (problem ? 'warn' : '') + '">' + (problem ? esc(problem) : (S.user ? esc(giLine(S.user)) + '으로 요청돼요 · 관리자 승인 후 확정' : '관리자 승인 후 확정')) + '</p>';
+  h += '<p class="hint ' + (problem ? 'warn' : '') + '">' + (problem ? esc(problem) : (S.user ? '<b>' + esc(giLine(S.user)) + '</b> · 관리자 승인 후 확정' : '관리자 승인 후 확정')) + '</p>';
   h += '<button class="btn primary block" type="button" data-act="submit"' + (problem ? ' disabled' : '') + '>이 시간으로 요청하기</button>';
   return h + '</section>';
 }
@@ -431,9 +467,20 @@ function pickList(key, list) {
       out.push({ t: fmt(m), label: fmt(m), dis: !!clash, why: clash ? (clash.status === 'approved' ? '예약 있음' : '요청중') : '' });
     }
   }
-  return '<div class="tlist">' + out.map(o =>
+  return out.map(o =>
     '<button type="button" class="trow ' + (o.t === f[key] ? 'on' : '') + '" data-act="setTime" data-key="' + key + '" data-t="' + o.t + '"' + (o.dis ? ' disabled' : '') + '>'
-    + '<span>' + o.label + '</span>' + (o.why ? '<em>' + o.why + '</em>' : (o.t === f[key] ? '<b>✓</b>' : '')) + '</button>').join('') + '</div>';
+    + '<span>' + o.label + '</span>' + (o.why ? '<em>' + o.why + '</em>' : (o.t === f[key] ? '<b>✓</b>' : '')) + '</button>').join('');
+}
+
+function openTimeSheet(key) {
+  S.pick = key;
+  const room = roomOf(S.roomId);
+  const list = room ? busyOf(S.bookings, room.id, S.date) : [];
+  $('#timeTitle').textContent = key === 'start' ? '시작 시간' : '종료 시간';
+  $('#timeBody').innerHTML = pickList(key, list);
+  openSheet('sheetTime');
+  const body = document.querySelector('#sheetTime .sheet-body');
+  if (body) body.scrollTop = 0;
 }
 
 /* ================= 내 예약 ================= */
@@ -518,7 +565,7 @@ function settingsView() {
   } else {
     h += '<button type="button" class="row-item" data-act="openPin"><div class="ri-t"><b>관리자 모드</b><span>PIN을 넣으면 요청을 승인·거절할 수 있어요</span></div><span class="ri-go">들어가기</span></button>';
   }
-  h += '<div class="row-item"><div class="ri-t"><b>내 정보</b><span>' + esc(ageTag(u)) + ' · ' + esc(giLine(u)) + '</span></div></div>';
+  h += '<div class="row-item"><div class="ri-t"><b>내 정보</b><span>' + esc(ageTag(u)) + (Number(u.age) >= 37 ? ' · 청년처' : ' · ' + esc(u.dept || '')) + '</span></div></div>';
   h += '<div class="row-item"><div class="ri-t"><b>예약 시간</b><span>매일 06:00 – 23:30 (30분 단위)</span></div></div>';
   h += '</div>';
 
@@ -545,8 +592,9 @@ function adminBtn() {
   return '<button type="button" class="hdr-btn ' + (S.admin ? 'on' : '') + '" data-act="' + (S.admin ? 'goAdmin' : 'openPin') + '">' + (S.admin ? '✓ 관리자' : '🔒 관리자') + '</button>';
 }
 function dock() {
+  if (S.pick) return '';
   const pc = pendingAll().length;
-  const items = [['home', '⌂', '홈'], ['my', '📋', '내 예약'], ['admin', S.admin ? '✓' : '🔒', '관리자'], ['settings', '⚙', '설정']];
+  const items = [['home', '⌂', '홈'], ['my', '▤', '내 예약'], ['admin', S.admin ? '✓' : '🔒', '관리자'], ['settings', '⚙', '설정']];
   return '<nav class="dock">' + items.map(([k, ico, label]) =>
     '<button type="button" class="' + (S.view === k || (k === 'home' && S.view === 'room') ? 'on' : '') + '" data-act="tab" data-tab="' + k + '">'
     + '<span class="ico">' + ico + '</span>' + label + (k === 'admin' && pc ? '<span class="dot-n">' + pc + '</span>' : '') + '</button>').join('') + '</nav>';
@@ -772,13 +820,17 @@ document.addEventListener('click', async e => {
   if (!b) return;
   const a = b.dataset.act;
 
-  if (a === 'closeSheet') { closeAllSheets(); return; }
+  if (a === 'closeSheet') { S.pick = null; closeAllSheets(); render(); return; }
   if (a === 'authTab') { S.authTab = b.dataset.tab; render(); return; }
   if (a === 'signupChurch') { S.church = b.dataset.church; render(); return; }
   if (a === 'login') { doLogin(); return; }
   if (a === 'signup') { doSignup(); return; }
 
-  if (a === 'church') { S.church = b.dataset.church; S.floor = 'all'; saveSession(); render(); return; }
+  if (a === 'church') {
+    S.church = b.dataset.church; S.floor = 'all'; saveSession();
+    if (S.user) { try { updateDoc(doc(db, COLL.members, S.user.acct), { church: S.church }); } catch (e) { } }
+    render(); return;
+  }
   if (a === 'floor') { S.floor = b.dataset.floor; render(); return; }
   if (a === 'tab') {
     const t = b.dataset.tab;
@@ -789,7 +841,7 @@ document.addEventListener('click', async e => {
   if (a === 'openRoom') {
     const id = b.dataset.id;
     S.roomId = id; S.view = 'room'; S.date = todayStr(); S.pick = null;
-    S.form = { start: '10:00', end: '11:00', people: 2, reason: '' };
+    S.form = suggestForm(roomOf(id), S.date);
     render();
     const m = document.querySelector('.main'); if (m) m.scrollTop = 0;
     return;
@@ -799,19 +851,20 @@ document.addEventListener('click', async e => {
     else go('home');
     return;
   }
-  if (a === 'day') { S.date = b.dataset.date; S.pick = null; render(); return; }
+  if (a === 'day') { S.date = b.dataset.date; S.pick = null; S.form = suggestForm(roomOf(S.roomId), S.date); render(); return; }
+  if (a === 'slot') { S.form.start = fmt(Number(b.dataset.s)); S.form.end = fmt(Number(b.dataset.e)); S.pick = null; render(); return; }
   if (a === 'adminDay') { S.adminDate = b.dataset.date; render(); return; }
   if (a === 'adminChurch') { S.adminChurch = b.dataset.church; render(); return; }
   if (a === 'adminStatus') { S.adminStatus = b.dataset.status; render(); return; }
 
-  if (a === 'pick') { S.pick = S.pick === b.dataset.key ? null : b.dataset.key; render(); return; }
+  if (a === 'pick') { openTimeSheet(b.dataset.key); return; }
   if (a === 'setTime') {
     const k = b.dataset.key, t = b.dataset.t;
     S.form[k] = t;
     if (k === 'start' && toMin(S.form.end) <= toMin(t)) {
       S.form.end = fmt(Math.min(DAY_END, toMin(t) + 60));
     }
-    S.pick = null; render(); return;
+    S.pick = null; closeAllSheets(); render(); return;
   }
   if (a === 'people') {
     const d = Number(b.dataset.d);
