@@ -1004,7 +1004,19 @@ document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, 
   const h = (location.hash || '').replace('#', '');
   S.view = ['home', 'my', 'admin', 'settings'].includes(h) ? h : 'home';
   if (S.view === 'admin') S.admin = true;
-  startLive();
+  if (q.get('sample') === '1') {
+    /* 화면 설명용 예시 예약 (저장하지 않음) */
+    S.bookings = [
+      { id: 'demo1', church: 'sejong', roomId: 'sj-3-dae', roomName: '대예배실', floor: '3F',
+        date: addDays(1), start: '14:00', end: '15:00', people: 6, reason: '청년3부 성경공부',
+        acct: 'preview', name: '홍길동', gi: 11, dept: '청년3부', giTag: '11기 · 청년3부', status: 'approved' },
+      { id: 'demo2', church: 'jaseong', roomId: 'js-1-edu1', roomName: '교육관 1실', floor: '1층 교육관',
+        date: addDays(1), start: '19:00', end: '20:00', people: 8, reason: '대학1부 찬양 연습',
+        acct: 'preview', name: '홍길동', gi: 11, dept: '청년3부', giTag: '11기 · 청년3부', status: 'pending' }
+    ];
+  } else {
+    startLive();
+  }
   render();
 })();
 </script>

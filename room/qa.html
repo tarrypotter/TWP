@@ -15,9 +15,11 @@
 <script>
   const p = new URLSearchParams(location.search);
   const v = p.get('v') || 'home';
-  const q = v === 'jaseong' ? '?temple=jaseong' : '';
-  const h = v === 'admin' ? '#admin' : (v === 'settings' ? '#settings' : '');
-  document.getElementById('fr').src = './qa-frame.html' + q + h;
+  const params = [];
+  if (v === 'jaseong') params.push('temple=jaseong');
+  if (p.get('sample') === '1') params.push('sample=1');
+  const h = v === 'admin' ? '#admin' : (v === 'my' ? '#my' : (v === 'settings' ? '#settings' : ''));
+  document.getElementById('fr').src = './qa-frame.html' + (params.length ? '?' + params.join('&') : '') + h;
 </script>
 </body>
 </html>
