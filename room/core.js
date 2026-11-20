@@ -35,17 +35,19 @@ export const COLL = {
   config: 'room_config'
 };
 
-/* ---------------- 교회 · 실 ---------------- */
+/* ---------------- 성전 · 실 ---------------- */
+/* 교회는 하나(세종월드교회)이고, 성전이 둘입니다. */
+export const CHURCH_NAME = '세종월드교회';
 export const CHURCHES = {
-  sejong: { id: 'sejong', name: '세종월드교회', short: '세종월드', en: 'SEJONG WORLD CHURCH' },
-  jaseong: { id: 'jaseong', name: '대전자성교회', short: '대전자성', en: 'DAEJEON JASEONG CHURCH' }
+  sejong: { id: 'sejong', name: '세종 성전', short: '세종 성전', en: 'SEJONG SANCTUARY' },
+  jaseong: { id: 'jaseong', name: '대전 자성성전', short: '대전 자성성전', en: 'DAEJEON JASEONG SANCTUARY' }
 };
 export const CHURCH_ORDER = ['sejong', 'jaseong'];
 
 /* 층별 안내판(IMG_0869) 기준 구성.
    목사관 · 화장실 · 방송실 · 기계실은 예약 대상이 아니라 뺐습니다. */
 export const ROOMS = [
-  /* 세종월드교회 */
+  /* 세종 성전 */
   { id: 'sj-4-uyul1', church: 'sejong', floor: '4F', name: '유아실 1' },
   { id: 'sj-4-uyul2', church: 'sejong', floor: '4F', name: '유아실 2' },
   { id: 'sj-3-dae', church: 'sejong', floor: '3F', name: '대예배실' },
@@ -58,7 +60,7 @@ export const ROOMS = [
   { id: 'sj-2-saint', church: 'sejong', floor: '2F', name: '입생로랑실' },
   { id: 'sj-1-louis', church: 'sejong', floor: '1F', name: '루이비통(소예배당)' },
 
-  /* 대전자성교회 */
+  /* 대전 자성성전 */
   { id: 'js-1-edu1', church: 'jaseong', floor: '1층 교육관', name: '교육관 1실' },
   { id: 'js-1-edu2', church: 'jaseong', floor: '1층 교육관', name: '교육관 2실' },
   { id: 'js-2-edu', church: 'jaseong', floor: '2층 교육관', name: '2층 교육관' },

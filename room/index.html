@@ -10,8 +10,8 @@
 <meta name="theme-color" content="#07090a">
 <meta name="format-detection" content="telephone=no">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.92em%22 font-size=%2290%22>🏛</text></svg>">
-<title>실 예약 · 세종월드교회 · 대전자성교회</title>
-<link rel="stylesheet" href="./style.css?v=7">
+<title>실 예약 · 세종월드교회</title>
+<link rel="stylesheet" href="./style.css?v=8">
 <style>
   .auth .body .seg { margin: 0 0 16px; }
   .auth .btn.block { margin-top: 18px; }
@@ -94,14 +94,14 @@
 
 <script type="module">
 import {
-  db, COLL, CHURCHES, CHURCH_ORDER, ROOMS, roomOf, roomsOf, floorsOf, churchName,
+  db, COLL, CHURCHES, CHURCH_NAME, CHURCH_ORDER, ROOMS, roomOf, roomsOf, floorsOf, churchName,
   pad, fmt, toMin, DAY_START, DAY_END, SPAN, LAST_START,
   todayStr, addDays, nowMin, dayName, dayLabel, dateLabel,
   STATUS, isLive, spans, busyOf,
   profileOf, ageTag, giLine, acctOf, acctProblem, pwProblem, newSalt, pwHashOf,
   getPinConfig, checkPin, savePin, esc, peopleText,
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, query, where, onSnapshot
-} from './core.js';
+} from './core.js?v=8';
 
 /* ================= 상태 ================= */
 const S = {
@@ -308,7 +308,7 @@ function authView() {
   let h = '<div class="auth">';
   h += '<div class="auth-mark">🏛</div>';
   h += '<h1>실 <em>예약</em></h1>';
-  h += '<p class="lead">세종월드교회 · 대전자성교회의 모임 공간을<br>한눈에 보고, 원하는 시간에 신청하세요.</p>';
+  h += '<p class="lead">세종월드교회 두 성전의 모임 공간을<br>한눈에 보고, 원하는 시간에 신청하세요.</p>';
   h += '<div class="body">';
   h += '<div class="seg"><button type="button" class="' + (tab === 'login' ? 'on' : '') + '" data-act="authTab" data-tab="login">로그인</button>'
     + '<button type="button" class="' + (tab === 'signup' ? 'on' : '') + '" data-act="authTab" data-tab="signup">처음이에요</button></div>';
@@ -321,17 +321,17 @@ function authView() {
   } else {
     h += '<label class="field" style="margin-top:0"><span>아이디</span><input class="input" id="sid" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="영문·숫자·한글 2~16자"></label>';
     h += '<label class="field"><span>비밀번호</span><input class="input" id="spw" type="password" autocomplete="new-password" placeholder="4자 이상"></label>';
-    h += '<label class="field"><span>이름</span><input class="input" id="sname" placeholder="예: 이태웅"></label>';
+    h += '<label class="field"><span>이름</span><input class="input" id="sname" placeholder="예: 홍길동"></label>';
     h += '<label class="field"><span>나이</span><input class="input" id="sage" type="number" inputmode="numeric" min="1" max="120" placeholder="숫자만 (예: 29)"></label>';
     h += '<div class="signup-preview" id="signupPreview">나이를 적으면 기수와 부서가 자동으로 정해져요.</div>';
-    h += '<div class="field"><span>주로 쓰는 교회</span><div class="seg" style="margin:0">'
+    h += '<div class="field"><span>주로 쓰는 성전</span><div class="seg" style="margin:0">'
       + CHURCH_ORDER.map(c => '<button type="button" class="' + (S.church === c ? 'on' : '') + '" data-act="signupChurch" data-church="' + c + '">' + CHURCHES[c].name + '</button>').join('')
       + '</div></div>';
     h += '<button class="btn primary block" type="button" data-act="signup">가입하고 시작하기</button>';
     h += '<p class="hint" id="authMsg" style="text-align:center"></p>';
   }
   h += '</div>';
-  h += '<div class="foot">예약 요청은 관리자가 확인한 뒤 승인됩니다.<br>세종월드교회 · 대전자성교회</div>';
+  h += '<div class="foot">예약 요청은 관리자가 확인한 뒤 승인됩니다.<br>' + CHURCH_NAME + '</div>';
   return h + '</div>';
 }
 
@@ -532,7 +532,7 @@ function adminView() {
     + '<div class="stat ok"><b>' + todayOk.length + '</b><span>오늘 승인</span></div>'
     + '<div class="stat"><b>' + busyNow + '</b><span>지금 사용 중</span></div></div>';
 
-  h += '<div class="chips">' + [['all', '두 교회'], ['sejong', '세종월드'], ['jaseong', '대전자성']].map(([k, n]) =>
+  h += '<div class="chips">' + [['all', '전체 성전'], ['sejong', '세종 성전'], ['jaseong', '대전 자성성전']].map(([k, n]) =>
     '<button type="button" class="chip ' + (S.adminChurch === k ? 'on' : '') + '" data-act="adminChurch" data-church="' + k + '">' + n + '</button>').join('') + '</div>';
 
   h += '<div class="sec-title"><b>대기 중인 요청</b><span>' + pending.length + '건</span></div>';
@@ -569,7 +569,7 @@ function settingsView() {
     + '<span class="badge">' + esc(CHURCHES[S.church].short) + '</span></div>';
 
   h += '<div class="rows">';
-  h += '<div class="row-item"><div class="ri-t"><b>주로 쓰는 교회</b><span>앱 위쪽에서 언제든 바꿀 수 있어요</span></div></div>';
+  h += '<div class="row-item"><div class="ri-t"><b>주로 쓰는 성전</b><span>앱 위쪽에서 언제든 바꿀 수 있어요</span></div></div>';
   h += '<div class="seg" style="margin:0 16px 4px">' + CHURCH_ORDER.map(c =>
     '<button type="button" class="' + (S.church === c ? 'on' : '') + '" data-act="church" data-church="' + c + '">' + CHURCHES[c].name + '</button>').join('') + '</div>';
   h += '</div>';
@@ -586,7 +586,7 @@ function settingsView() {
   h += '</div>';
 
   h += '<div style="padding:18px 16px 0"><button class="btn danger block" type="button" data-act="logout">로그아웃</button></div>';
-  h += '<p class="note">세종월드교회 · 대전자성교회 실 예약 · 예약 데이터는 교회 공용 Firestore에 저장됩니다.</p>';
+  h += '<p class="note">세종월드교회 두 성전 실 예약 · 예약 데이터는 교회 공용 Firestore에 저장됩니다.</p>';
   return h;
 }
 
@@ -596,10 +596,10 @@ function headerFor() {
   if (v === 'room') {
     const room = roomOf(S.roomId);
     return '<div class="hdr"><div class="hdr-row"><button class="hdr-back" type="button" data-act="back" aria-label="뒤로">‹</button>'
-      + '<div class="hdr-title"><b>' + esc(room ? room.name : '실') + '</b><span>' + esc(room ? CHURCHES[room.church].short + ' · ' + room.floor : '') + '</span></div>'
+      + '<div class="hdr-title"><b>' + esc(room ? room.name : '실') + '</b><span>' + esc(room ? CHURCHES[room.church].name + ' · ' + room.floor : '') + '</span></div>'
       + adminBtn() + '</div></div>';
   }
-  const titles = { home: [CHURCHES[S.church].name, 'ROOM RESERVATION'], my: ['내 예약', 'MY BOOKINGS'], admin: ['관리자', 'ADMIN MODE'], settings: ['설정', 'SETTINGS'] };
+  const titles = { home: [CHURCH_NAME, 'ROOM RESERVATION'], my: ['내 예약', 'MY BOOKINGS'], admin: ['관리자', 'ADMIN MODE'], settings: ['설정', 'SETTINGS'] };
   const t = titles[v] || titles.home;
   return '<div class="hdr"><div class="hdr-row"><div class="hdr-mark">🏛</div>'
     + '<div class="hdr-title"><b>' + esc(t[0]) + '</b><span>' + esc(t[1]) + '</span></div>' + adminBtn() + '</div></div>';
