@@ -11,7 +11,7 @@
 <meta name="format-detection" content="telephone=no">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.92em%22 font-size=%2290%22>🏛</text></svg>">
 <title>실 예약 · 세종월드교회 · 대전자성교회</title>
-<link rel="stylesheet" href="./style.css?v=4">
+<link rel="stylesheet" href="./style.css?v=5">
 <style>
   .auth .body .seg { margin: 0 0 16px; }
   .auth .btn.block { margin-top: 18px; }
@@ -117,7 +117,7 @@ const S = {
   floor: 'all',
   admin: false,
   adminChurch: 'all',
-  adminStatus: 'pending',
+  adminStatus: 'all',
   adminDate: todayStr(),
   authTab: 'login',
   dirty: false
@@ -238,6 +238,10 @@ function suggestForm(room, date) {
     return { start: '10:00', end: '11:00', people: 2, reason: '' };
   }
   if (gaps.length) return { start: fmt(gaps[0][0]), end: fmt(gaps[0][1]), people: 2, reason: '' };
+  if (date === todayStr()) {
+    const n = Math.ceil(nowMin() / 30) * 30;
+    if (n <= LAST_START) return { start: fmt(n), end: fmt(n + 30), people: 2, reason: '' };
+  }
   return { start: '10:00', end: '11:00', people: 2, reason: '' };
 }
 
