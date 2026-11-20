@@ -11,7 +11,7 @@
 <meta name="format-detection" content="telephone=no">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.92em%22 font-size=%2290%22>🏛</text></svg>">
 <title>실 예약 · 세종월드교회</title>
-<link rel="stylesheet" href="./style.css?v=8">
+<link rel="stylesheet" href="./style.css?v=9">
 <style>
   .auth .body .seg { margin: 0 0 16px; }
   .auth .btn.block { margin-top: 18px; }
@@ -101,7 +101,7 @@ import {
   profileOf, ageTag, giLine, acctOf, acctProblem, pwProblem, newSalt, pwHashOf,
   getPinConfig, checkPin, savePin, esc, peopleText,
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, query, where, onSnapshot
-} from './core.js?v=8';
+} from './core.js?v=9';
 
 /* ================= 상태 ================= */
 const S = {
@@ -564,9 +564,16 @@ function adminView() {
 /* ================= 설정 ================= */
 function settingsView() {
   const u = S.user;
-  let h = '<div class="profile"><div class="avatar">' + esc((u.name || '?').slice(0, 1)) + '</div>'
-    + '<div class="p-info"><b>' + esc(u.name) + '</b><span>' + esc(giLine(u)) + ' · @' + esc(u.acct) + '</span></div>'
-    + '<span class="badge">' + esc(CHURCHES[S.church].short) + '</span></div>';
+  let h = '';
+  if (u) {
+    h += '<div class="profile"><div class="avatar">' + esc((u.name || '?').slice(0, 1)) + '</div>'
+      + '<div class="p-info"><b>' + esc(u.name) + '</b><span>' + esc(giLine(u)) + ' · @' + esc(u.acct) + '</span></div>'
+      + '<span class="badge">' + esc(CHURCHES[S.church].short) + '</span></div>';
+  } else {
+    h += '<div class="profile"><div class="avatar">🔒</div>'
+      + '<div class="p-info"><b>관리자 모드</b><span>성도 로그인 없이 PIN으로 연 상태예요</span></div>'
+      + '<span class="badge">' + esc(CHURCHES[S.church].short) + '</span></div>';
+  }
 
   h += '<div class="rows">';
   h += '<div class="row-item"><div class="ri-t"><b>주로 쓰는 성전</b><span>앱 위쪽에서 언제든 바꿀 수 있어요</span></div></div>';
@@ -581,11 +588,12 @@ function settingsView() {
   } else {
     h += '<button type="button" class="row-item" data-act="openPin"><div class="ri-t"><b>관리자 모드</b><span>PIN을 넣으면 요청을 승인·거절할 수 있어요</span></div><span class="ri-go">들어가기</span></button>';
   }
-  h += '<div class="row-item"><div class="ri-t"><b>내 정보</b><span>' + esc(ageTag(u)) + (Number(u.age) >= 37 ? ' · 청년처' : ' · ' + esc(u.dept || '')) + '</span></div></div>';
+  if (u) h += '<div class="row-item"><div class="ri-t"><b>내 정보</b><span>' + esc(ageTag(u)) + (Number(u.age) >= 37 ? ' · 청년처' : ' · ' + esc(u.dept || '')) + '</span></div></div>';
   h += '<div class="row-item"><div class="ri-t"><b>예약 시간</b><span>매일 06:00 – 23:30 (30분 단위)</span></div></div>';
   h += '</div>';
 
-  h += '<div style="padding:18px 16px 0"><button class="btn danger block" type="button" data-act="logout">로그아웃</button></div>';
+  if (u) h += '<div style="padding:18px 16px 0"><button class="btn danger block" type="button" data-act="logout">로그아웃</button></div>';
+  else h += '<div style="padding:18px 16px 0"><button class="btn primary block" type="button" data-act="goLogin">성도로 로그인하기</button></div>';
   h += '<p class="note">세종월드교회 두 성전 실 예약 · 예약 데이터는 교회 공용 Firestore에 저장됩니다.</p>';
   return h;
 }
@@ -618,7 +626,8 @@ function dock() {
 
 function render() {
   const app = $('#app');
-  if (!S.user) { app.innerHTML = authView(); return; }
+  /* 관리자 모드는 성도 로그인 없이 PIN만으로도 열립니다 */
+  if (!S.user && !S.admin) { app.innerHTML = authView(); return; }
   const mainEl = app.querySelector('.main');
   const scroll = mainEl ? mainEl.scrollTop : 0;
 
@@ -946,6 +955,15 @@ document.addEventListener('click', async e => {
     go('home');
     return;
   }
+  if (a === 'goLogin') {
+    S.admin = false;
+    try { sessionStorage.removeItem(AKEY); } catch (e) { }
+    closeAllSheets();
+    S.view = 'home';
+    S.authTab = 'login';
+    render();
+    return;
+  }
   if (a === 'logout') {
     askConfirm('로그아웃할까요?', '다음에 같은 아이디로 다시 들어올 수 있어요.', '로그아웃', () => {
       clearSession(); S.user = null; S.admin = false; S.bookings = [];
@@ -1011,16 +1029,15 @@ document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, 
 
   try { S.admin = sessionStorage.getItem(AKEY) === '1'; } catch (e) { }
 
-  if (S.user) {
+  if (S.user || S.admin) {
     startLive();
     const h = (location.hash || '').replace('#', '');
-    S.view = ['home', 'my', 'admin', 'settings'].includes(h) ? h : 'home';
+    S.view = ['home', 'my', 'admin', 'settings'].includes(h) ? h : (S.admin && !S.user ? 'admin' : 'home');
     if (S.view === 'admin' && !S.admin) S.view = 'home';
-    render();
-    if (adminQ && !S.admin) { pinBuf = ''; pinRender(); openSheet('sheetPin'); }
-  } else {
-    render();
   }
+  render();
+  /* ?admin=1 로 들어오면 성도 로그인 여부와 상관없이 PIN부터 받습니다 */
+  if (adminQ && !S.admin) { pinBuf = ''; pinRender(); openSheet('sheetPin'); }
 })();
 </script>
 </body>
