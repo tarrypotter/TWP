@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="실 예약 관리자">
 <title>관리자 · 세종월드교회 실 예약</title>
-<link rel="stylesheet" href="./style.css?v=12">
+<link rel="stylesheet" href="./style.css?v=13">
 </head>
 <body>
 <div id="app">
@@ -33,7 +33,7 @@
         <button class="pad-key" type="button" data-pin="0">0</button>
         <button class="pad-key wide" type="button" data-pin="del">⌫</button>
       </div>
-      <p class="tiny muted" style="text-align:center;line-height:1.7">처음 PIN은 <b style="color:var(--brand-2)">0000</b>입니다. 앱 설정에서 바꿀 수 있어요.<br>관리자 모드는 10분 동안 조작이 없으면 자동으로 잠깁니다.</p>
+      <p class="tiny muted" style="text-align:center;line-height:1.7">PIN은 설정에서 바꿀 수 있어요.</p>
     </div>
 
     <div class="foot" style="margin-top:auto;padding-top:22px;display:flex;gap:8px">
@@ -43,7 +43,7 @@
 </div>
 <div class="toast" id="toast"></div>
 <script type="module">
-import { checkPin } from './core.js?v=12';
+import { checkPin } from './core.js?v=13';
 
 const $ = s => document.querySelector(s);
 let buf = '';

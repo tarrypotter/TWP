@@ -10,7 +10,7 @@
 <title>세종월드교회 카페 · 사장님</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="stylesheet" href="./style.css?v=20">
+<link rel="stylesheet" href="./style.css?v=21">
 <style>
   /* ---- 사장님 화면 · 다크 글래스 ---- */
   .pin-wrap { height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
@@ -122,7 +122,7 @@
       <div class="hdr-mark" style="width:52px;height:52px;border-radius:16px;font-size:26px;margin:0 auto 12px">🔐</div>
       <b style="font-size:18px">사장님 모드</b>
       <p class="small sub mt6">세종월드교회 카페 · 주문·메뉴 관리</p>
-      <p class="tiny muted mt6">초기 PIN은 <b>0000</b> 입니다. 로그인 후 설정에서 바꿀 수 있어요.</p>
+      <p class="tiny muted mt6">PIN은 들어온 뒤 설정에서 바꿀 수 있어요.</p>
       <p class="tiny muted mt6" style="margin-top:4px">메뉴·설정 변경은 <b>관리자 PIN</b>을 한 번 더 받습니다.</p>
     </div>
     <div class="pin-dots" id="pinDots"><i></i><i></i><i></i><i></i></div>
@@ -215,8 +215,8 @@
       <button data-pink="master" type="button">관리자 PIN</button>
     </div>
     <p class="tiny muted" id="pinHint" style="min-height:32px;margin:0 2px 12px;line-height:1.55"></p>
-    <label class="field"><span>현재 PIN</span><input class="input" id="pinOld" inputmode="numeric" maxlength="4" placeholder="0000"></label>
-    <label class="field"><span>새 PIN (숫자 4자리)</span><input class="input" id="pinNew" inputmode="numeric" maxlength="4" placeholder="1234"></label>
+    <label class="field"><span>현재 PIN</span><input class="input" id="pinOld" inputmode="numeric" maxlength="4" placeholder="••••"></label>
+    <label class="field"><span>새 PIN (숫자 4자리)</span><input class="input" id="pinNew" inputmode="numeric" maxlength="4" placeholder="••••"></label>
     <p class="tiny muted">매장 PIN과 관리자 PIN은 <b>서로 다른 값</b>이어야 합니다. PIN은 Firestore config/app 문서에 저장됩니다.</p>
   </div>
   <div class="sheet-foot"><button class="btn primary block" id="pinSave" type="button">PIN 저장</button></div>
@@ -245,7 +245,7 @@ import {
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs, getDoc, query, orderBy,
   limit, beep, buzz, notify, askNotifyPermission, ORDER_STATUS, channelLabel, itemsSummary, whoTag, menuMatches, memberKeyOf, arrayUnion,
   sendPush, pushTokensOf, registerPush, pushTokenLocal, pushAvailable
-} from './core.js?v=20';
+} from './core.js?v=21';
 
 lockZoom();
 
@@ -313,8 +313,8 @@ function lock() {
 $('#lockBtn').onclick = lock;
 
 /* ---------------- 관리자(특수) PIN ----------------
-   매장 PIN(기본 0000)으로 들어온 뒤, 메뉴·설정처럼 민감한 작업은
-   관리자 PIN(기본 1111)을 한 번 더 받아 이 화면 세션에서만 열어 둡니다. */
+   매장 PIN으로 들어온 뒤, 메뉴·설정처럼 민감한 작업은
+   관리자 PIN을 한 번 더 받아 이 화면 세션에서만 열어 둡니다. */
 function storePinOf() { return String(S.cfg.pin || DEFAULT_CONFIG.pin); }
 function masterPinOf() {
   const m = String(S.cfg.masterPin || DEFAULT_CONFIG.masterPin);
@@ -987,9 +987,9 @@ function setPinKind(k) {
   pinKind = k === 'master' ? 'master' : 'store';
   $('#pinSeg').querySelectorAll('[data-pink]').forEach(b => b.classList.toggle('on', b.dataset.pink === pinKind));
   $('#pinHint').innerHTML = pinKind === 'master'
-    ? '관리자 PIN은 <b>메뉴 추가·가격 수정·설정 변경</b>처럼 민감한 작업을 할 때 한 번 더 씁니다. (초기 <b>1111</b>)'
-    : '매장 PIN은 이 화면에 들어올 때 씁니다. <b>주문 처리·품절 표시</b>까지 할 수 있어요. (초기 <b>0000</b>)';
-  $('#pinOld').placeholder = pinKind === 'master' ? '1111' : '0000';
+    ? '관리자 PIN은 <b>메뉴 추가·가격 수정·설정 변경</b>처럼 민감한 작업을 할 때 한 번 더 씁니다.'
+    : '매장 PIN은 이 화면에 들어올 때 씁니다. <b>주문 처리·품절 표시</b>까지 할 수 있어요.';
+  $('#pinOld').placeholder = '••••';
   $('#pinOld').value = ''; $('#pinNew').value = '';
 }
 $('#pinSeg').querySelectorAll('[data-pink]').forEach(b => b.onclick = () => setPinKind(b.dataset.pink));

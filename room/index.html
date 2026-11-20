@@ -11,7 +11,7 @@
 <meta name="format-detection" content="telephone=no">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.92em%22 font-size=%2290%22>🏛</text></svg>">
 <title>실 예약 · 세종월드교회</title>
-<link rel="stylesheet" href="./style.css?v=12">
+<link rel="stylesheet" href="./style.css?v=13">
 <style>
   .auth .body .seg { margin: 0 0 16px; }
   .auth .btn.block { margin-top: 18px; }
@@ -50,7 +50,7 @@
         <button class="pad-key" type="button" data-pin="0">0</button>
         <button class="pad-key wide" type="button" data-pin="del">⌫</button>
       </div>
-      <p class="tiny muted" style="text-align:center;line-height:1.7">처음 PIN은 <b style="color:var(--brand-2)">0000</b>입니다.<br>10분 동안 조작이 없으면 다시 잠깁니다.</p>
+      <p class="tiny muted" style="text-align:center;line-height:1.7">PIN은 관리자 모드 설정에서 바꿀 수 있어요.</p>
     </div>
   </div>
 </section>
@@ -101,7 +101,7 @@ import {
   profileOf, ageTag, giLine, acctOf, acctProblem, pwProblem, newSalt, pwHashOf,
   getPinConfig, checkPin, savePin, esc, peopleText,
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, query, where, onSnapshot
-} from './core.js?v=12';
+} from './core.js?v=13';
 
 /* ================= 상태 ================= */
 const S = {
@@ -644,7 +644,7 @@ function settingsView() {
 
   if (u) h += '<div style="padding:18px 16px 0"><button class="btn danger block" type="button" data-act="logout">로그아웃</button></div>';
   /* 관리자 모드(성도 로그인 없이 PIN으로 연 경우)에는 '성도로 로그인하기'를 두지 않습니다 */
-  h += '<p class="note">세종월드교회 두 성전 실 예약 · 예약 데이터는 교회 공용 Firestore에 저장됩니다.<br>관리자 모드는 10분 동안 조작이 없으면 자동으로 잠깁니다.</p>';
+  h += '<p class="note">세종월드교회 두 성전 실 예약 · 예약 데이터는 교회 공용 Firestore에 저장됩니다.</p>';
   return h;
 }
 
