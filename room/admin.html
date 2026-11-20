@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="실 예약 관리자">
 <title>관리자 · 세종월드교회 실 예약</title>
-<link rel="stylesheet" href="./style.css?v=9">
+<link rel="stylesheet" href="./style.css?v=10">
 </head>
 <body>
 <div id="app">
@@ -33,7 +33,7 @@
         <button class="pad-key" type="button" data-pin="0">0</button>
         <button class="pad-key wide" type="button" data-pin="del">⌫</button>
       </div>
-      <p class="tiny muted" style="text-align:center;line-height:1.7">처음 PIN은 <b style="color:var(--brand-2)">0000</b>입니다.<br>앱 설정에서 바꿀 수 있어요.</p>
+      <p class="tiny muted" style="text-align:center;line-height:1.7">처음 PIN은 <b style="color:var(--brand-2)">0000</b>입니다. 앱 설정에서 바꿀 수 있어요.<br>관리자 모드는 10분 동안 조작이 없으면 자동으로 잠깁니다.</p>
     </div>
 
     <div class="foot" style="margin-top:auto;padding-top:22px;display:flex;gap:8px">
@@ -43,7 +43,7 @@
 </div>
 <div class="toast" id="toast"></div>
 <script type="module">
-import { checkPin } from './core.js?v=9';
+import { checkPin } from './core.js?v=10';
 
 const $ = s => document.querySelector(s);
 let buf = '';
@@ -68,7 +68,8 @@ async function push(k) {
   let ok = false;
   try { ok = await checkPin(buf); } catch (e) { console.warn(e); }
   if (ok) {
-    try { sessionStorage.setItem(AKEY, '1'); } catch (e) { }
+    /* 이 탭에서만 쓰는 10분짜리 통행증 — 앱을 다시 열면 다시 PIN을 받습니다 */
+    try { sessionStorage.setItem(AKEY, String(Date.now())); } catch (e) { }
     msg('들어가는 중…');
     location.replace('./index.html?admin=1#admin');
   } else {

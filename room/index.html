@@ -11,7 +11,7 @@
 <meta name="format-detection" content="telephone=no">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.92em%22 font-size=%2290%22>🏛</text></svg>">
 <title>실 예약 · 세종월드교회</title>
-<link rel="stylesheet" href="./style.css?v=9">
+<link rel="stylesheet" href="./style.css?v=10">
 <style>
   .auth .body .seg { margin: 0 0 16px; }
   .auth .btn.block { margin-top: 18px; }
@@ -50,7 +50,7 @@
         <button class="pad-key" type="button" data-pin="0">0</button>
         <button class="pad-key wide" type="button" data-pin="del">⌫</button>
       </div>
-      <p class="tiny muted" style="text-align:center;line-height:1.7">처음 PIN은 <b style="color:var(--brand-2)">0000</b>입니다.<br>설정에서 바꿀 수 있어요.</p>
+      <p class="tiny muted" style="text-align:center;line-height:1.7">처음 PIN은 <b style="color:var(--brand-2)">0000</b>입니다.<br>10분 동안 조작이 없으면 다시 잠깁니다.</p>
     </div>
   </div>
 </section>
@@ -101,7 +101,7 @@ import {
   profileOf, ageTag, giLine, acctOf, acctProblem, pwProblem, newSalt, pwHashOf,
   getPinConfig, checkPin, savePin, esc, peopleText,
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, query, where, onSnapshot
-} from './core.js?v=9';
+} from './core.js?v=10';
 
 /* ================= 상태 ================= */
 const S = {
@@ -164,6 +164,65 @@ function saveSession() {
 }
 function clearSession() {
   try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); sessionStorage.removeItem(AKEY); } catch (e) { }
+}
+
+/* ================= 관리자 인증 =================
+   PIN을 통과한 상태는 이 탭에서만, 마지막 조작에서 10분 동안만 유지합니다.
+   탭/앱을 닫으면 sessionStorage가 비워져 다시 PIN을 받고,
+   열어 둔 채 10분이 지나도 자동으로 잠깁니다. */
+const ADMIN_IDLE_MS = 10 * 60 * 1000;
+let adminTimer = null;
+
+function adminStamp() {
+  try { sessionStorage.setItem(AKEY, String(Date.now())); } catch (e) { }
+}
+function adminFresh() {
+  let t = 0;
+  try { t = Number(sessionStorage.getItem(AKEY)) || 0; } catch (e) { return false; }
+  return !!t && Date.now() - t < ADMIN_IDLE_MS;
+}
+function adminGrant() {
+  S.admin = true;
+  adminStamp();
+  startAdminWatch();
+}
+function adminRevoke() {
+  S.admin = false;
+  try { sessionStorage.removeItem(AKEY); } catch (e) { }
+}
+function startAdminWatch() {
+  if (adminTimer) return;
+  adminTimer = setInterval(() => { if (S.admin && !adminFresh()) lockAdmin(); }, 15000);
+}
+/* 누르거나 입력할 때만 시간을 다시 셉니다. 이미 시간이 지났으면 그 자리에서 잠깁니다. */
+function adminTouch() {
+  if (!S.admin) return;
+  if (adminFresh()) adminStamp();
+  else lockAdmin();
+}
+function lockAdmin() {
+  if (!S.admin) return;
+  adminRevoke();
+  S.pick = null;
+  closeAllSheets();
+  if (S.user) {
+    if (S.view === 'admin') S.view = 'home';
+    render();
+    toast('10분 지나서 관리자 모드가 잠겼어요. 다시 PIN을 넣어 주세요');
+    return;
+  }
+  /* 성도 로그인 없이 PIN만으로 연 경우엔 PIN 화면으로 돌아갑니다 */
+  S.view = 'home';
+  render();
+  openPinSheet('10분 지나서 잠겼어요. PIN을 다시 넣어 주세요');
+  toast('10분 지나서 관리자 모드가 잠겼어요', true);
+}
+function openPinSheet(text) {
+  pinBuf = '';
+  pinRender();
+  const m = $('#pinMsg');
+  if (m) { m.textContent = text || '관리자 PIN을 눌러 주세요'; m.classList.remove('warn'); }
+  openSheet('sheetPin');
 }
 
 /* ================= 데이터 ================= */
@@ -324,9 +383,6 @@ function authView() {
     h += '<label class="field"><span>이름</span><input class="input" id="sname" placeholder="예: 홍길동"></label>';
     h += '<label class="field"><span>나이</span><input class="input" id="sage" type="number" inputmode="numeric" min="1" max="120" placeholder="숫자만 (예: 29)"></label>';
     h += '<div class="signup-preview" id="signupPreview">나이를 적으면 기수와 부서가 자동으로 정해져요.</div>';
-    h += '<div class="field"><span>주로 쓰는 성전</span><div class="seg" style="margin:0">'
-      + CHURCH_ORDER.map(c => '<button type="button" class="' + (S.church === c ? 'on' : '') + '" data-act="signupChurch" data-church="' + c + '">' + CHURCHES[c].name + '</button>').join('')
-      + '</div></div>';
     h += '<button class="btn primary block" type="button" data-act="signup">가입하고 시작하기</button>';
     h += '<p class="hint" id="authMsg" style="text-align:center"></p>';
   }
@@ -576,12 +632,6 @@ function settingsView() {
   }
 
   h += '<div class="rows">';
-  h += '<div class="row-item"><div class="ri-t"><b>주로 쓰는 성전</b><span>앱 위쪽에서 언제든 바꿀 수 있어요</span></div></div>';
-  h += '<div class="seg" style="margin:0 16px 4px">' + CHURCH_ORDER.map(c =>
-    '<button type="button" class="' + (S.church === c ? 'on' : '') + '" data-act="church" data-church="' + c + '">' + CHURCHES[c].name + '</button>').join('') + '</div>';
-  h += '</div>';
-
-  h += '<div class="rows">';
   if (S.admin) {
     h += '<button type="button" class="row-item" data-act="openPinChange"><div class="ri-t"><b>관리자 PIN 변경</b><span>지금 관리자 모드로 들어와 있어요</span></div><span class="ri-go">변경</span></button>';
     h += '<button type="button" class="row-item" data-act="adminExit"><div class="ri-t"><b>관리자 모드 종료</b><span>성도 화면으로 돌아가기</span></div><span class="ri-go">종료</span></button>';
@@ -594,7 +644,7 @@ function settingsView() {
 
   if (u) h += '<div style="padding:18px 16px 0"><button class="btn danger block" type="button" data-act="logout">로그아웃</button></div>';
   else h += '<div style="padding:18px 16px 0"><button class="btn primary block" type="button" data-act="goLogin">성도로 로그인하기</button></div>';
-  h += '<p class="note">세종월드교회 두 성전 실 예약 · 예약 데이터는 교회 공용 Firestore에 저장됩니다.</p>';
+  h += '<p class="note">세종월드교회 두 성전 실 예약 · 예약 데이터는 교회 공용 Firestore에 저장됩니다.<br>관리자 모드는 10분 동안 조작이 없으면 자동으로 잠깁니다.</p>';
   return h;
 }
 
@@ -677,7 +727,7 @@ async function doLogin() {
       acct: id, name: d.name || '', age: Number(d.age) || 0,
       gi: Number(d.gi) || 0, dept: d.dept || '', senior: !!d.senior, church: d.church || 'sejong'
     };
-    S.church = d.church || 'sejong';
+    S.church = 'sejong'; /* 통합 성전 — 항상 세종 성전에서 시작하고 상단 탭으로 바꿉니다 */
     saveSession();
     startLive();
     go('home');
@@ -707,11 +757,13 @@ async function doSignup() {
     const p = profileOf(age);
     const data = {
       acct: id, name, age, gi: p.gi, dept: p.dept, senior: p.senior,
-      salt, hash: await pwHashOf(id, salt, pw), church: S.church,
+      /* 성전은 가입 때 묻지 않습니다. 필드는 기존 문서와 맞추려고 'sejong'으로 남겨 둡니다. */
+      salt, hash: await pwHashOf(id, salt, pw), church: 'sejong',
       createdAt: Date.now(), updatedAt: Date.now()
     };
     await setDoc(ref, data);
-    S.user = { acct: id, name, age, gi: p.gi, dept: p.dept, senior: p.senior, church: S.church };
+    S.user = { acct: id, name, age, gi: p.gi, dept: p.dept, senior: p.senior, church: 'sejong' };
+    S.church = 'sejong';
     saveSession();
     startLive();
     go('home');
@@ -811,8 +863,7 @@ async function pinPush(k) {
     msg.textContent = '확인 중…';
     const ok = await checkPin(pinBuf);
     if (ok) {
-      S.admin = true;
-      try { sessionStorage.setItem(AKEY, '1'); } catch (e) { }
+      adminGrant();
       pinBuf = '';
       pinRender();
       closeAllSheets();
@@ -847,7 +898,6 @@ document.addEventListener('click', async e => {
 
   if (a === 'closeSheet') { S.pick = null; closeAllSheets(); render(); return; }
   if (a === 'authTab') { S.authTab = b.dataset.tab; render(); return; }
-  if (a === 'signupChurch') { S.church = b.dataset.church; render(); return; }
   if (a === 'login') { doLogin(); return; }
   if (a === 'signup') { doSignup(); return; }
 
@@ -859,7 +909,7 @@ document.addEventListener('click', async e => {
   if (a === 'floor') { S.floor = b.dataset.floor; render(); return; }
   if (a === 'tab') {
     const t = b.dataset.tab;
-    if (t === 'admin' && !S.admin) { pinBuf = ''; pinRender(); $('#pinMsg').textContent = '관리자 PIN을 눌러 주세요'; openSheet('sheetPin'); return; }
+    if (t === 'admin' && !S.admin) { openPinSheet(); return; }
     go(t); return;
   }
   if (a === 'goAdmin') { go('admin'); return; }
@@ -928,7 +978,7 @@ document.addEventListener('click', async e => {
   }
   if (a === 'doConfirm') { closeAllSheets(); const fn = confirmAction; confirmAction = null; if (fn) fn(); return; }
 
-  if (a === 'openPin') { pinBuf = ''; pinRender(); $('#pinMsg').textContent = '관리자 PIN을 눌러 주세요'; openSheet('sheetPin'); return; }
+  if (a === 'openPin') { openPinSheet(); return; }
   if (a === 'openPinChange') {
     $('#newPin1').value = ''; $('#newPin2').value = ''; $('#pinChangeMsg').textContent = '';
     openSheet('sheetPinChange'); return;
@@ -949,15 +999,13 @@ document.addEventListener('click', async e => {
     return;
   }
   if (a === 'adminExit') {
-    S.admin = false;
-    try { sessionStorage.removeItem(AKEY); } catch (e) { }
+    adminRevoke();
     toast('관리자 모드를 끝냈어요');
     go('home');
     return;
   }
   if (a === 'goLogin') {
-    S.admin = false;
-    try { sessionStorage.removeItem(AKEY); } catch (e) { }
+    adminRevoke();
     closeAllSheets();
     S.view = 'home';
     S.authTab = 'login';
@@ -991,6 +1039,13 @@ document.addEventListener('keydown', e => {
   } else if (e.target.id === 'fReason') { e.target.blur(); }
 });
 
+/* 관리자 잠금 — 조작이 있을 때 · 화면이 다시 보일 때 · 주기적으로 확인 */
+['pointerdown', 'keydown', 'input'].forEach(n => document.addEventListener(n, adminTouch, { passive: true }));
+document.addEventListener('visibilitychange', () => {
+  if (!S.admin || document.hidden) return;
+  if (!adminFresh()) lockAdmin();
+});
+
 /* 확대·이중 탭 방지 */
 ['gesturestart', 'gesturechange', 'gestureend'].forEach(n => document.addEventListener(n, e => e.preventDefault(), { passive: false }));
 document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
@@ -1017,17 +1072,20 @@ document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, 
       if (snap.exists()) {
         const d = snap.data();
         S.user = { acct: sess.acct, name: d.name || '', age: Number(d.age) || 0, gi: Number(d.gi) || 0, dept: d.dept || '', senior: !!d.senior, church: d.church || 'sejong' };
-        S.church = d.church || sess.church || 'sejong';
+        S.church = 'sejong';
       } else if (cached && cached.acct === sess.acct) {
         /* 계정이 사라졌으면 저장된 세션도 정리합니다 */
         try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); } catch (e) { }
       }
     } catch (e) {
-      if (cached && cached.acct === sess.acct) { S.user = cached; S.church = sess.church || cached.church || 'sejong'; }
+      if (cached && cached.acct === sess.acct) { S.user = cached; S.church = 'sejong'; }
     }
   }
 
-  try { S.admin = sessionStorage.getItem(AKEY) === '1'; } catch (e) { }
+  /* 관리자 인증은 이 탭에서만 10분짜리로 살아 있습니다. 지난 상태면 바로 잠깁니다. */
+  S.admin = adminFresh();
+  if (!S.admin) { try { sessionStorage.removeItem(AKEY); } catch (e) { } }
+  if (S.admin) startAdminWatch();
 
   if (S.user || S.admin) {
     startLive();
@@ -1037,7 +1095,7 @@ document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, 
   }
   render();
   /* ?admin=1 로 들어오면 성도 로그인 여부와 상관없이 PIN부터 받습니다 */
-  if (adminQ && !S.admin) { pinBuf = ''; pinRender(); openSheet('sheetPin'); }
+  if (adminQ && !S.admin) { openPinSheet(); }
 })();
 </script>
 </body>
