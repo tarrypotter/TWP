@@ -11,7 +11,7 @@
 <meta name="format-detection" content="telephone=no">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.92em%22 font-size=%2290%22>🏛</text></svg>">
 <title>실 예약 · 세종월드교회 · 대전자성교회</title>
-<link rel="stylesheet" href="./style.css?v=3">
+<link rel="stylesheet" href="./style.css?v=4">
 <style>
   .auth .body .seg { margin: 0 0 16px; }
   .auth .btn.block { margin-top: 18px; }
@@ -609,7 +609,7 @@ function dock() {
   const items = [['home', '⌂', '홈'], ['my', '▤', '내 예약'], ['admin', S.admin ? '✓' : '🔒', '관리자'], ['settings', '⚙', '설정']];
   return '<nav class="dock">' + items.map(([k, ico, label]) =>
     '<button type="button" class="' + (S.view === k || (k === 'home' && S.view === 'room') ? 'on' : '') + '" data-act="tab" data-tab="' + k + '">'
-    + '<span class="ico">' + ico + '</span><span class="lb">' + label + (k === 'admin' && pc ? '<i class="dot-n">' + pc + '</i>' : '') + '</span></button>').join('') + '</nav>';
+    + '<span class="ico">' + ico + '</span>' + label + (k === 'admin' && pc ? '<span class="dot-n">' + pc + '</span>' : '') + '</button>').join('') + '</nav>';
 }
 
 function render() {

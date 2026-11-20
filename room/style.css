@@ -404,8 +404,7 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 .dock button .ico { font-size: 16px; line-height: 1; transition: .26s var(--spring); }
 .dock button.on { color: #07100d; background: linear-gradient(180deg, #e6fdf5, #a6e2ce); box-shadow: 0 10px 22px -14px rgba(143, 217, 194, .8); }
 .dock button.on .ico { transform: translateY(-1px) scale(1.04); }
-.dock .dot-n { display: inline-block; min-width: 13px; height: 13px; padding: 0 3px; border-radius: 7px; background: var(--warn); color: #241505; font-size: 9px; font-weight: 900; line-height: 13px; text-align: center; font-style: normal; }
-.dock .lb { display: inline-flex; align-items: center; gap: 3px; }
+.dock .dot-n { position: absolute; top: 3px; right: 6px; min-width: 14px; height: 14px; padding: 0 4px; border-radius: 8px; background: var(--warn); color: #241505; font-size: 9.5px; font-weight: 900; line-height: 14px; text-align: center; font-style: normal; box-shadow: 0 0 0 2px rgba(9, 12, 13, .95); }
 
 /* ---------- 빈 상태 ---------- */
 .empty { text-align: center; color: var(--muted); padding: 40px 22px; }
