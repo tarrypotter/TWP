@@ -11,7 +11,7 @@
 <meta name="format-detection" content="telephone=no">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.92em%22 font-size=%2290%22>🏛</text></svg>">
 <title>실 예약 · 세종월드교회</title>
-<link rel="stylesheet" href="./style.css?v=11">
+<link rel="stylesheet" href="./style.css?v=12">
 <style>
   .auth .body .seg { margin: 0 0 16px; }
   .auth .btn.block { margin-top: 18px; }
@@ -101,7 +101,7 @@ import {
   profileOf, ageTag, giLine, acctOf, acctProblem, pwProblem, newSalt, pwHashOf,
   getPinConfig, checkPin, savePin, esc, peopleText,
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, query, where, onSnapshot
-} from './core.js?v=11';
+} from './core.js?v=12';
 
 /* ================= 상태 ================= */
 const S = {
@@ -634,7 +634,7 @@ function settingsView() {
   h += '<div class="rows">';
   if (S.admin) {
     h += '<button type="button" class="row-item" data-act="openPinChange"><div class="ri-t"><b>관리자 PIN 변경</b><span>지금 관리자 모드로 들어와 있어요</span></div><span class="ri-go">변경</span></button>';
-    h += '<button type="button" class="row-item" data-act="adminExit"><div class="ri-t"><b>관리자 모드 종료</b><span>성도 화면으로 돌아가기</span></div><span class="ri-go">종료</span></button>';
+    h += '<button type="button" class="row-item" data-act="adminExit"><div class="ri-t"><b>관리자 모드 종료</b><span>' + (u ? '성도 화면으로 돌아가기' : '관리자 모드를 잠그고 나가기') + '</span></div><span class="ri-go">종료</span></button>';
   } else {
     h += '<button type="button" class="row-item" data-act="openPin"><div class="ri-t"><b>관리자 모드</b><span>PIN을 넣으면 요청을 승인·거절할 수 있어요</span></div><span class="ri-go">들어가기</span></button>';
   }
@@ -643,7 +643,7 @@ function settingsView() {
   h += '</div>';
 
   if (u) h += '<div style="padding:18px 16px 0"><button class="btn danger block" type="button" data-act="logout">로그아웃</button></div>';
-  else h += '<div style="padding:18px 16px 0"><button class="btn primary block" type="button" data-act="goLogin">성도로 로그인하기</button></div>';
+  /* 관리자 모드(성도 로그인 없이 PIN으로 연 경우)에는 '성도로 로그인하기'를 두지 않습니다 */
   h += '<p class="note">세종월드교회 두 성전 실 예약 · 예약 데이터는 교회 공용 Firestore에 저장됩니다.<br>관리자 모드는 10분 동안 조작이 없으면 자동으로 잠깁니다.</p>';
   return h;
 }
