@@ -11,7 +11,7 @@
 <meta name="format-detection" content="telephone=no">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.92em%22 font-size=%2290%22>🏛</text></svg>">
 <title>실 예약 · 세종월드교회 · 대전자성교회</title>
-<link rel="stylesheet" href="./style.css?v=5">
+<link rel="stylesheet" href="./style.css?v=6">
 <style>
   .auth .body .seg { margin: 0 0 16px; }
   .auth .btn.block { margin-top: 18px; }
@@ -1001,7 +1001,8 @@ document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, 
         S.user = { acct: sess.acct, name: d.name || '', age: Number(d.age) || 0, gi: Number(d.gi) || 0, dept: d.dept || '', senior: !!d.senior, church: d.church || 'sejong' };
         S.church = d.church || sess.church || 'sejong';
       } else if (cached && cached.acct === sess.acct) {
-        S.user = cached; S.church = sess.church || cached.church || 'sejong';
+        /* 계정이 사라졌으면 저장된 세션도 정리합니다 */
+        try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); } catch (e) { }
       }
     } catch (e) {
       if (cached && cached.acct === sess.acct) { S.user = cached; S.church = sess.church || cached.church || 'sejong'; }
