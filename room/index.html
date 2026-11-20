@@ -231,6 +231,11 @@ function freeSlots(list, date) {
 function suggestForm(room, date) {
   const list = room ? busyOf(S.bookings, room.id, date) : [];
   const gaps = freeSlots(list, date);
+  if (!list.length) {
+    /* 아무 예약도 없는 날은 10시를 기본으로 */
+    if (date === todayStr() && nowMin() >= 600 && gaps.length) return { start: fmt(gaps[0][0]), end: fmt(gaps[0][1]), people: 2, reason: '' };
+    return { start: '10:00', end: '11:00', people: 2, reason: '' };
+  }
   if (gaps.length) return { start: fmt(gaps[0][0]), end: fmt(gaps[0][1]), people: 2, reason: '' };
   return { start: '10:00', end: '11:00', people: 2, reason: '' };
 }
@@ -395,7 +400,7 @@ function roomView() {
   h += timeline(list, { date: S.date });
   if (!S.admin) {
     const gaps = freeSlots(list, S.date);
-    if (gaps.length) {
+    if (list.length && gaps.length) {
       h += '<p class="tiny muted" style="padding:10px 16px 0">빈 시간 · 누르면 아래 요청서에 채워져요</p>';
       h += '<div class="chips wrap" style="padding:8px 16px 0">' + gaps.map(g =>
         '<button type="button" class="chip slot" data-act="slot" data-s="' + g[0] + '" data-e="' + g[1] + '">' + fmt(g[0]) + '–' + fmt(g[1]) + '</button>').join('') + '</div>';
@@ -480,7 +485,13 @@ function openTimeSheet(key) {
   $('#timeBody').innerHTML = pickList(key, list);
   openSheet('sheetTime');
   const body = document.querySelector('#sheetTime .sheet-body');
-  if (body) body.scrollTop = 0;
+  const on = document.querySelector('#timeBody .trow.on');
+  if (body) {
+    body.scrollTop = 0;
+    if (on && on.getBoundingClientRect && body.getBoundingClientRect().height) {
+      body.scrollTop = Math.max(0, on.getBoundingClientRect().top - body.getBoundingClientRect().top - 120);
+    }
+  }
 }
 
 /* ================= 내 예약 ================= */
