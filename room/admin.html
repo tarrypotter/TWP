@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#07090a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="실 예약 관리자">
+<title>관리자 · 실 예약</title>
+<link rel="stylesheet" href="./style.css?v=1">
+</head>
+<body>
+<div id="app">
+  <div class="auth" style="max-width:520px;margin:0 auto">
+    <div class="auth-mark">🏛</div>
+    <h1>실 예약 <em>관리자</em></h1>
+    <p class="lead">세종월드교회 · 대전자성교회<br>관리자 PIN을 넣으면 예약 요청을 승인·거절할 수 있어요.</p>
+
+    <div class="pin-wrap" style="padding-top:18px">
+      <div class="pin-dots" id="pinDots"><i></i><i></i><i></i><i></i></div>
+      <div class="pin-msg" id="pinMsg">관리자 PIN을 눌러 주세요</div>
+      <div class="pad" id="pinPad">
+        <button class="pad-key" type="button" data-pin="1">1</button>
+        <button class="pad-key" type="button" data-pin="2">2</button>
+        <button class="pad-key" type="button" data-pin="3">3</button>
+        <button class="pad-key" type="button" data-pin="4">4</button>
+        <button class="pad-key" type="button" data-pin="5">5</button>
+        <button class="pad-key" type="button" data-pin="6">6</button>
+        <button class="pad-key" type="button" data-pin="7">7</button>
+        <button class="pad-key" type="button" data-pin="8">8</button>
+        <button class="pad-key" type="button" data-pin="9">9</button>
+        <button class="pad-key wide" type="button" data-pin="clear">지움</button>
+        <button class="pad-key" type="button" data-pin="0">0</button>
+        <button class="pad-key wide" type="button" data-pin="del">⌫</button>
+      </div>
+      <p class="tiny muted" style="text-align:center;line-height:1.7">처음 PIN은 <b style="color:var(--brand-2)">0000</b>입니다.<br>앱 설정에서 바꿀 수 있어요.</p>
+    </div>
+
+    <div class="foot" style="margin-top:auto;padding-top:22px;display:flex;gap:8px">
+      <a class="btn ghost block" href="./index.html">성도 화면으로</a>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script type="module">
+import { checkPin } from './core.js';
+
+const $ = s => document.querySelector(s);
+let buf = '';
+const AKEY = 'room.admin.v1';
+
+function dotRender() {
+  document.querySelectorAll('#pinDots i').forEach((d, i) => d.classList.toggle('on', i < buf.length));
+}
+function msg(t, warn) {
+  const m = $('#pinMsg');
+  m.textContent = t;
+  m.classList.toggle('warn', !!warn);
+}
+async function push(k) {
+  if (k === 'clear') { buf = ''; dotRender(); return; }
+  if (k === 'del') { buf = buf.slice(0, -1); dotRender(); return; }
+  if (buf.length >= 4) return;
+  buf += k;
+  dotRender();
+  if (buf.length < 4) return;
+  msg('확인 중…');
+  let ok = false;
+  try { ok = await checkPin(buf); } catch (e) { console.warn(e); }
+  if (ok) {
+    try { sessionStorage.setItem(AKEY, '1'); } catch (e) { }
+    msg('들어가는 중…');
+    location.replace('./index.html?admin=1#admin');
+  } else {
+    buf = '';
+    dotRender();
+    msg('PIN이 맞지 않아요', true);
+  }
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-pin]');
+  if (b) push(b.dataset.pin);
+});
+document.addEventListener('keydown', e => {
+  if (/^\d$/.test(e.key)) push(e.key);
+  else if (e.key === 'Backspace') push('del');
+  else if (e.key === 'Escape') push('clear');
+  else if (e.key === 'Enter' && buf.length === 4) push(buf.slice(-1));
+});
+['gesturestart', 'gesturechange', 'gestureend'].forEach(n => document.addEventListener(n, e => e.preventDefault(), { passive: false }));
+</script>
+</body>
+</html>
