@@ -474,5 +474,5 @@ body.sheet-open .hdr, body.sheet-open .main, body.sheet-open .dock { pointer-eve
 @media (min-width: 760px) {
   .main { padding-left: max(0px, calc((100% - 720px) / 2)); padding-right: max(0px, calc((100% - 720px) / 2)); }
   .dock { min-width: 340px; }
-  .auth { max-width: 460px; margin: 0 auto; }
+  .auth { width: 100%; max-width: 460px; margin: 0 auto; }
 }
