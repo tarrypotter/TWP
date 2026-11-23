@@ -13,7 +13,7 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="stylesheet" href="./style.css?v=21">
+<link rel="stylesheet" href="./style.css?v=22">
 <style>
   /* ---- 손님 앱 전용 · 다크 글래스 ---- */
   .tier-pill {
@@ -498,8 +498,9 @@ import {
   hydrateProfile, whoTag, tierName, getTiers, menuMatches, itemsSummary, memberKeyOf, giFromAge, profileFrom,
   acctOf, acctProblem, pwProblem, pwHashOf, newSalt,
   watchConfig, collection, doc, addDoc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
+  ownerStatusOf, ownerTitle, OWNER_PLACES, OWNER_ORDER,
   beep, buzz, notify, askNotifyPermission, registerPush, pushTokenLocal, pushTokensOf, PUSH, pushAvailable, sendPush
-} from './core.js?v=21';
+} from './core.js?v=22';
 
 lockZoom();
 
@@ -887,6 +888,21 @@ function setQ(v) {
   fillMenuList();
 }
 
+/* ---------------- 사장님 위치·상태 배너 ----------------
+   사장님이 config/app 에 남긴 지금 계신 곳을 손님 화면 맨 위에 그대로 보여 줍니다.
+   출타중이면 색부터 다르게 해서 헛걸음하지 않게 합니다. */
+function ownerBanner() {
+  const st = ownerStatusOf(S.cfg);
+  const out = st.id === 'out';
+  const when = st.updatedAt ? timeAgo(st.updatedAt) + ' 확인' : '';
+  const sub = [out ? '지금 매장에 안 계세요' : '', st.memo, when].filter(Boolean).join(' · ');
+  return `<section class="owner-bar${out ? ' out' : ''}">
+      <div class="ob-ico">${out ? '🚶' : st.place.ico}</div>
+      <div class="ob-tx"><b>${esc(ownerTitle(st))}</b><span>${esc(sub || '방금 확인')}</span></div>
+      <i class="ob-live" aria-hidden="true"></i>
+    </section>`;
+}
+
 function renderMenu(force) {
   const root = $('#view-menu');
   if (!S.ready) {
@@ -899,6 +915,7 @@ function renderMenu(force) {
   }
   if (!force && $('#menuList')) { renderChips(); fillMenuList(); return; }
   root.innerHTML = `
+    ${ownerBanner()}
     <div class="hero">
       <b>${(S.profile && ACCT) ? `${esc(S.profile.name)}님, 무엇을 드릴까요?` : '로그인하고 주문해 주세요'}</b>
       <p>${(S.profile && ACCT) ? `${whoTag(S.profile)} 적용 중` : '아이디만 만들면 즐겨찾기·주문내역이 그대로 이어져요'}</p>

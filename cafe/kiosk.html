@@ -10,7 +10,7 @@
 <title>세종월드교회 카페 · 키오스크</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="stylesheet" href="./style.css?v=21">
+<link rel="stylesheet" href="./style.css?v=22">
 <style>
   /* ---- 키오스크(태블릿) · 다크 글래스 ---- */
   .kiosk { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
@@ -223,6 +223,8 @@
     </div>
   </header>
 
+  <div class="k-owner" id="kOwner"></div>
+
   <div class="k-body">
     <section class="k-left">
       <div class="k-cats" id="kCats"></div>
@@ -269,8 +271,9 @@
 import {
   db, BRAND, CATS, CAT_NAME, HANDDRIP_NOTE, DEFAULT_CONFIG, won, tierOf, tierShort,
   priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, doc, addDoc, setDoc, getDoc, getDocs, onSnapshot, query, where,
-  copyText, profileFrom, hydrateProfile, whoTag, ageTag, tierName, menuMatches, hhmm, itemsSummary, memberKeyOf, pushTokensOf
-} from './core.js?v=21';
+  copyText, profileFrom, hydrateProfile, whoTag, ageTag, tierName, menuMatches, hhmm, timeAgo, itemsSummary, memberKeyOf, pushTokensOf,
+  ownerStatusOf, ownerTitle
+} from './core.js?v=22';
 
 lockZoom();
 
@@ -292,8 +295,24 @@ const cust = () => {
 const tier = () => cust().tier;
 const named = () => { const c = cust(); return c.name.length > 0 && c.age > 0; };
 
+/* 사장님 위치·상태 — 손님 앱과 같은 config/app 값을 그대로 보여 줍니다 */
+function renderOwner() {
+  const box = $('#kOwner');
+  if (!box) return;
+  const st = ownerStatusOf(S.cfg);
+  const out = st.id === 'out';
+  const when = st.updatedAt ? timeAgo(st.updatedAt) + ' 확인' : '';
+  const sub = [out ? '지금 매장에 안 계세요' : '', st.memo, when].filter(Boolean).join(' · ');
+  box.innerHTML = `<section class="owner-bar${out ? ' out' : ''}">
+      <div class="ob-ico">${out ? '🚶' : st.place.ico}</div>
+      <div class="ob-tx"><b>${esc(ownerTitle(st))}</b><span>${esc(sub || '방금 확인')}</span></div>
+      <i class="ob-live" aria-hidden="true"></i>
+    </section>`;
+}
+
 watchConfig(c => {
   S.cfg = c;
+  renderOwner();
   $('#kAcctNote').innerHTML = `결제 단말기가 없어 <b>계좌이체</b>로 결제합니다.<br><b>${esc(c.bank)} ${esc(c.account)}</b> (예금주 ${esc(c.holder)})`;
   render();
 });
@@ -646,6 +665,7 @@ $('#kModal').onclick = e => { if (e.target.id === 'kModal') $('#kModal').classLi
 
 (async function boot() {
   try { await ensureMenus(); } catch (e) { console.warn(e); }
+  renderOwner();
   render();
 })();
 </script>

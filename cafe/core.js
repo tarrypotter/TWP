@@ -120,8 +120,51 @@ export const DEFAULT_CONFIG = {
   account: '3333-27425-7330',
   toss: '김정훈',
   note: '결제 단말기가 없어 계좌이체 또는 현장 현금으로 결제합니다.',
-  tiers: DEFAULT_TIERS
+  tiers: DEFAULT_TIERS,
+  /* 사장님이 지금 어느 성전에 있는지 — 성도가 헛걸음하지 않게 손님 화면 위쪽에 그대로 보입니다 */
+  ownerPlace: 'sejong',
+  ownerMemo: '',
+  ownerUpdatedAt: 0
 };
+
+/* ---------------- 사장님 위치·상태 ----------------
+   config/app 문서에 ownerPlace · ownerMemo · ownerUpdatedAt 세 필드로 저장합니다.
+   매장 PIN만 통과해도 바꿀 수 있어야 해서(2차 관리자 PIN 없이) 손님 화면과 같은 문서를 씁니다. */
+export const OWNER_PLACES = {
+  sejong: { id: 'sejong', label: '세종 성전', ico: '🏛' },
+  jaseong: { id: 'jaseong', label: '대전 자성성전', ico: '⛪' },
+  out: { id: 'out', label: '출타중', ico: '🚶' }
+};
+export const OWNER_ORDER = ['sejong', 'jaseong', 'out'];
+
+export function ownerStatusOf(cfg) {
+  const c = cfg || {};
+  const id = OWNER_PLACES[c.ownerPlace] ? c.ownerPlace : 'sejong';
+  return {
+    id,
+    place: OWNER_PLACES[id],
+    memo: String(c.ownerMemo == null ? '' : c.ownerMemo).trim(),
+    updatedAt: Number(c.ownerUpdatedAt) || 0
+  };
+}
+
+/** 한 줄 요약 — 손님 화면 배너 제목 */
+export function ownerTitle(st) {
+  if (!st) return '';
+  if (st.id === 'out') return '사장님이 지금 출타중이에요';
+  return '사장님은 지금 ' + st.place.label + '에 계세요';
+}
+
+export async function saveOwnerStatus(place, memo) {
+  const id = OWNER_PLACES[place] ? place : 'sejong';
+  const data = {
+    ownerPlace: id,
+    ownerMemo: String(memo == null ? '' : memo).trim().slice(0, 40),
+    ownerUpdatedAt: Date.now()
+  };
+  await setDoc(doc(db, 'config', 'app'), data, { merge: true });
+  return data;
+}
 
 /* ---------------- 도우미 ---------------- */
 export const won = n => Number(n || 0).toLocaleString('ko-KR') + '원';
