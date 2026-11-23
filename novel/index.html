@@ -316,7 +316,7 @@ html[data-theme="dark"] .chip-mood.is-on{color:var(--blood-2)}
 .toastbar.is-on{opacity:1;transform:translate(-50%,0)}
 .toastbar svg{width:16px;height:16px;stroke:#E2685A;fill:none;stroke-width:2}
 body[data-chrome="off"] .toastbar{bottom:34px}
-body[data-lock="1"] .toastbar{bottom:calc(154px + env(safe-area-inset-bottom))}
+body[data-sel="on"] .toastbar{bottom:calc(154px + env(safe-area-inset-bottom))}
 
 /* ---------------- empty ---------------- */
 .empty{
@@ -2329,6 +2329,7 @@ function hide(){
   clearInterval(R.timer); R.timer=null; R.open=false;
   $('#reader').classList.remove('is-open');
   $('#reader').setAttribute('aria-hidden','true');
+  document.body.removeAttribute('data-sel');
   document.body.removeAttribute('data-lock');
   document.body.setAttribute('data-chrome','on');
   AG.refreshBadges && AG.refreshBadges();
@@ -2362,11 +2363,13 @@ function selectParagraph(pEl){
   S.reader.color = m?m.color:1;
   $$('#rSel .sw').forEach(function(b){ b.classList.toggle('is-on',+b.getAttribute('data-hl')===S.reader.color); });
   $('#rSel').classList.add('is-on');
+  document.body.setAttribute('data-sel','on');
 }
 function clearSel(){
   $$('.r-p.is-sel').forEach(function(x){ x.classList.remove('is-sel'); });
   S.reader.sel=null;
   $('#rSel').classList.remove('is-on');
+  document.body.removeAttribute('data-sel');
 }
 function markAt(){
   var sel=S.reader.sel; if(!sel) return null;
