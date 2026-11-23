@@ -13,7 +13,7 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="stylesheet" href="./style.css?v=22">
+<link rel="stylesheet" href="./style.css?v=23">
 <style>
   /* ---- 손님 앱 전용 · 다크 글래스 ---- */
   .tier-pill {
@@ -500,7 +500,7 @@ import {
   watchConfig, collection, doc, addDoc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot, query, where, ORDER_STATUS, channelLabel, copyText,
   ownerStatusOf, ownerTitle, OWNER_PLACES, OWNER_ORDER,
   beep, buzz, notify, askNotifyPermission, registerPush, pushTokenLocal, pushTokensOf, PUSH, pushAvailable, sendPush
-} from './core.js?v=22';
+} from './core.js?v=23';
 
 lockZoom();
 
@@ -895,7 +895,7 @@ function ownerBanner() {
   const st = ownerStatusOf(S.cfg);
   const out = st.id === 'out';
   const when = st.updatedAt ? timeAgo(st.updatedAt) + ' 확인' : '';
-  const sub = [out ? '지금 매장에 안 계세요' : '', st.memo, when].filter(Boolean).join(' · ');
+  const sub = [st.memo, when].filter(Boolean).join(' · ');
   return `<section class="owner-bar${out ? ' out' : ''}">
       <div class="ob-ico">${out ? '🚶' : st.place.ico}</div>
       <div class="ob-tx"><b>${esc(ownerTitle(st))}</b><span>${esc(sub || '방금 확인')}</span></div>

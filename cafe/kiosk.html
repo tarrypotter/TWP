@@ -10,7 +10,7 @@
 <title>세종월드교회 카페 · 키오스크</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="stylesheet" href="./style.css?v=22">
+<link rel="stylesheet" href="./style.css?v=23">
 <style>
   /* ---- 키오스크(태블릿) · 다크 글래스 ---- */
   .kiosk { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
@@ -273,7 +273,7 @@ import {
   priceOf, shortId, esc, lockZoom, ensureMenus, watchConfig, collection, doc, addDoc, setDoc, getDoc, getDocs, onSnapshot, query, where,
   copyText, profileFrom, hydrateProfile, whoTag, ageTag, tierName, menuMatches, hhmm, timeAgo, itemsSummary, memberKeyOf, pushTokensOf,
   ownerStatusOf, ownerTitle
-} from './core.js?v=22';
+} from './core.js?v=23';
 
 lockZoom();
 
@@ -302,7 +302,7 @@ function renderOwner() {
   const st = ownerStatusOf(S.cfg);
   const out = st.id === 'out';
   const when = st.updatedAt ? timeAgo(st.updatedAt) + ' 확인' : '';
-  const sub = [out ? '지금 매장에 안 계세요' : '', st.memo, when].filter(Boolean).join(' · ');
+  const sub = [st.memo, when].filter(Boolean).join(' · ');
   box.innerHTML = `<section class="owner-bar${out ? ' out' : ''}">
       <div class="ob-ico">${out ? '🚶' : st.place.ico}</div>
       <div class="ob-tx"><b>${esc(ownerTitle(st))}</b><span>${esc(sub || '방금 확인')}</span></div>

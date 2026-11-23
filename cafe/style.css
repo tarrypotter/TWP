@@ -429,8 +429,8 @@ body.sheet-open .hdr, body.sheet-open .main, body.sheet-open .dock, body.sheet-o
   background: rgba(233, 189, 148, .16); border: 1px solid rgba(233, 189, 148, .22);
 }
 .owner-bar .ob-tx { flex: 1 1 auto; min-width: 0; }
-.owner-bar b { display: block; font-size: 13px; letter-spacing: -.01em; color: var(--ink); }
-.owner-bar span { display: block; font-size: 11.5px; color: var(--sub); margin-top: 2px; overflow-wrap: anywhere; }
+.owner-bar b { display: block; font-size: 13px; letter-spacing: -.01em; color: var(--ink); word-break: keep-all; }
+.owner-bar span { display: block; font-size: 11.5px; color: var(--sub); margin-top: 2px; word-break: keep-all; overflow-wrap: anywhere; }
 .owner-bar .ob-live {
   flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; background: var(--ok);
   box-shadow: 0 0 0 3px rgba(134, 217, 168, .16); animation: obpulse 2.4s var(--tap) infinite;
